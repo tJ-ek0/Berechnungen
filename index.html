@@ -71,9 +71,37 @@
             <h2>Kontakt</h2>
             <p>Kontaktiere uns über dieses Formular.</p>
         </section>
+            <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zahlen Addieren</title>
+    <script>
+        function addiereZahlen() {
+            // Werte aus den Eingabefeldern holen
+            var zahl1 = parseFloat(document.getElementById("zahl1").value);
+            var zahl2 = parseFloat(document.getElementById("zahl2").value);
+            
+            // Zahlen addieren
+            var summe = zahl1 + zahl2;
+            
+            // Ergebnis anzeigen
+            document.getElementById("ergebnis").innerText = "Ergebnis: " + summe;
+        }
+    </script>
+</head>
+<body>
+    <h1>Zahlen Addieren</h1>
+    <label for="zahl1">Zahl 1:</label>
+    <input type="number" id="zahl1" name="zahl1">
+    <br>
+    <label for="zahl2">Zahl 2:</label>
+    <input type="number" id="zahl2" name="zahl2">
+    <br>
+    <button onclick="addiereZahlen()">Addieren</button>
+    <p id="ergebnis"></p>
+</body>
     </main>
     <footer>
-        <p>&copy; 2024 Meine Anpassbare Website</p>
+        <p>&copy; 2024 Tobias Jurgan</p>
     </footer>
 </body>
 </html>
