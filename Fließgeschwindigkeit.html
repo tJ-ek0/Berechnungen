@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fließgeschwindigkeit</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #404347;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        nav {
+            background-color: #0056b3;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        nav a {
+            color: white;
+            margin: 0 10px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 700px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 14px;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        input.input-field {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 6px;
+            width: 90px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+        }
+        select.input-field {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 6px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .result-field {
+            background-color: #d4edda;
+            padding: 6px;
+            border-radius: 5px;
+            font-size: 14px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        Techniker Berechnungstools
+    </header>
+
+    <!-- Navigationsleiste -->
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="Stromausgang.html">Stromausgangsberechnung</a>
+        <a href="Dichteberechnung.html">Dichteberechnung</a>
+        <a href="Impulswertigkeit.html">Impulswertigkeit</a>
+        <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
+        <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
+        <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
+		<a href="Impressum.html">Impressum</a>
+    </nav>
+
+    <!-- Container für die Berechnung -->
+    <div class="container">
+        <table>
+            <tr>
+                <th colspan="6">Fließgeschwindigkeit Berechnung</th>
+            </tr>
+
+            <!-- Eingabe der Nennweite -->
+            <tr>
+                <td colspan="2">Nennweite</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="nennweite" value="0"> mm
+                </td>
+            </tr>
+
+            <!-- Eingabe des Durchflusses -->
+            <tr>
+                <td colspan="2">Durchfluss</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="durchfluss" value="0">
+                    <select class="input-field" id="durchfluss_einheit">
+                        <option value="m³/h">m³/h</option>
+                        <option value="l/h">l/h</option>
+                        <option value="t/h">t/h</option>
+                        <option value="kg/h">kg/h</option>
+                        <option value="m³/min">m³/min</option>
+                        <option value="l/min">l/min</option>
+                        <option value="t/min">t/min</option>
+                        <option value="kg/min">kg/min</option>
+                        <option value="m³/sek">m³/sek</option>
+                        <option value="l/sek">l/sek</option>
+                        <option value="t/sek">t/sek</option>
+                        <option value="kg/sek">kg/sek</option>
+                    </select>
+                </td>
+            </tr>
+
+            <!-- Ergebnis der Fließgeschwindigkeit -->
+            <tr>
+                <td colspan="2">Fließgeschwindigkeit</td>
+                <td colspan="4" class="result-field">
+                    <span id="fließgeschwindigkeit"></span> m/s
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        // Funktion zur Umrechnung des Durchflusses in m³/s
+        function umrechnenDurchfluss(durchfluss, einheit) {
+            switch (einheit) {
+                case "m³/h":
+                    return durchfluss / 3600; // m³/h in m³/s
+                case "l/h":
+                    return durchfluss / 1000 / 3600; // l/h in m³/s
+                case "t/h":
+                case "kg/h":
+                    return durchfluss / 1000 / 3600; // t/h oder kg/h in m³/s (bei Wasser gilt 1 t = 1 m³)
+                case "m³/min":
+                    return durchfluss / 60; // m³/min in m³/s
+                case "l/min":
+                    return durchfluss / 1000 / 60; // l/min in m³/s
+                case "t/min":
+                case "kg/min":
+                    return durchfluss / 1000 / 60; // t/min oder kg/min in m³/s
+                case "m³/sek":
+                    return durchfluss; // m³/sek bleibt m³/sek
+                case "l/sek":
+                    return durchfluss / 1000; // l/sek in m³/sek
+                case "t/sek":
+                case "kg/sek":
+                    return durchfluss / 1000; // t/sek oder kg/sek in m³/sek
+                default:
+                    return durchfluss;
+            }
+        }
+
+        // Funktion zur Berechnung der Querschnittsfläche in m²
+        function berechneQuerschnitt(nennweite) {
+            const radius = (nennweite / 1000) / 2; // Umrechnung von mm zu m und Radius
+            return Math.PI * Math.pow(radius, 2); // A = πr²
+        }
+
+        // Hauptfunktion zur Berechnung der Fließgeschwindigkeit
+        function berechneFließgeschwindigkeit() {
+            const nennweite = parseFloat(document.getElementById('nennweite').value); // Nennweite in mm
+            const durchfluss = parseFloat(document.getElementById('durchfluss').value); // Durchflusswert
+            const einheit = document.getElementById('durchfluss_einheit').value; // Einheit des Durchflusses
+
+            // Querschnittsfläche in m² berechnen
+            const querschnitt = berechneQuerschnitt(nennweite);
+
+            // Durchfluss in m³/s umrechnen
+            const durchfluss_m3s = umrechnenDurchfluss(durchfluss, einheit);
+
+            // Fließgeschwindigkeit in m/s berechnen
+            const fließgeschwindigkeit = durchfluss_m3s / querschnitt;
+
+            // Ergebnis anzeigen
+            document.getElementById('fließgeschwindigkeit').innerText = fließgeschwindigkeit.toFixed(2);
+        }
+
+        // Event Listener für die Berechnung bei Eingabeänderung
+        document.querySelectorAll('#nennweite, #durchfluss, #durchfluss_einheit').forEach(input => {
+            input.addEventListener('input', berechneFließgeschwindigkeit);
+        });
+    </script>
+
+</body>
+</html>

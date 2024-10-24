@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Berechnung Stromausgang</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #404347;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        nav {
+            background-color: #0056b3;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        nav a {
+            color: white;
+            margin: 0 10px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 700px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 14px;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        th, td:first-child {
+            width: 120px;
+        }
+        input.input-field, select.input-field {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 6px;
+            width: 90px; /* Verbreitertes Feld */
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .result-field {
+            background-color: #d4edda;
+            padding: 6px;
+            border-radius: 5px;
+            font-size: 14px;
+            text-align: center;
+        }
+        h3 {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        Techniker Berechnungstools
+    </header>
+
+    <!-- Navigationsleiste -->
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="Stromausgang.html">Stromausgangsberechnung</a>
+        <a href="Dichteberechnung.html">Dichteberechnung</a>
+        <a href="Impulswertigkeit.html">Impulswertigkeit</a>
+        <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
+        <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
+        <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
+		<a href="Impressum.html">Impressum</a>
+        <!-- Weitere Links zu Berechnungstools -->
+    </nav>
+
+    <div class="container">
+        <table>
+            <!-- Titelzeile -->
+            <tr>
+                <th colspan="6">Berechnung Stromausgang</th>
+            </tr>
+
+            <!-- Auswahl des Strombereichs -->
+            <tr>
+                <td colspan="2">Strombereich</td>
+                <td colspan="4">
+                    <select class="input-field" id="strombereich">
+                        <option value="4-20">4-20 mA</option>
+                        <option value="0-20">0-20 mA</option>
+                    </select>
+                </td>
+            </tr>
+
+            <!-- Eingabe des Messbereichs -->
+            <tr>
+                <td colspan="2">Messbereich (z.B. 100 bis 1000)</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="messbereich_min" value="0"> bis
+                    <input class="input-field" type="number" id="messbereich_max" value="400">
+                </td>
+            </tr>
+
+            <!-- Strom zu Messwert -->
+            <tr>
+                <th colspan="6">Strom zu Messwert</th>
+            </tr>
+            <tr>
+                <td colspan="2">Istwert Strom (mA)</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="stromwert" value="0"> <!-- Standardwert auf 0 -->
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Messwert calc:</td>
+                <td colspan="4" class="result-field">
+                    <span id="messwert_calc"></span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">% von MB:</td>
+                <td colspan="4" class="result-field">
+                    <span id="prozent_mb_strom"></span>
+                </td>
+            </tr>
+
+            <!-- Messwert zu Strom -->
+            <tr>
+                <th colspan="6">Messwert zu Strom</th>
+            </tr>
+            <tr>
+                <td colspan="2">Messwert</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="messwert" value="0"> <!-- Standardwert auf 0 -->
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Strom calc:</td>
+                <td colspan="4" class="result-field">
+                    <span id="strom_calc"></span> mA
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">% von MB:</td>
+                <td colspan="4" class="result-field">
+                    <span id="prozent_mb_messwert"></span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        function berechneStromZuMesswert() {
+            const stromwert = parseFloat(document.getElementById('stromwert').value);
+            const strombereich = document.getElementById('strombereich').value;
+            const messbereich_min = parseFloat(document.getElementById('messbereich_min').value);
+            const messbereich_max = parseFloat(document.getElementById('messbereich_max').value);
+            const messbereich = messbereich_max - messbereich_min;
+
+            let messwert_calc;
+            if (strombereich === '4-20') {
+                messwert_calc = (stromwert - 4) * (messbereich / 16) + messbereich_min;
+            } else if (strombereich === '0-20') {
+                messwert_calc = stromwert * (messbereich / 20) + messbereich_min;
+            }
+
+            const prozent_mb = (messwert_calc - messbereich_min) / messbereich * 100;
+
+            document.getElementById('messwert_calc').innerText = messwert_calc.toFixed(2);
+            document.getElementById('prozent_mb_strom').innerText = prozent_mb.toFixed(2) + '%';
+        }
+
+        function berechneMesswertZuStrom() {
+            const messwert = parseFloat(document.getElementById('messwert').value);
+            const strombereich = document.getElementById('strombereich').value;
+            const messbereich_min = parseFloat(document.getElementById('messbereich_min').value);
+            const messbereich_max = parseFloat(document.getElementById('messbereich_max').value);
+            const messbereich = messbereich_max - messbereich_min;
+
+            let strom_calc;
+            if (strombereich === '4-20') {
+                strom_calc = ((messwert - messbereich_min) / messbereich) * 16 + 4;
+            } else if (strombereich === '0-20') {
+                strom_calc = ((messwert - messbereich_min) / messbereich) * 20;
+            }
+
+            const prozent_mb = (messwert - messbereich_min) / messbereich * 100;
+
+            document.getElementById('strom_calc').innerText = strom_calc.toFixed(2);
+            document.getElementById('prozent_mb_messwert').innerText = prozent_mb.toFixed(2) + '%';
+        }
+
+        // Event Listener für automatische Berechnung
+        document.getElementById('strombereich').addEventListener('change', () => {
+            berechneStromZuMesswert();
+            berechneMesswertZuStrom();
+        });
+
+        document.querySelectorAll('#stromwert, #messbereich_min, #messbereich_max').forEach(input => {
+            input.addEventListener('input', berechneStromZuMesswert);
+        });
+
+        document.querySelectorAll('#messwert, #messbereich_min, #messbereich_max').forEach(input => {
+            input.addEventListener('input', berechneMesswertZuStrom);
+        });
+    </script>
+
+</body>
+</html>

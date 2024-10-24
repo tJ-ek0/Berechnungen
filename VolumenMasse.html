@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volumen-Masse-Umrechnung</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #404347;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        nav {
+            background-color: #0056b3;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        nav a {
+            color: white;
+            margin: 0 10px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 700px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 14px;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        input.input-field {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 6px;
+            width: 90px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+        }
+        select.input-field {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 6px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .result-field {
+            background-color: #d4edda;
+            padding: 6px;
+            border-radius: 5px;
+            font-size: 14px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        Techniker Berechnungstools
+    </header>
+
+    <!-- Navigationsleiste -->
+    <nav>
+		<a href="index.html">Home</a>
+        <a href="Stromausgang.html">Stromausgangsberechnung</a>
+        <a href="Dichteberechnung.html">Dichteberechnung</a>
+        <a href="Impulswertigkeit.html">Impulswertigkeit</a>
+        <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
+        <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
+        <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
+		<a href="Impressum.html">Impressum</a>
+    </nav>
+
+    <!-- Container für die Berechnung -->
+    <div class="container">
+        <table>
+            <tr>
+                <th colspan="6">Volumen-Masse-Umrechnung</th>
+            </tr>
+
+            <!-- Auswahl Volumen zu Masse oder Masse zu Volumen -->
+            <tr>
+                <td colspan="2">Umrechnung</td>
+                <td colspan="4">
+                    <select class="input-field" id="umrechnungsart">
+                        <option value="volumenZuMasse">Volumen zu Masse</option>
+                        <option value="masseZuVolumen">Masse zu Volumen</option>
+                    </select>
+                </td>
+            </tr>
+
+            <!-- Eingabewert -->
+            <tr>
+                <td colspan="2" id="eingabe_label">Volumen</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="eingabe_wert" value="0">
+                    <select class="input-field" id="eingabe_einheit">
+                        <option value="l">l</option>
+                        <option value="m³">m³</option>
+                    </select>
+                </td>
+            </tr>
+
+            <!-- Dichteeingabe -->
+            <tr>
+                <td colspan="2">Dichte (kg/l)</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="dichte" value="0">
+                </td>
+            </tr>
+
+            <!-- Ausgabe in -->
+            <tr>
+                <td colspan="2" id="ausgabe_label">Ausgabe in</td>
+                <td colspan="4">
+                    <select class="input-field" id="ausgabe_einheit">
+                        <option value="kg">kg</option>
+                        <option value="t">t</option>
+                    </select>
+                </td>
+            </tr>
+
+            <!-- Ergebnis -->
+            <tr>
+                <td colspan="2">Ergebnis</td>
+                <td colspan="4" class="result-field">
+                    <span id="ergebnis"></span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        // Funktion zum Ändern der Labels und Einheiten basierend auf der Auswahl
+        function aendereUmrechnungsart() {
+            const umrechnungsart = document.getElementById('umrechnungsart').value;
+            const eingabeLabel = document.getElementById('eingabe_label');
+            const ausgabeLabel = document.getElementById('ausgabe_label');
+            const eingabeEinheit = document.getElementById('eingabe_einheit');
+            const ausgabeEinheit = document.getElementById('ausgabe_einheit');
+
+            // Anpassung für "Volumen zu Masse"
+            if (umrechnungsart === 'volumenZuMasse') {
+                eingabeLabel.innerText = 'Volumen';
+                ausgabeLabel.innerText = 'Masse in';
+                eingabeEinheit.innerHTML = `
+                    <option value="l">l</option>
+                    <option value="m³">m³</option>
+                `;
+                ausgabeEinheit.innerHTML = `
+                    <option value="kg">kg</option>
+                    <option value="t">t</option>
+                `;
+            }
+            // Anpassung für "Masse zu Volumen"
+            else {
+                eingabeLabel.innerText = 'Masse';
+                ausgabeLabel.innerText = 'Volumen in';
+                eingabeEinheit.innerHTML = `
+                    <option value="kg">kg</option>
+                    <option value="t">t</option>
+                `;
+                ausgabeEinheit.innerHTML = `
+                    <option value="l">l</option>
+                    <option value="m³">m³</option>
+                `;
+            }
+        }
+
+        // Funktion zur Berechnung der Umrechnung
+        function berechneErgebnis() {
+            const umrechnungsart = document.getElementById('umrechnungsart').value;
+            const eingabeWert = parseFloat(document.getElementById('eingabe_wert').value);
+            const eingabeEinheit = document.getElementById('eingabe_einheit').value;
+            const ausgabeEinheit = document.getElementById('ausgabe_einheit').value;
+            const dichte = parseFloat(document.getElementById('dichte').value);
+
+            let ergebnis = 0;
+
+            // Umrechnung von Volumen zu Masse
+            if (umrechnungsart === 'volumenZuMasse') {
+                let volumenInLiter = eingabeWert;
+
+                // Volumen in Liter umrechnen, wenn m³ gewählt ist
+                if (eingabeEinheit === 'm³') {
+                    volumenInLiter = eingabeWert * 1000;
+                }
+
+                // Berechnung der Masse
+                ergebnis = volumenInLiter * dichte;
+
+                // Ergebnis in Tonne umrechnen, wenn t gewählt ist
+                if (ausgabeEinheit === 't') {
+                    ergebnis = ergebnis / 1000;
+                }
+            }
+            // Umrechnung von Masse zu Volumen
+            else {
+                let masseInKg = eingabeWert;
+
+                // Masse in Kilogramm umrechnen, wenn t gewählt ist
+                if (eingabeEinheit === 't') {
+                    masseInKg = eingabeWert * 1000;
+                }
+
+                // Berechnung des Volumens
+                ergebnis = masseInKg / dichte;
+
+                // Ergebnis in m³ umrechnen, wenn m³ gewählt ist
+                if (ausgabeEinheit === 'm³') {
+                    ergebnis = ergebnis / 1000;
+                }
+            }
+
+            // Ergebnis anzeigen
+            document.getElementById('ergebnis').innerText = ergebnis.toFixed(2) + " " + ausgabeEinheit;
+        }
+
+        // Event Listener für Umrechnungsart und Berechnungen
+        document.getElementById('umrechnungsart').addEventListener('change', function() {
+            aendereUmrechnungsart();
+            berechneErgebnis();
+        });
+
+        document.querySelectorAll('#eingabe_wert, #eingabe_einheit, #dichte, #ausgabe_einheit').forEach(input => {
+            input.addEventListener('input', berechneErgebnis);
+        });
+
+        // Initialisieren mit der richtigen Umrechnungsart
+        aendereUmrechnungsart();
+    </script>
+
+</body>
+</html>

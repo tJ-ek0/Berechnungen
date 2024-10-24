@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impulswertigkeit</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #404347;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        nav {
+            background-color: #0056b3;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        nav a {
+            color: white;
+            margin: 0 10px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 700px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 14px;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        input.input-field {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 6px;
+            width: 90px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+        }
+        select.input-field {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 6px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .result-field {
+            background-color: #d4edda;
+            padding: 6px;
+            border-radius: 5px;
+            font-size: 14px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        Techniker Berechnungstools
+    </header>
+
+    <!-- Navigationsleiste -->
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="Stromausgang.html">Stromausgangsberechnung</a>
+        <a href="Dichteberechnung.html">Dichteberechnung</a>
+        <a href="Impulswertigkeit.html">Impulswertigkeit</a>
+        <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
+        <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
+        <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
+		<a href="Impressum.html">Impressum</a>
+    </nav>
+
+    <!-- Container für die Berechnung -->
+    <div class="container">
+        <table>
+            <tr>
+                <th colspan="6">Impulswertigkeit Berechnung</th>
+            </tr>
+
+            <!-- Auswahl Masse oder Volumen -->
+            <tr>
+                <td colspan="2">Typ</td>
+                <td colspan="4">
+                    <select class="input-field" id="typ">
+                        <option value="volumen">Volumen</option>
+                        <option value="masse">Masse</option>
+                    </select>
+                </td>
+            </tr>
+
+            <!-- Durchflussmenge -->
+            <tr>
+                <td colspan="2">Durchflussmenge</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="durchfluss" value="0">
+                    <select class="input-field" id="durchfluss_einheit">
+                        <!-- Einheiten ändern sich je nach Typ -->
+                        <option value="m³/h">m³/h</option>
+                        <option value="ltr/h">ltr/h</option>
+                        <option value="m³/min">m³/min</option>
+                        <option value="ltr/min">ltr/min</option>
+                        <option value="m³/sek">m³/sek</option>
+                        <option value="ltr/sek">ltr/sek</option>
+                    </select>
+                </td>
+            </tr>
+
+            <!-- Impulswertigkeit -->
+            <tr>
+                <td colspan="2">Impulswertigkeit</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="impulswertigkeit" value="1">
+                    <select class="input-field" id="impulswertigkeit_einheit">
+                        <!-- Einheiten ändern sich je nach Typ -->
+                        <option value="ltr/Imp">ltr/Imp</option>
+                        <option value="m³/Imp">m³/Imp</option>
+                    </select>
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="2">Impulse pro Sekunde</td>
+                <td colspan="4" class="result-field">
+                    <span id="impulse_sek"></span> Imp/s
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Impulse pro Minute</td>
+                <td colspan="4" class="result-field">
+                    <span id="impulse_min"></span> Imp/min
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Impulse pro Stunde</td>
+                <td colspan="4" class="result-field">
+                    <span id="impulse_h"></span> Imp/h
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Impulsbreite</td>
+                <td colspan="4" class="result-field">
+                    <span id="impulsbreite"></span> ms
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        // Funktion zur Änderung der Einheiten basierend auf Volumen oder Masse
+        function aendereEinheiten(typ) {
+            const einheitDropdown = document.getElementById('durchfluss_einheit');
+            const impulsEinheitDropdown = document.getElementById('impulswertigkeit_einheit');
+
+            einheitDropdown.innerHTML = ''; // Leere das Dropdown für Durchfluss
+            impulsEinheitDropdown.innerHTML = ''; // Leere das Dropdown für Impulswertigkeit
+
+            if (typ === 'volumen') {
+                einheitDropdown.innerHTML = `
+                    <option value="m³/h">m³/h</option>
+                    <option value="ltr/h">ltr/h</option>
+                    <option value="m³/min">m³/min</option>
+                    <option value="ltr/min">ltr/min</option>
+                    <option value="m³/sek">m³/sek</option>
+                    <option value="ltr/sek">ltr/sek</option>
+                `;
+                impulsEinheitDropdown.innerHTML = `
+                    <option value="ltr/Imp">ltr/Imp</option>
+                    <option value="m³/Imp">m³/Imp</option>
+                `;
+            } else if (typ === 'masse') {
+                einheitDropdown.innerHTML = `
+                    <option value="t/h">t/h</option>
+                    <option value="kg/h">kg/h</option>
+                    <option value="t/min">t/min</option>
+                    <option value="kg/min">kg/min</option>
+                    <option value="t/sek">t/sek</option>
+                    <option value="kg/sek">kg/sek</option>
+                `;
+                impulsEinheitDropdown.innerHTML = `
+                    <option value="kg/Imp">kg/Imp</option>
+                    <option value="t/Imp">t/Imp</option>
+                `;
+            }
+        }
+
+        // Funktion zur Umrechnung der Durchflussmenge in l/h oder kg/h je nach Typ
+        function umrechnenDurchfluss(durchfluss, einheit, typ) {
+            if (typ === 'volumen') {
+                // Umrechnungen für Volumen (m³/h, ltr/h, m³/min, etc.)
+                switch (einheit) {
+                    case "m³/h":
+                        return durchfluss * 1000; // m³/h in l/h
+                    case "ltr/h":
+                        return durchfluss; // l/h bleibt l/h
+                    case "m³/min":
+                        return durchfluss * 1000 * 60; // m³/min in l/h
+                    case "ltr/min":
+                        return durchfluss * 60; // ltr/min in l/h
+                    case "m³/sek":
+                        return durchfluss * 1000 * 3600; // m³/sek in l/h
+                    case "ltr/sek":
+                        return durchfluss * 3600; // ltr/sek in l/h
+                    default:
+                        return durchfluss;
+                }
+            } else if (typ === 'masse') {
+                // Umrechnungen für Masse (t/h, kg/h, t/min, etc.)
+                switch (einheit) {
+                    case "t/h":
+                        return durchfluss * 1000; // t/h in kg/h
+                    case "kg/h":
+                        return durchfluss; // kg/h bleibt kg/h
+                    case "t/min":
+                        return durchfluss * 1000 * 60; // t/min in kg/h
+                    case "kg/min":
+                        return durchfluss * 60; // kg/min in kg/h
+                    case "t/sek":
+                        return durchfluss * 1000 * 3600; // t/sek in kg/h
+                    case "kg/sek":
+                        return durchfluss * 3600; // kg/sek in kg/h
+                    default:
+                        return durchfluss;
+                }
+            }
+        }
+
+        // Funktion zur Umrechnung der Impulswertigkeit in ltr/Imp oder kg/Imp
+        function umrechnenImpulswertigkeit(impulswertigkeit, einheit, typ) {
+            if (typ === 'volumen') {
+                // Umrechnung für Volumen (ltr/Imp, m³/Imp)
+                return einheit === 'm³/Imp' ? impulswertigkeit * 1000 : impulswertigkeit; // m³/Imp in ltr/Imp
+            } else if (typ === 'masse') {
+                // Umrechnung für Masse (t/Imp, kg/Imp)
+                return einheit === 't/Imp' ? impulswertigkeit * 1000 : impulswertigkeit; // t/Imp in kg/Imp
+            }
+        }
+
+        // Impulswertigkeit Berechnung
+        function berechneImpulswertigkeit() {
+            const durchfluss = parseFloat(document.getElementById('durchfluss').value); // Eingabe Durchfluss
+            const durchfluss_einheit = document.getElementById('durchfluss_einheit').value; // Auswahl der Einheit für Durchfluss
+            const typ = document.getElementById('typ').value; // Volumen oder Masse
+            const impulswertigkeit = parseFloat(document.getElementById('impulswertigkeit').value); // Eingabe Impulswertigkeit
+            const impulswertigkeit_einheit = document.getElementById('impulswertigkeit_einheit').value; // Auswahl der Einheit für Impulswertigkeit
+
+            // Durchflussmenge in l/h oder kg/h umrechnen
+            const durchfluss_lh = umrechnenDurchfluss(durchfluss, durchfluss_einheit, typ);
+
+            // Impulswertigkeit in ltr/Imp oder kg/Imp umrechnen
+            const impulswertigkeit_ltrImp = umrechnenImpulswertigkeit(impulswertigkeit, impulswertigkeit_einheit, typ);
+
+            // Berechnung der Impulse pro Sekunde, Minute und Stunde
+            const impulse_h = durchfluss_lh / impulswertigkeit_ltrImp; // Impulse pro Stunde
+            const impulse_min = impulse_h / 60; // Impulse pro Minute
+            const impulse_sek = impulse_min / 60; // Impulse pro Sekunde
+
+            // Impulsbreite berechnen
+            const impulsbreite = 1000 / (impulse_sek * 2); // Impulsbreite in Millisekunden
+
+            // Ergebnisse anzeigen
+            document.getElementById('impulse_h').innerText = impulse_h.toFixed(2);
+            document.getElementById('impulse_min').innerText = impulse_min.toFixed(2);
+            document.getElementById('impulse_sek').innerText = impulse_sek.toFixed(2);
+            document.getElementById('impulsbreite').innerText = impulsbreite.toFixed(2);
+        }
+
+        // Event Listener für automatische Berechnung bei Eingaben
+        document.querySelectorAll('#durchfluss, #impulswertigkeit, #durchfluss_einheit, #impulswertigkeit_einheit, #typ').forEach(input => {
+            input.addEventListener('input', berechneImpulswertigkeit);
+        });
+
+        // Event Listener für die Änderung der Einheiten basierend auf Volumen oder Masse
+        document.getElementById('typ').addEventListener('change', function() {
+            aendereEinheiten(this.value);
+            berechneImpulswertigkeit(); // Neuberechnung nach Änderung
+        });
+    </script>
+
+</body>
+</html>

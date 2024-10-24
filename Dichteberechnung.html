@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dichteberechnung</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #404347;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        nav {
+            background-color: #0056b3;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        nav a {
+            color: white;
+            margin: 0 10px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 700px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 14px;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        input.input-field {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 6px;
+            width: 90px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .result-field {
+            background-color: #d4edda;
+            padding: 6px;
+            border-radius: 5px;
+            font-size: 14px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        Techniker Berechnungstools
+    </header>
+
+    <!-- Navigationsleiste -->
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="Stromausgang.html">Stromausgangsberechnung</a>
+        <a href="Dichteberechnung.html">Dichteberechnung</a>
+        <a href="Impulswertigkeit.html">Impulswertigkeit</a>
+        <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
+        <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
+        <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
+		<a href="Impressum.html">Impressum</a>
+    </nav>
+
+    <!-- Container für die Berechnung -->
+    <div class="container">
+        <table>
+            <tr>
+                <th colspan="6">Dichteberechnung</th>
+            </tr>
+
+            <tr>
+                <td colspan="2">Gewicht 1</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="gewicht1" value="0"> g
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Gewicht 2</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="gewicht2" value="0"> g
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Gewicht 3</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="gewicht3" value="0"> g
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Volumen</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="volumen" value="0"> ml
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Mittelwert Gewicht</td>
+                <td colspan="4" class="result-field">
+                    <span id="mittelwert"></span> g
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Dichte</td>
+                <td colspan="4" class="result-field">
+                    <span id="dichte_calc"></span> kg/l
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        // Dichteberechnung: Mittelwert und Dichte berechnen
+        function berechneDichte() {
+            const gewicht1 = parseFloat(document.getElementById('gewicht1').value);
+            const gewicht2 = parseFloat(document.getElementById('gewicht2').value);
+            const gewicht3 = parseFloat(document.getElementById('gewicht3').value);
+            const volumen = parseFloat(document.getElementById('volumen').value);
+
+            // Mittelwert der Gewichte berechnen
+            const mittelwert = (gewicht1 + gewicht2 + gewicht3) / 3;
+
+            // Volumen in Liter umrechnen (1 ml = 0.001 l)
+            const volumen_l = volumen / 1000;
+
+            // Dichte berechnen (Masse in g / Volumen in l)
+            const dichte = mittelwert / volumen_l;
+
+            // Ergebnisse anzeigen
+            document.getElementById('mittelwert').innerText = mittelwert.toFixed(2);
+            document.getElementById('dichte_calc').innerText = (dichte / 1000).toFixed(3); // Umwandlung in kg/l
+        }
+
+        // Event Listener für automatische Berechnung bei Dichteeingabe
+        document.querySelectorAll('#gewicht1, #gewicht2, #gewicht3, #volumen').forEach(input => {
+            input.addEventListener('input', berechneDichte);
+        });
+    </script>
+
+</body>
+</html>
