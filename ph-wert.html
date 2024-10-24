@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pH-Werte Steilheitstest</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #787c82;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #1b2b40;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        nav {
+            background-color: #335582;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        nav a {
+            color: white;
+            margin: 0 10px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 700px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 14px;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        input.input-field {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 6px;
+            width: 90px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .result-field {
+            padding: 6px;
+            border-radius: 5px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .good {
+            background-color: #d4edda;
+        }
+        .bad {
+            background-color: #f8d7da;
+        }
+        .description {
+            max-width: 700px;
+            margin: 20px auto;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        Techniker Berechnungstools - pH-Werte Steilheitstest
+    </header>
+
+    <!-- Navigationsleiste -->
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="Stromausgang.html">Stromausgangsberechnung</a>
+        <a href="Dichteberechnung.html">Dichteberechnung</a>
+        <a href="PHWerte.html">pH-Werte Steilheitstest</a>
+        <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
+        <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
+        <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
+		<a href="PH-Wert.html">PH-Steilheit</a>
+        <a href="Impressum.html">Impressum</a>
+    </nav>
+
+    <!-- Beschreibung -->
+    <div class="description">
+        <p>Dieser Steilheitstest hilft Ihnen zu überprüfen, ob Ihre pH-Sonde ordnungsgemäß funktioniert. Dazu werden zwei pH-Werte und die entsprechenden Spannungen gemessen und eingegeben. Das Programm berechnet die Steilheit der Sonde, indem es die Differenz der Spannungen durch die Differenz der pH-Werte teilt. 
+        Die normale Steilheit einer funktionierenden pH-Sonde beträgt etwa 59 mV pro pH-Einheit bei 25°C. Liegt die berechnete Steilheit im Bereich von 55 bis 65 mV/pH, wird die Sonde als "Good" angezeigt. Andernfalls wird die Sonde als "Bad" markiert, was auf eine möglicherweise fehlerhafte Sonde hinweist. 
+        Geben Sie die Messwerte in die Felder unten ein, und die Berechnung wird automatisch durchgeführt.</p>
+    </div>
+
+    <!-- Container für die Berechnung -->
+    <div class="container">
+        <table>
+            <tr>
+                <th colspan="6">pH-Sonde Steilheitstest</th>
+            </tr>
+
+            <tr>
+                <td colspan="2">pH-Wert 1</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="ph_wert1" value="0" step="0.01">
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">pH-Wert 2</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="ph_wert2" value="0" step="0.01">
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Spannung 1 (mV)</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="spannung1" value="0" step="0.1"> mV
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Spannung 2 (mV)</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="spannung2" value="0" step="0.1"> mV
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Steilheit</td>
+                <td colspan="4" class="result-field">
+                    <span id="steilheit"></span> mV/pH
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Sondenstatus</td>
+                <td colspan="4" class="result-field" id="sonden_status">
+                    <span id="status"></span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        // Funktion zur Berechnung der Steilheit und des Zustands der pH-Sonde
+        function pruefePHWerte() {
+            const phWert1 = parseFloat(document.getElementById('ph_wert1').value);
+            const phWert2 = parseFloat(document.getElementById('ph_wert2').value);
+            const spannung1 = parseFloat(document.getElementById('spannung1').value);
+            const spannung2 = parseFloat(document.getElementById('spannung2').value);
+
+            // Berechnung der Steilheit (Delta Spannung / Delta pH)
+            const deltaPH = phWert2 - phWert1;
+            const deltaSpannung = spannung2 - spannung1;
+            const steilheit = deltaSpannung / deltaPH;
+
+            // Ergebnis anzeigen
+            document.getElementById('steilheit').innerText = steilheit.toFixed(2);
+
+            // Überprüfung, ob die Steilheit im akzeptablen Bereich liegt (normalerweise etwa 59 mV/pH bei 25°C)
+            const statusElement = document.getElementById('sonden_status');
+            if (steilheit >= 55 && steilheit <= 65) {
+                statusElement.className = 'result-field good';
+                document.getElementById('status').innerText = 'Good';
+            } else {
+                statusElement.className = 'result-field bad';
+                document.getElementById('status').innerText = 'Bad';
+            }
+        }
+
+        // Event Listener für automatische Berechnung
+        document.querySelectorAll('#ph_wert1, #ph_wert2, #spannung1, #spannung2').forEach(input => {
+            input.addEventListener('input', pruefePHWerte);
+        });
+    </script>
+
+</body>
+</html>
