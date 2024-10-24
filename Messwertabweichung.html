@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messabweichung Berechnung</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #787c82;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #1b2b40;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        nav {
+            background-color: #335582;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        nav a {
+            color: white;
+            margin: 0 10px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .description {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 700px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 16px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 700px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 14px;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        input.input-field {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 6px;
+            width: 90px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .result-field {
+            background-color: #d4edda;
+            padding: 6px;
+            border-radius: 5px;
+            font-size: 14px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        Messabweichung Berechnung
+    </header>
+
+    <!-- Navigationsleiste -->
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="Stromausgang.html">Stromausgangsberechnung</a>
+        <a href="Dichteberechnung.html">Dichteberechnung</a>
+        <a href="Impulswertigkeit.html">Impulswertigkeit</a>
+        <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
+        <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
+        <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
+		<a href="Messabweichung.html">Messabweichung</a>
+		<a href="PH-Wert.html">PH-Steilheit</a>
+        <a href="Impressum.html">Impressum</a>
+    </nav>
+
+    <!-- Beschreibung der Berechnung -->
+    <div class="container">
+        <div class="description">
+            Dieses Tool berechnet die prozentuale Abweichung eines Messwerts sowohl vom Messbereich als auch vom Sollwert.
+            Der Benutzer gibt den Sollwert, den gemessenen Istwert sowie den minimalen und maximalen Wert des Messbereichs an.
+        </div>
+
+        <!-- Tabelle für die Berechnung -->
+        <table>
+            <tr>
+                <th colspan="6">Messabweichung Berechnung</th>
+            </tr>
+
+            <!-- Eingabe des Sollwerts -->
+            <tr>
+                <td colspan="2">Sollwert</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="sollwert" value="0">
+                </td>
+            </tr>
+
+            <!-- Eingabe des Istwerts -->
+            <tr>
+                <td colspan="2">Istwert</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="istwert" value="0">
+                </td>
+            </tr>
+
+            <!-- Eingabe des Messbereichs -->
+            <tr>
+                <td colspan="2">Messbereich</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="messbereich_min" value="0"> bis 
+                    <input class="input-field" type="number" id="messbereich_max" value="100">
+                </td>
+            </tr>
+
+            <!-- Ergebnis: Abweichung vom Messbereich -->
+            <tr>
+                <td colspan="2">Abweichung vom Messbereich</td>
+                <td colspan="4" class="result-field">
+                    <span id="abweichung_messbereich"></span> %
+                </td>
+            </tr>
+
+            <!-- Ergebnis: Abweichung vom Messwert -->
+            <tr>
+                <td colspan="2">Abweichung vom Messwert</td>
+                <td colspan="4" class="result-field">
+                    <span id="abweichung_messwert"></span> %
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        // Funktion zur Berechnung der Abweichungen
+        function berechneAbweichung() {
+            const sollwert = parseFloat(document.getElementById('sollwert').value);
+            const istwert = parseFloat(document.getElementById('istwert').value);
+            const messbereich_min = parseFloat(document.getElementById('messbereich_min').value);
+            const messbereich_max = parseFloat(document.getElementById('messbereich_max').value);
+            
+            // Messbereich berechnen
+            const messbereich = messbereich_max - messbereich_min;
+
+            // Abweichung vom Messbereich in %
+            const abweichung_messbereich = ((istwert - sollwert) / messbereich) * 100;
+
+            // Abweichung vom Messwert in %
+            const abweichung_messwert = ((istwert - sollwert) / sollwert) * 100;
+
+            // Ergebnisse anzeigen
+            document.getElementById('abweichung_messbereich').innerText = abweichung_messbereich.toFixed(2);
+            document.getElementById('abweichung_messwert').innerText = abweichung_messwert.toFixed(2);
+        }
+
+        // Event Listener für automatische Berechnung bei Eingabeänderung
+        document.querySelectorAll('#sollwert, #istwert, #messbereich_min, #messbereich_max').forEach(input => {
+            input.addEventListener('input', berechneAbweichung);
+        });
+
+        // Initiale Berechnung
+        berechneAbweichung();
+    </script>
+
+</body>
+</html>
