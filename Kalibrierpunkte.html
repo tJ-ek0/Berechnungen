@@ -36,8 +36,19 @@
         }
         .container {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
             padding: 20px;
+        }
+        .description {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 700px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 16px;
         }
         table {
             border-collapse: collapse;
@@ -93,18 +104,24 @@
 
     <!-- Navigationsleiste -->
     <nav>
-		<a href="index.html">Home</a>
+        <a href="index.html">Home</a>
         <a href="Stromausgang.html">Stromausgangsberechnung</a>
         <a href="Dichteberechnung.html">Dichteberechnung</a>
         <a href="Impulswertigkeit.html">Impulswertigkeit</a>
         <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
         <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
         <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
-		<a href="Impressum.html">Impressum</a>
+		<a href="PH-Wert.html">PH-Steilheit</a>
+        <a href="Impressum.html">Impressum</a>
     </nav>
 
     <!-- Container für die Berechnung -->
     <div class="container">
+        <!-- Beschreibung der Berechnung -->
+        <div class="description">
+            Mit diesem Tool können Sie Kalibrierpunkte berechnen, die zur Überprüfung und Justierung von Messgeräten benötigt werden. Geben Sie einfach den Messbereich, den Strombereich und die Anzahl der gewünschten Kalibrierpunkte ein. Das Tool berechnet automatisch die entsprechenden Stromwerte und Messwerte, die dann zur Kalibrierung verwendet werden können.
+        </div>
+
         <table>
             <tr>
                 <th colspan="6">Kalibrierpunkte Berechnung</th>
