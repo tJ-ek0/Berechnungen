@@ -10,6 +10,7 @@
             background-color: #787c82;
             margin: 0;
             padding: 0;
+            color: black; /* Schriftfarbe schwarz */
         }
         header {
             background-color: #1b2b40;
@@ -86,6 +87,7 @@
             background-color: #f0f0f0;
             border-radius: 10px;
             font-size: 14px;
+            color: black;
         }
     </style>
 </head>
@@ -105,15 +107,15 @@
         <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
         <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
         <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
-	<a href="Messwertabweichung.html">Messawertbweichung</a>
-	<a href="PHWert.html">PH-Steilheit</a>
+		<a href="Messwertabweichung.html">Messwertabweichung</a>
+		<a href="PHWert.html">PH-Steilheit</a>
         <a href="Impressum.html">Impressum</a>
     </nav>
 
     <!-- Beschreibung -->
     <div class="description">
         <p>Dieser Steilheitstest hilft Ihnen zu überprüfen, ob Ihre pH-Sonde ordnungsgemäß funktioniert. Dazu werden zwei pH-Werte und die entsprechenden Spannungen gemessen und eingegeben. Das Programm berechnet die Steilheit der Sonde, indem es die Differenz der Spannungen durch die Differenz der pH-Werte teilt. 
-        Die normale Steilheit einer funktionierenden pH-Sonde beträgt etwa 59 mV pro pH-Einheit bei 25°C. Liegt die berechnete Steilheit im Bereich von 55 bis 65 mV/pH, wird die Sonde als "Good" angezeigt. Andernfalls wird die Sonde als "Bad" markiert, was auf eine möglicherweise fehlerhafte Sonde hinweist. 
+        Die normale Steilheit einer funktionierenden pH-Sonde beträgt etwa 59 mV pro pH-Einheit bei 25°C. Liegt die berechnete Steilheit im Bereich von ±55 bis ±65 mV/pH, wird die Sonde als "Good" angezeigt. Andernfalls wird die Sonde als "Bad" markiert, was auf eine möglicherweise fehlerhafte Sonde hinweist. 
         Geben Sie die Messwerte in die Felder unten ein, und die Berechnung wird automatisch durchgeführt.</p>
     </div>
 
@@ -179,9 +181,9 @@
             // Ergebnis anzeigen
             document.getElementById('steilheit').innerText = steilheit.toFixed(2);
 
-            // Überprüfung, ob die Steilheit im akzeptablen Bereich liegt (normalerweise etwa 59 mV/pH bei 25°C)
+            // Überprüfung, ob die Steilheit im akzeptablen Bereich liegt (±55 bis ±65 mV/pH)
             const statusElement = document.getElementById('sonden_status');
-            if (steilheit >= 55 && steilheit <= 65) {
+            if ((steilheit >= 55 && steilheit <= 65) || (steilheit <= -55 && steilheit >= -65)) {
                 statusElement.className = 'result-field good';
                 document.getElementById('status').innerText = 'Good';
             } else {
@@ -194,6 +196,9 @@
         document.querySelectorAll('#ph_wert1, #ph_wert2, #spannung1, #spannung2').forEach(input => {
             input.addEventListener('input', pruefePHWerte);
         });
+
+        // Initiale Berechnung bei Seitenaufruf
+        pruefePHWerte();
     </script>
 
 </body>
