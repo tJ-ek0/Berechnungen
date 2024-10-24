@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Impressum</title>
+    <title>Kalibrierpunkte</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -36,21 +36,62 @@
         }
         .container {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
             padding: 20px;
         }
-        .content {
-            background-color: #fff;
-            padding: 20px;
+        .description {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             max-width: 700px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 16px;
+        }
+        table {
+            border-collapse: collapse;
             width: 100%;
+            max-width: 700px;
+            background-color: #fff;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
+            overflow: hidden;
         }
-        p {
-            font-size: 16px;
-            line-height: 1.6;
-            color: #333;
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 14px;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        input.input-field {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 6px;
+            width: 90px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+        }
+        select.input-field {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 6px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .result-field {
+            background-color: #d4edda;
+            padding: 6px;
+            border-radius: 5px;
+            font-size: 14px;
+            text-align: center;
         }
     </style>
 </head>
@@ -70,41 +111,125 @@
         <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
         <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
         <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
-	<a href="PHwert.html">PH-Steilheit</a>
-	<a href="Impressum.html">Impressum</a>
-	</nav>
-    <!-- Container für das Impressum -->
+		<a href="Messabweichung.html">Messabweichung</a>
+		<a href="PH-Wert.html">PH-Steilheit</a>
+        <a href="Impressum.html">Impressum</a>
+    </nav>
+
+    <!-- Container für die Berechnung -->
     <div class="container">
-        <div class="content">
-            <h2>Impressum</h2>
-            <p>
-                Angaben gemäß § 5 TMG:
-            </p>
-            <p>
-                Tobias Jurgan<br>
-                Bartelsstraße 54<br>
-                20357 Hamburg
-            </p>
-            <p>
-                <strong>Kontakt:</strong><br>
-                Telefon: +49 40 72379620<br>
-                E-Mail: tobias-jurgan@gmx.de
-            </p>
-            <h3>Haftungsausschluss:</h3>
-            <p>
-                <strong>Haftung für Inhalte</strong><br>
-                Die Inhalte unserer Seiten wurden mit größter Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte können wir jedoch keine Gewähr übernehmen.
-            </p>
-            <p>
-                <strong>Haftung für Links</strong><br>
-                Unser Angebot enthält Links zu externen Webseiten Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen.
-            </p>
-            <h3>Urheberrecht</h3>
-            <p>
-                Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Beiträge Dritter sind als solche gekennzeichnet.
-            </p>
+        <!-- Beschreibung der Berechnung -->
+        <div class="description">
+            Mit diesem Tool können Sie Kalibrierpunkte berechnen, die zur Überprüfung und Justierung von Messgeräten benötigt werden. Geben Sie einfach den Messbereich, den Strombereich und die Anzahl der gewünschten Kalibrierpunkte ein. Das Tool berechnet automatisch die entsprechenden Stromwerte und Messwerte, die dann zur Kalibrierung verwendet werden können.
         </div>
+
+        <table>
+            <tr>
+                <th colspan="6">Kalibrierpunkte Berechnung</th>
+            </tr>
+
+            <!-- Eingabe des Messbereichs -->
+            <tr>
+                <td colspan="2">Messbereich</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="messbereich_min" value="0">
+                    bis
+                    <input class="input-field" type="number" id="messbereich_max" value="100">
+                </td>
+            </tr>
+
+            <!-- Auswahl des Strombereichs -->
+            <tr>
+                <td colspan="2">Strombereich</td>
+                <td colspan="4">
+                    <select class="input-field" id="strombereich">
+                        <option value="0-20">0...20 mA</option>
+                        <option value="4-20">4...20 mA</option>
+                    </select> mA
+                </td>
+            </tr>
+
+            <!-- Eingabe der Anzahl der Kalibrierpunkte -->
+            <tr>
+                <td colspan="2">Kalibrierpunkte</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="kalibrierpunkte" value="3">
+                </td>
+            </tr>
+
+            <!-- Dynamisch generierte Tabelle -->
+            <tr>
+                <td colspan="6">
+                    <table id="kalibrierpunkte_tabelle">
+                        <thead>
+                            <tr>
+                                <th>Punkt</th>
+                                <th>Strom (mA)</th>
+                                <th>Messwert</th>
+                                <th>%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dynamische Zeilen werden hier generiert -->
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </table>
     </div>
+
+    <script>
+        // Funktion zur Berechnung der Kalibrierpunkte
+        function berechneKalibrierpunkte() {
+            const messbereich_min = parseFloat(document.getElementById('messbereich_min').value);
+            const messbereich_max = parseFloat(document.getElementById('messbereich_max').value);
+            const strombereich = document.getElementById('strombereich').value;
+            const kalibrierpunkte_anzahl = parseInt(document.getElementById('kalibrierpunkte').value);
+
+            let strom_min, strom_max;
+
+            // Strombereich festlegen
+            if (strombereich === '0-20') {
+                strom_min = 0;
+                strom_max = 20;
+            } else {
+                strom_min = 4;
+                strom_max = 20;
+            }
+
+            const messbereich_spannweite = messbereich_max - messbereich_min;
+            const strom_spannweite = strom_max - strom_min;
+            const tabelle_body = document.getElementById('kalibrierpunkte_tabelle').querySelector('tbody');
+
+            // Tabelle leeren
+            tabelle_body.innerHTML = '';
+
+            // Kalibrierpunkte berechnen und in die Tabelle einfügen
+            for (let i = 1; i <= kalibrierpunkte_anzahl; i++) {
+                const prozent = (i / kalibrierpunkte_anzahl) * 100;
+                const strom = strom_min + (strom_spannweite * prozent / 100);
+                const messwert = messbereich_min + (messbereich_spannweite * prozent / 100);
+
+                const zeile = `
+                    <tr>
+                        <td>${i}</td>
+                        <td>${strom.toFixed(2)}</td>
+                        <td>${messwert.toFixed(2)}</td>
+                        <td>${prozent.toFixed(2)}</td>
+                    </tr>
+                `;
+                tabelle_body.innerHTML += zeile;
+            }
+        }
+
+        // Event Listener für die Berechnung bei Änderungen der Eingabefelder
+        document.querySelectorAll('#messbereich_min, #messbereich_max, #strombereich, #kalibrierpunkte').forEach(input => {
+            input.addEventListener('input', berechneKalibrierpunkte);
+        });
+
+        // Initiale Berechnung
+        berechneKalibrierpunkte();
+    </script>
 
 </body>
 </html>
