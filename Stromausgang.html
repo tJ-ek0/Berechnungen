@@ -36,8 +36,19 @@
         }
         .container {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
             padding: 20px;
+        }
+        .description {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 700px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 16px;
         }
         table {
             border-collapse: collapse;
@@ -65,7 +76,7 @@
             background-color: #e0e0e0;
             border: none;
             padding: 6px;
-            width: 90px; /* Verbreitertes Feld */
+            width: 90px;
             border-radius: 5px;
             text-align: center;
             font-size: 14px;
@@ -99,11 +110,17 @@
         <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
         <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
         <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
-		<a href="Impressum.html">Impressum</a>
+		<a href="PH-Wert.html">PH-Steilheit</a>
+        <a href="Impressum.html">Impressum</a>
         <!-- Weitere Links zu Berechnungstools -->
     </nav>
 
     <div class="container">
+        <!-- Beschreibung der Berechnung -->
+        <div class="description">
+            Mit diesem Tool können Sie den Stromausgang basierend auf dem Messbereich berechnen. Geben Sie den Messbereich, den aktuellen Strom oder den Messwert ein, und das Tool berechnet den entsprechenden Messwert oder Stromwert sowie den prozentualen Anteil des Messbereichs.
+        </div>
+
         <table>
             <!-- Titelzeile -->
             <tr>
@@ -137,7 +154,7 @@
             <tr>
                 <td colspan="2">Istwert Strom (mA)</td>
                 <td colspan="4">
-                    <input class="input-field" type="number" id="stromwert" value="0"> <!-- Standardwert auf 0 -->
+                    <input class="input-field" type="number" id="stromwert" value="0">
                 </td>
             </tr>
             <tr>
@@ -160,7 +177,7 @@
             <tr>
                 <td colspan="2">Messwert</td>
                 <td colspan="4">
-                    <input class="input-field" type="number" id="messwert" value="0"> <!-- Standardwert auf 0 -->
+                    <input class="input-field" type="number" id="messwert" value="0">
                 </td>
             </tr>
             <tr>
