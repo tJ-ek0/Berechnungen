@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV-Konverter</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #787c82;
+            color: black;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #1b2b40;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        nav {
+            background-color: #335582;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        nav a {
+            color: white;
+            margin: 0 10px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #1b2b40;
+            text-align: center;
+        }
+        button {
+            background-color: #335582;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #1b2b40;
+        }
+        #output table {
+            border-collapse: collapse;
+            width: 100%;
+            max-width: 600px;
+            background-color: #fff;
+            margin: 20px 0;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        #output th, #output td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            font-size: 14px;
+        }
+        #output th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        CSV-Datei Konvertieren
+    </header>
+
+    <!-- Navigationsleiste -->
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="Stromausgang.html">Stromausgangsberechnung</a>
+        <a href="Dichteberechnung.html">Dichteberechnung</a>
+        <a href="Impulswertigkeit.html">Impulswertigkeit</a>
+        <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
+        <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
+        <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
+        <a href="Messwertabweichung.html">Messwertabweichung</a>
+        <a href="PHWert.html">pH-Steilheit</a>
+        <a href="csv.html">CSV-Umwandler</a>
+    </nav>
+
+    <!-- Container für Konvertierung -->
+    <div class="container">
+        <h1>CSV-Datei Konvertieren</h1>
+        <input type="file" id="fileInput" accept=".csv">
+        <button onclick="convertCSV()">Konvertieren</button>
+        <div id="output"></div>
+        <button id="downloadBtn" style="display:none;" onclick="downloadCSV()">Herunterladen</button>
+        <button id="downloadPdfBtn" style="display:none;" onclick="downloadPDF()">Als PDF speichern</button>
+    </div>
+
+    <script>
+        function convertCSV() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("Bitte eine CSV-Datei hochladen!");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                let csvContent = event.target.result;
+                csvContent = csvContent.replace(/"/g, ""); // Entferne alle Anführungszeichen
+                const rows = csvContent.split("\n");
+
+                let html = '<table>';
+                rows.forEach(row => {
+                    const cells = row.split(",");
+                    html += '<tr>';
+                    cells.forEach(cell => {
+                        html += `<td>${cell.trim()}</td>`;
+                    });
+                    html += '</tr>';
+                });
+                html += '</table>';
+
+                document.getElementById('output').innerHTML = html;
+                document.getElementById('downloadBtn').style.display = 'block';
+                document.getElementById('downloadPdfBtn').style.display = 'block';
+            };
+
+            reader.readAsText(file);
+        }
+
+        function downloadCSV() {
+            const outputTable = document.getElementById('output').getElementsByTagName('table')[0];
+
+            if (!outputTable) {
+                alert("Keine konvertierte CSV-Datei gefunden!");
+                return;
+            }
+
+            let csvContent = "";
+            for (let i = 0; i < outputTable.rows.length; i++) {
+                let rowContent = [];
+                for (let j = 0; j < outputTable.rows[i].cells.length; j++) {
+                    rowContent.push(outputTable.rows[i].cells[j].innerText);
+                }
+                csvContent += rowContent.join(",") + "\n";
+            }
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'konvertierte_datei.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+            const outputTable = document.getElementById('output').getElementsByTagName('table')[0];
+
+            if (!outputTable) {
+                alert("Keine Tabelle zum Speichern gefunden!");
+                return;
+            }
+
+            const rows = [];
+            for (let i = 0; i < outputTable.rows.length; i++) {
+                let row = [];
+                for (let j = 0; j < outputTable.rows[i].cells.length; j++) {
+                    row.push(outputTable.rows[i].cells[j].innerText);
+                }
+                rows.push(row);
+            }
+
+            // Verwenden von autoTable, um die Tabelle über mehrere Seiten zu verteilen
+            pdf.autoTable({
+                head: [rows[0]], // Erste Zeile als Kopfzeile
+                body: rows.slice(1), // Restliche Zeilen als Körper
+                startY: 10,
+                theme: 'grid',
+                styles: { fontSize: 10 },
+                margin: { top: 10 }
+            });
+
+            pdf.save('konvertierte_tabelle.pdf');
+        }
+    </script>
+
+</body>
+</html>
