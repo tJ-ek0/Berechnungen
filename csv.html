@@ -97,9 +97,9 @@
         <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
         <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
         <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
-        <a href="Messwertabweichung.html">Messwertabweichung</a>
+        <a href="Messwertabweichung.html">Messabweichung</a>
         <a href="PHWert.html">pH-Steilheit</a>
-        <a href="csv.html">CSV-Umwandler</a>
+        <a href="csv.html">CSV-Konverter</a>
     </nav>
 
     <!-- Container für Konvertierung -->
@@ -107,9 +107,14 @@
         <h1>CSV-Datei Konvertieren</h1>
         <input type="file" id="fileInput" accept=".csv">
         <button onclick="convertCSV()">Konvertieren</button>
+
+        <!-- Nur PDF-Export-Button -->
+        <div>
+            <button id="downloadPdfBtn" style="display:none;" onclick="downloadPDF()">Als PDF speichern</button>
+        </div>
+
+        <!-- Ausgabe der Tabelle -->
         <div id="output"></div>
-        <button id="downloadBtn" style="display:none;" onclick="downloadCSV()">Herunterladen</button>
-        <button id="downloadPdfBtn" style="display:none;" onclick="downloadPDF()">Als PDF speichern</button>
     </div>
 
     <script>
@@ -140,38 +145,10 @@
                 html += '</table>';
 
                 document.getElementById('output').innerHTML = html;
-                document.getElementById('downloadBtn').style.display = 'block';
                 document.getElementById('downloadPdfBtn').style.display = 'block';
             };
 
             reader.readAsText(file);
-        }
-
-        function downloadCSV() {
-            const outputTable = document.getElementById('output').getElementsByTagName('table')[0];
-
-            if (!outputTable) {
-                alert("Keine konvertierte CSV-Datei gefunden!");
-                return;
-            }
-
-            let csvContent = "";
-            for (let i = 0; i < outputTable.rows.length; i++) {
-                let rowContent = [];
-                for (let j = 0; j < outputTable.rows[i].cells.length; j++) {
-                    rowContent.push(outputTable.rows[i].cells[j].innerText);
-                }
-                csvContent += rowContent.join(",") + "\n";
-            }
-
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'konvertierte_datei.csv';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
         }
 
         function downloadPDF() {
@@ -199,6 +176,7 @@
                 body: rows.slice(1), // Restliche Zeilen als Körper
                 startY: 10,
                 theme: 'grid',
+                headStyles: { fillColor: '#089ce4' }, // Header-Farbe auf #089ce4 gesetzt
                 styles: { fontSize: 10 },
                 margin: { top: 10 }
             });
