@@ -3,58 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Techniker Berechnungstools – Übersicht</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #787c82;
-            color: #333;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #1b2b40;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-        }
-        nav {
-            background-color: #335582;
-            color: white;
-            padding: 10px;
-            text-align: center;
-        }
-        nav a {
-            color: white;
-            margin: 0 10px;
-            text-decoration: none;
-            font-size: 16px;
-        }
-        nav a:hover {
-            text-decoration: underline;
-        }
-        .container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h2 {
-            color: #1b2b40;
-        }
-        ul {
-            line-height: 1.6;
-        }
-    </style>
+    <title>Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header>
-        Techniker Berechnungstools – Übersicht
+        Techniker Berechnungstools 
     </header>
 
     <nav>
@@ -66,44 +21,48 @@
         <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
         <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
         <a href="Messwertabweichung.html">Messwertabweichung</a>
-        <a href="PHWert.html">pH-Steilheit</a>
-        <a href="csv.html">CSV-Umwandler</a>
-        
+        <a href="csv.html">Proline CSV-Umwandler</a>
+		<a href="csv-Auswertung.html">MultiRecorder CSV Visu.</a>
     </nav>
 
     <div class="container">
         <h2>Willkommen bei den Techniker Berechnungstools</h2>
-        <p>Diese Sammlung umfasst verschiedene Tools zur Berechnung technischer Messwerte und zur Kalibrierung von Instrumenten. Klicken Sie einfach auf das gewünschte Tool im Navigationsmenü, um die spezifischen Berechnungen durchzuführen.</p>
+        <p>Diese Sammlung umfasst verschiedene Berechnungstools für Techniker und Ingenieure zur Berechnung technischer Messwerte und zur Kalibrierung von Instrumenten. Wählen Sie das gewünschte Tool im Navigationsmenü, um spezifische Berechnungen durchzuführen und Ihre Arbeit zu vereinfachen.</p>
         
         <h3>Verfügbare Berechnungstools:</h3>
         <ul>
             <li><strong>Stromausgangsberechnung</strong><br>
-                Berechnet den Messwert aus einem gegebenen Stromausgang (z. B. 4-20 mA oder 0-20 mA). Ideal zur Umwandlung von Stromwerten in entsprechende Messwerte und zur prozentualen Darstellung des Messbereichs.</li><br>
+                Berechnet den Messwert aus einem gegebenen Stromausgang (z. B. 4-20 mA oder 0-20 mA) und ermöglicht die prozentuale Darstellung des Messbereichs.</li><br>
             
             <li><strong>Dichteberechnung</strong><br>
-                Ermöglicht die Berechnung der Dichte eines Materials durch Eingabe von drei Gewichtsmessungen und dem Volumen. Das Tool liefert den Mittelwert des Gewichts und die Dichte in kg/l.</li><br>
+                Ermöglicht die Berechnung der Dichte eines Materials durch Eingabe mehrerer Gewichtsmessungen und des Volumens, um die durchschnittliche Dichte in kg/l zu erhalten.</li><br>
             
             <li><strong>Impulswertigkeitsberechnung</strong><br>
-                Rechnet die Impulswertigkeit basierend auf Volumen- oder Massenfluss. Unterstützt Einheitenumrechnung zwischen verschiedenen Volumen- und Masseeinheiten, abhängig von den Messbedingungen.</li><br>
+                Berechnet die Impulswertigkeit anhand von Volumen- oder Massenflusswerten und unterstützt Einheitenumrechnungen je nach Messbedingungen.</li><br>
             
             <li><strong>Volumen-Masse-Umrechnung</strong><br>
-                Ermöglicht die Konvertierung von Volumen in Masse (und umgekehrt) basierend auf der angegebenen Dichte. Unterstützt verschiedene Einheiten wie m³, l, kg und t für die Eingabe und Ausgabe.</li><br>
+                Konvertiert Volumen in Masse und umgekehrt basierend auf der angegebenen Dichte, unterstützt dabei Einheiten wie m³, l, kg und t.</li><br>
             
             <li><strong>Fließgeschwindigkeit</strong><br>
-                Berechnet die Fließgeschwindigkeit von Flüssigkeiten in Rohrleitungen. Hierfür werden der Rohrdurchmesser und der Volumen- oder Massenstrom als Eingaben benötigt. Die Ausgabe erfolgt in Metern pro Sekunde (m/s).</li><br>
+                Berechnet die Fließgeschwindigkeit von Flüssigkeiten in Rohrleitungen basierend auf Rohrdurchmesser und Volumen- oder Massenstrom.</li><br>
             
             <li><strong>Kalibrierpunkte-Berechnung</strong><br>
-                Erstellt eine Tabelle zur Kalibrierung von Messinstrumenten durch Eingabe des gewünschten Messbereichs und der Anzahl der Kalibrierpunkte. Die Tabelle zeigt die berechneten Strom- und Messwerte sowie die prozentuale Abweichung des Messbereichs an.</li><br>
+                Erstellt eine Kalibrierungstabelle für Instrumente, zeigt die berechneten Strom- und Messwerte und die prozentuale Abweichung an.</li><br>
             
             <li><strong>Messabweichung</strong><br>
-                Berechnet die prozentuale Abweichung eines gemessenen Wertes sowohl vom Messbereich als auch vom Sollwert. Dies unterstützt die Bewertung der Messgenauigkeit eines Instruments.</li><br>
+                Berechnet die prozentuale Abweichung eines gemessenen Wertes und unterstützt die Bewertung der Messgenauigkeit.</li><br>
             
             <li><strong>pH-Sonden-Steilsheitsberechnung</strong><br>
-                Prüft die Funktionalität einer pH-Sonde durch die Berechnung der Steilheit. Die Berechnung erfolgt anhand zweier pH-Werte und der zugehörigen Spannungen. Ein Status ("Good" oder "Bad") zeigt an, ob die Sonde innerhalb der akzeptablen Steilheitsgrenzen (±55 bis ±65 mV/pH) liegt.</li><br>
+                Prüft die Funktion einer pH-Sonde durch Berechnung der Steilheit, mit einem Status zur Anzeige der Sonde innerhalb akzeptabler Wertebereiche.</li><br>
         </ul>
 
         <p>Mit diesen Berechnungstools haben Sie eine praktische und benutzerfreundliche Sammlung an der Hand, um präzise Messwerte für technische Anwendungen zu berechnen. Wählen Sie das gewünschte Tool aus dem Navigationsmenü und starten Sie die Berechnung!</p>
     </div>
+
+    <!-- Bottom Header mit Haftungsausschluss -->
+    <footer class="bottom-header">
+        <p><strong>Haftungsausschluss:</strong> Diese Website übernimmt keine Gewähr für die Genauigkeit oder Vollständigkeit der angezeigten Messwerte und Berechnungsergebnisse. Die Nutzung erfolgt auf eigenes Risiko.</p>
+    </footer>
 
 </body>
 </html>

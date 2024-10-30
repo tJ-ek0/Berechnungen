@@ -1,91 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dichteberechnung</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #787c82;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #1b2b40;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-        }
-        nav {
-            background-color: #335582;
-            color: white;
-            padding: 10px;
-            text-align: center;
-        }
-        nav a {
-            color: white;
-            margin: 0 10px;
-            text-decoration: none;
-            font-size: 16px;
-        }
-        nav a:hover {
-            text-decoration: underline;
-        }
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-        }
-        .description {
-            background-color: #ffffff;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            max-width: 700px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-size: 16px;
-        }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            max-width: 700px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-            font-size: 14px;
-        }
-        th {
-            background-color: #f0f0f0;
-            font-weight: bold;
-        }
-        input.input-field {
-            background-color: #e0e0e0;
-            border: none;
-            padding: 6px;
-            width: 90px;
-            border-radius: 5px;
-            text-align: center;
-            font-size: 14px;
-        }
-        .result-field {
-            background-color: #d4edda;
-            padding: 6px;
-            border-radius: 5px;
-            font-size: 14px;
-            text-align: center;
-        }
-    </style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -101,11 +17,11 @@
         <a href="Dichteberechnung.html">Dichteberechnung</a>
         <a href="Impulswertigkeit.html">Impulswertigkeit</a>
         <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
-        <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
+        <a href="Fließgeschwindigkeit.html">Flie&szlig;geschwindigkeit</a>
         <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
-	<a href="Messwertabweichung.html">Messwertbweichung</a>
-        <a href="PHWert.html">PH-Steilheit</a>
-	<a href="csv.html">CSV-Umwandler</a>
+		<a href="Messwertabweichung.html">Messwertabweichung</a>
+		<a href="csv.html">Proline CSV-Umwandler</a>
+		<a href="csv-Auswertung.html">MultiRecorder CSV Visu.</a>
        
     </nav>
 
@@ -159,7 +75,12 @@
             </tr>
         </table>
     </div>
-
+	
+    <!-- Bottom Header mit Haftungsausschluss -->
+    <footer class="bottom-header">
+        <p><strong>Haftungsausschluss:</strong> Diese Website übernimmt keine Gewähr für die Genauigkeit oder Vollständigkeit der angezeigten Messwerte und Berechnungsergebnisse. Die Nutzung erfolgt auf eigenes Risiko.</p>
+    </footer>
+	
     <script>
         // Dichteberechnung: Mittelwert und Dichte berechnen
         function berechneDichte() {

@@ -1,0 +1,163 @@
+/* Allgemeines Layout */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f7fa;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Header */
+header {
+    background-color: #1a73e8;
+    color: #fff;
+    padding: 20px;
+    text-align: center;
+    font-size: 26px;
+    font-weight: bold;
+}
+
+/* Navigationsleiste */
+nav {
+    background-color: #4285f4;
+    color: white;
+    padding: 12px;
+    text-align: center;
+}
+
+nav a {
+    color: white;
+    margin: 0 15px;
+    text-decoration: none;
+    font-size: 16px;
+    transition: color 0.3s ease;
+}
+
+nav a:hover {
+    color: #ffeb3b;
+}
+
+/* Hauptcontainer */
+.container {
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+
+/* Tabellen und Formularfelder */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+th, td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: center;
+    font-size: 14px;
+}
+
+th {
+    background-color: #e3f2fd;
+    font-weight: bold;
+}
+
+td {
+    background-color: #ffffff;
+}
+
+.input-field {
+    width: 80%;
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.result-field {
+    background-color: #e8f5e9;
+    color: #1b5e20;
+    padding: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+/* Buttons */
+button {
+    background-color: #1a73e8;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0c47a1;
+}
+
+/* Beschreibungsfelder */
+.description {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-left: 5px solid #4285f4;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+/* Zusätzliche Anpassungen für mobile Geräte */
+@media (max-width: 768px) {
+    nav a {
+        margin: 0 8px;
+        font-size: 14px;
+    }
+    .container {
+        padding: 15px;
+    }
+}
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.container {
+    flex: 1;
+    padding: 20px;
+}
+.container2 {
+    flex: 1;
+    padding: 20px;
+}
+
+
+.bottom-header {
+    background-color: #f2f2f2; /* Hellgrauer Hintergrund für Sichtbarkeit */
+    color: #333; /* Dunklere Schrift für Kontrast */
+    text-align: center;
+    padding: 15px;
+    font-size: 0.9em;
+    border-top: 1px solid #ccc;
+}
+
+.bottom-header p {
+    margin: 0;
+    padding: 0;
+    font-weight: 500;
+}
+

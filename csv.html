@@ -1,83 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSV-Konverter</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #787c82;
-            color: black;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #1b2b40;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-        }
-        nav {
-            background-color: #335582;
-            color: white;
-            padding: 10px;
-            text-align: center;
-        }
-        nav a {
-            color: white;
-            margin: 0 10px;
-            text-decoration: none;
-            font-size: 16px;
-        }
-        nav a:hover {
-            text-decoration: underline;
-        }
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-        }
-        h1 {
-            color: #1b2b40;
-            text-align: center;
-        }
-        button {
-            background-color: #335582;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 10px;
-        }
-        button:hover {
-            background-color: #1b2b40;
-        }
-        #output table {
-            border-collapse: collapse;
-            width: 100%;
-            max-width: 600px;
-            background-color: #fff;
-            margin: 20px 0;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-        #output th, #output td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-            font-size: 14px;
-        }
-        #output th {
-            background-color: #f0f0f0;
-            font-weight: bold;
-        }
-    </style>
+<link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
 </head>
@@ -85,7 +9,7 @@
 
     <!-- Header -->
     <header>
-        CSV-Datei Konvertieren
+        Techniker Berechnungstools
     </header>
 
     <!-- Navigationsleiste -->
@@ -97,14 +21,14 @@
         <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
         <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
         <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
-        <a href="Messwertabweichung.html">Messabweichung</a>
-        <a href="PHWert.html">pH-Steilheit</a>
-        <a href="csv.html">CSV-Umwandler</a>
+        <a href="Messwertabweichung.html">Messwertabweichung</a>
+        <a href="csv.html">Proline CSV-Umwandler</a>
+		<a href="csv-Auswertung.html">MultiRecorder CSV Visu.</a>
     </nav>
 
     <!-- Container für Konvertierung -->
     <div class="container">
-        <h1>CSV-Datei Konvertieren</h1>
+        <h1>Proline CSV Datei Konverter</h1>
         <input type="file" id="fileInput" accept=".csv">
         <button onclick="convertCSV()">Konvertieren</button>
 
@@ -116,7 +40,12 @@
         <!-- Ausgabe der Tabelle -->
         <div id="output"></div>
     </div>
-
+	
+    <!-- Bottom Header mit Haftungsausschluss -->
+    <footer class="bottom-header">
+        <p><strong>Haftungsausschluss:</strong> Diese Website übernimmt keine Gewähr für die Genauigkeit oder Vollständigkeit der angezeigten Messwerte und Berechnungsergebnisse. Die Nutzung erfolgt auf eigenes Risiko.</p>
+    </footer>
+	
     <script>
         function convertCSV() {
             const fileInput = document.getElementById('fileInput');
