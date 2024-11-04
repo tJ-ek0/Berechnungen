@@ -7,7 +7,9 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
     <style>
+        /* Style adjustments */
         .chart-container {
             width: 100%;
             height: 60vh;
@@ -19,7 +21,6 @@
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
             position: relative;
         }
-
         .stats {
             margin-top: 10px;
             font-size: 1rem;
@@ -27,11 +28,9 @@
             padding: 10px;
             border-top: 1px solid #ddd;
         }
-
         .stats p {
             margin: 1px 0;
         }
-
         .reset-button {
             position: absolute;
             top: 10px;
@@ -50,7 +49,6 @@
     <header>
         Techniker Berechnungstools
     </header>
-
     <nav>
         <a href="index.html">Home</a>
         <a href="Stromausgang.html">Stromausgangsberechnung</a>
@@ -59,16 +57,16 @@
         <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
         <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
         <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
-		<a href="Messwertabweichung.html">Messwertabweichung</a>
-	    <a href="csv.html">Proline CSV-Umwandler</a>
+        <a href="Messwertabweichung.html">Messwertabweichung</a>
+        <a href="csv.html">Proline CSV-Umwandler</a>
 		<a href="csvauswertung.html">MultiRecorder CSV Visu.</a>
     </nav>
-
     <div class="container2">
         <h2>Lade hier die CSV-Datei aus dem Multirecorder hoch</h2>
         <input type="file" id="fileInput" accept=".csv" />
         <button id="convertButton" disabled>Start Conversion</button>
-
+        <button id="pdfButton" disabled>Download as PDF</button>
+        
         <div class="chart-container">
             <canvas id="massFlowChart"></canvas>
             <button class="reset-button" onclick="resetZoom('massFlowChart')">Zoom zurücksetzen</button>
@@ -87,7 +85,6 @@
             <div id="temperatureStats" class="stats"></div>
         </div>
     </div>
-
     <footer class="bottom-header">
         <p><strong>Haftungsausschluss:</strong> Diese Website übernimmt keine Gewähr für die Genauigkeit oder Vollständigkeit der angezeigten Messwerte und Berechnungsergebnisse. Die Nutzung erfolgt auf eigenes Risiko.</p>
     </footer>
@@ -95,122 +92,219 @@
     <script>
         let csvData = '';
 
-        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
-        document.getElementById('convertButton').addEventListener('click', startConversion);
+document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+document.getElementById('convertButton').addEventListener('click', startConversion);
+document.getElementById('pdfButton').addEventListener('click', generatePDF);
 
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    csvData = e.target.result;
-                    document.getElementById('convertButton').disabled = false;
-                };
-                reader.readAsText(file);
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            csvData = e.target.result;
+            document.getElementById('convertButton').disabled = false;
+            document.getElementById('pdfButton').disabled = false; // Enable PDF button
+        };
+        reader.readAsText(file);
+    }
+}
+
+function startConversion() {
+    if (csvData) {
+        parseCSV(csvData);
+    } else {
+        alert("Bitte laden Sie zuerst eine CSV-Datei hoch.");
+    }
+}
+
+function parseCSV(data) {
+    try {
+        const lines = data.split("\n");
+        const labels = [];
+        const massFlowData = [];
+        const densityData = [];
+        const temperatureData = [];
+
+        lines.slice(1).forEach(line => {
+            if (line.trim() === "") return;
+
+            const columns = line.split(";");
+            if (columns.length < 11) {
+                console.error("Line skipped due to insufficient columns:", line);
+                return;
             }
+
+            const [PCTime, , , , MassFlow, Density, , , , , Temperature] = columns;
+            const timeOnly = PCTime.split(" ")[1];
+            labels.push(timeOnly);
+            massFlowData.push(parseFloat(MassFlow));
+            densityData.push(parseFloat(Density));
+            temperatureData.push(parseFloat(Temperature));
+        });
+
+        if (massFlowData.length === 0 || densityData.length === 0 || temperatureData.length === 0) {
+            console.error("Parsed data arrays are empty.");
+            alert("Fehler: Keine gültigen Daten in der CSV gefunden. Stellen Sie sicher, dass die Spalten korrekt formatiert sind.");
+            return;
         }
 
-        function startConversion() {
-            if (csvData) {
-                parseCSV(csvData);
-            } else {
-                alert("Bitte laden Sie zuerst eine CSV-Datei hoch.");
-            }
-        }
+        createChart("massFlowChart", "Mass Flow (kg/s)", labels, massFlowData, "massFlowStats");
+        createChart("densityChart", "Density (g/l)", labels, densityData, "densityStats");
+        createChart("temperatureChart", "Temperature (°C)", labels, temperatureData, "temperatureStats");
 
-        function parseCSV(data) {
-            try {
-                const lines = data.split("\n");
-                const labels = [];
-                const massFlowData = [];
-                const densityData = [];
-                const temperatureData = [];
+    } catch (error) {
+        console.error("Error parsing CSV data:", error);
+        alert("Ein Fehler trat beim Einlesen der CSV-Datei auf. Details in der Konsole.");
+    }
+}
 
-                lines.slice(1).forEach(line => {
-                    if (line.trim() === "") return;
+function createChart(canvasId, label, labels, data, statsId) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
 
-                    const columns = line.split(";");
-                    if (columns.length < 11) {
-                        console.error("Line skipped due to insufficient columns:", line);
-                        return;
-                    }
+    // Destroy previous chart if it exists to prevent overlay
+    if (window[canvasId] && typeof window[canvasId].destroy === 'function') {
+        window[canvasId].destroy();
+    }
 
-                    const [PCTime, , , , MassFlow, Density, , , , , Temperature] = columns;
-                    const timeOnly = PCTime.split(" ")[1];
-                    labels.push(timeOnly);
-                    massFlowData.push(parseFloat(MassFlow));
-                    densityData.push(parseFloat(Density));
-                    temperatureData.push(parseFloat(Temperature));
-                });
-
-                if (massFlowData.length === 0 || densityData.length === 0 || temperatureData.length === 0) {
-                    console.error("Parsed data arrays are empty.");
-                    alert("Fehler: Keine gültigen Daten in der CSV gefunden. Stellen Sie sicher, dass die Spalten korrekt formatiert sind.");
-                    return;
+    window[canvasId] = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: label,
+                data: data,
+                borderColor: 'blue',
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { display: true, title: { display: true, text: 'Time' } },
+                y: { display: true, title: { display: true, text: label } }
+            },
+            plugins: {
+                zoom: {
+                    pan: { enabled: true, mode: 'xy' },
+                    zoom: { drag: { enabled: true, backgroundColor: 'rgba(0, 123, 255, 0.3)' }, pinch: { enabled: true }, wheel: { enabled: true }, mode: 'xy' }
                 }
-
-                createChart("massFlowChart", "Mass Flow (kg/s)", labels, massFlowData, "massFlowStats");
-                createChart("densityChart", "Density (g/l)", labels, densityData, "densityStats");
-                createChart("temperatureChart", "Temperature (°C)", labels, temperatureData, "temperatureStats");
-
-            } catch (error) {
-                console.error("Error parsing CSV data:", error);
-                alert("Ein Fehler trat beim Einlesen der CSV-Datei auf. Details in der Konsole.");
             }
         }
+    });
 
-        function createChart(canvasId, label, labels, data, statsId) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
+    displayStats(data, statsId);
+}
 
-            if (window[canvasId] && typeof window[canvasId].destroy === 'function') {
-                window[canvasId].destroy();
-            }
+function displayStats(data, statsId) {
+    const max = Math.max(...data);
+    const min = Math.min(...data);
+    const avg = (data.reduce((a, b) => a + b, 0) / data.length).toFixed(2);
+    document.getElementById(statsId).innerHTML = `<p><strong>Max:</strong> ${max} <strong>Min:</strong> ${min} <strong>Avg:</strong> ${avg}</p>`;
+}
 
-            window[canvasId] = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: label,
-                        data: data,
-                        borderColor: 'blue',
-                        fill: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { display: true, title: { display: true, text: 'Time' } },
-                        y: { display: true, title: { display: true, text: label } }
-                    },
-                    plugins: {
-                        zoom: {
-                            pan: { enabled: true, mode: 'xy' },
-                            zoom: { drag: { enabled: true, backgroundColor: 'rgba(0, 123, 255, 0.3)' }, pinch: { enabled: true }, wheel: { enabled: true }, mode: 'xy' }
-                        }
-                    }
-                }
-            });
+function generatePDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
 
-            displayStats(data, statsId);
-        }
+    // Styling for the header
+    doc.setFontSize(22);
+    doc.setTextColor(0, 51, 102);  // Dark blue color
+    doc.text("CSV Data Analysis Report", 105, 20, null, null, 'center');
+    doc.setDrawColor(0, 51, 102);  // Blue underline
+    doc.setLineWidth(1);
+    doc.line(20, 25, 190, 25);  // Draw underline below the title
+    
+    // Extract start and end times for the whole report, assuming they are in labels from the first chart
+    const firstChart = window["massFlowChart"];  // Assuming massFlowChart exists
+    const labels = firstChart.data.labels;
+    const startTime = labels[0] || "N/A";
+    const endTime = labels[labels.length - 1] || "N/A";
+    const date = new Date().toLocaleDateString();  // Today's date for the report
 
-        function displayStats(data, statsId) {
-            const max = Math.max(...data);
-            const min = Math.min(...data);
-            const avg = (data.reduce((a, b) => a + b, 0) / data.length).toFixed(2);
-            document.getElementById(statsId).innerHTML = `<p><strong>Max:</strong> ${max} <strong>Min:</strong> ${min} <strong>Avg:</strong> ${avg}</p>`;
-        }
+    // Display Start, End, and Date under the main title
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Start: ${startTime} | End: ${endTime} | Date: ${date}`, 20, 35);
 
-        function resetZoom(chartId) {
-            const chart = window[chartId];
-            if (chart && chart.resetZoom) {
-                chart.resetZoom();
-            } else {
-                console.warn("Reset zoom not available for", chartId);
-            }
-        }
+    // Helper function to add each chart and styled statistics box to the PDF
+    function addChartToPDF(canvasId, title, statsId, yPosition) {
+        const canvas = document.getElementById(canvasId);
+        const imgData = canvas.toDataURL("image/png");
+
+        // Section title styling
+        doc.setFontSize(16);
+        doc.setTextColor(0, 51, 102);
+        doc.text(title, 20, yPosition);
+
+        // Add chart image with optimized size and placement
+        doc.addImage(imgData, 'PNG', 20, yPosition + 10, 160, 90);
+
+        // Retrieve and style statistics text (Max, Min, and Avg)
+        const statsText = document.getElementById(statsId).innerText;
+
+        // Statistics box with Max, Min, and Avg values
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.setFillColor(240, 240, 240);  // Light gray background for stats
+        doc.rect(20, yPosition + 110, 170, 15, 'F');  // Background rectangle for stats box
+        
+        // Display Max, Min, and Avg values in the stats box
+        doc.text(statsText, 22, yPosition + 117);
+    }
+
+    // Add Mass Flow chart and stats on the first page with header info
+    addChartToPDF("massFlowChart", "Mass Flow Analysis", "massFlowStats", 50);
+
+    // Page break before the next chart
+    doc.addPage();
+
+    // Add Density chart on its own page
+    addChartToPDF("densityChart", "Density Analysis", "densityStats", 35);
+
+    // Page break before the next chart
+    doc.addPage();
+
+    // Add Temperature chart on its own page
+    addChartToPDF("temperatureChart", "Temperature Analysis", "temperatureStats", 35);
+
+    // Helper function to add a footer disclaimer on each page
+    function addFooter() {
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);  // Gray text color
+        doc.text("Disclaimer: This report is generated based on provided data. Accuracy not guaranteed.", 105, 285, null, null, 'center');
+    }
+
+    // Add footer on each page
+    doc.setPage(1);
+    addFooter();
+    doc.setPage(2);
+    addFooter();
+    doc.setPage(3);
+    addFooter();
+
+    // Save the styled PDF
+    doc.save("Styled_CSV_Data_Analysis_Report.pdf");
+}
+
+
+
+
+
+
+
+
+
+
+function resetZoom(chartId) {
+    const chart = window[chartId];
+    if (chart && chart.resetZoom) {
+        chart.resetZoom();
+    } else {
+        console.warn("Reset zoom not available for", chartId);
+    }
+}
+
     </script>
 </body>
 </html>
