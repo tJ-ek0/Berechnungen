@@ -81,6 +81,7 @@
                     <td colspan="2">Störquelle vor Messgerät</td>
                     <td colspan="4">
                         <select class="input-field" id="disturbance" onchange="calc()">
+                            <option value="none" selected>Keine Störung (gerades Rohr)</option>
                             <option value="bend90">90°-Krümmer (einzeln)</option>
                             <option value="bend90x2_same">2× 90°-Krümmer (gleiche Ebene)</option>
                             <option value="bend90x2_diff">2× 90°-Krümmer (verschiedene Ebenen)</option>
@@ -89,7 +90,6 @@
                             <option value="valve_full">Absperrventil (voll offen)</option>
                             <option value="valve_control">Regelventil / Stellventil</option>
                             <option value="pump">Pumpe</option>
-                            <option value="none">Keine Störung (gerades Rohr)</option>
                         </select>
                     </td>
                 </tr>
@@ -158,6 +158,7 @@
                     <thead>
                         <tr>
                             <th style="text-align:left">Messgerät</th>
+                            <th>Keine Störung</th>
                             <th>90°-Krümmer</th>
                             <th>2×90° gleich</th>
                             <th>2×90° versch.</th>
@@ -195,32 +196,32 @@
             magmeter: {
                 name: 'Mag.-induktiv',
                 downstream: 2,
-                inlet: { bend90: 5, bend90x2_same: 5, bend90x2_diff: 10, tee: 5, reducer: 3, valve_full: 5, valve_control: 10, pump: 10, none: 0 }
+                inlet: { none: 3, bend90: 5, bend90x2_same: 5, bend90x2_diff: 10, tee: 5, reducer: 3, valve_full: 5, valve_control: 10, pump: 10 }
             },
             coriolis: {
                 name: 'Coriolis',
                 downstream: 0,
-                inlet: { bend90: 0, bend90x2_same: 0, bend90x2_diff: 0, tee: 0, reducer: 0, valve_full: 0, valve_control: 0, pump: 5, none: 0 }
+                inlet: { none: 0, bend90: 0, bend90x2_same: 0, bend90x2_diff: 0, tee: 0, reducer: 0, valve_full: 0, valve_control: 0, pump: 5 }
             },
             vortex: {
                 name: 'Vortex',
                 downstream: 5,
-                inlet: { bend90: 20, bend90x2_same: 25, bend90x2_diff: 40, tee: 20, reducer: 15, valve_full: 20, valve_control: 50, pump: 30, none: 0 }
+                inlet: { none: 10, bend90: 20, bend90x2_same: 25, bend90x2_diff: 40, tee: 20, reducer: 15, valve_full: 20, valve_control: 50, pump: 30 }
             },
             ultrasonic: {
                 name: 'Ultraschall',
                 downstream: 5,
-                inlet: { bend90: 15, bend90x2_same: 25, bend90x2_diff: 40, tee: 20, reducer: 15, valve_full: 15, valve_control: 35, pump: 25, none: 0 }
+                inlet: { none: 10, bend90: 15, bend90x2_same: 25, bend90x2_diff: 40, tee: 20, reducer: 15, valve_full: 15, valve_control: 35, pump: 25 }
             },
             orifice: {
                 name: 'Blende/DP',
                 downstream: 7,
-                inlet: { bend90: 22, bend90x2_same: 30, bend90x2_diff: 60, tee: 22, reducer: 8, valve_full: 18, valve_control: 50, pump: 40, none: 0 }
+                inlet: { none: 10, bend90: 22, bend90x2_same: 30, bend90x2_diff: 60, tee: 22, reducer: 8, valve_full: 18, valve_control: 50, pump: 40 }
             },
             turbine: {
                 name: 'Turbine',
                 downstream: 5,
-                inlet: { bend90: 10, bend90x2_same: 20, bend90x2_diff: 25, tee: 15, reducer: 10, valve_full: 15, valve_control: 30, pump: 20, none: 0 }
+                inlet: { none: 5, bend90: 10, bend90x2_same: 20, bend90x2_diff: 25, tee: 15, reducer: 10, valve_full: 15, valve_control: 30, pump: 20 }
             }
         };
 
@@ -330,7 +331,7 @@
         function buildOverviewTable() {
             const tbody = document.getElementById('overviewBody');
             tbody.innerHTML = '';
-            const distKeys = ['bend90', 'bend90x2_same', 'bend90x2_diff', 'tee', 'reducer', 'valve_full', 'valve_control', 'pump'];
+            const distKeys = ['none', 'bend90', 'bend90x2_same', 'bend90x2_diff', 'tee', 'reducer', 'valve_full', 'valve_control', 'pump'];
 
             Object.entries(INLET_DATA).forEach(([key, meter]) => {
                 let html = '<tr data-meter="' + key + '">';
