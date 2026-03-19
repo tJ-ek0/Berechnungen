@@ -11,9 +11,7 @@
         .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
         .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
         .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
-
         .section-divider { border: none; border-top: 1px solid var(--border-default); margin: 24px 0; }
-
         .status-bar { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-default); margin-bottom: 20px; font-size: 14px; font-weight: 500; transition: all 0.3s; }
         .status-bar.status-ok { background: var(--bg-success); color: var(--text-success); border-color: var(--text-success); }
         .status-bar.status-warn { background: var(--bg-attention); color: var(--text-attention); border-color: var(--text-attention); }
@@ -24,516 +22,293 @@
         .status-warn .status-dot { background: var(--text-attention); }
         .status-error .status-dot { background: var(--text-danger); }
         .status-idle .status-dot { background: var(--text-tertiary); }
-
-        .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 16px; margin-bottom: 16px; }
+        .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 10px; margin-top: 16px; margin-bottom: 16px; }
         .result-card { background: var(--bg-success); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 12px; text-align: center; }
-        .result-card-value { font-size: 18px; font-weight: 600; color: var(--text-success); font-family: var(--font-mono); }
+        .result-card-value { font-size: 17px; font-weight: 600; color: var(--text-success); font-family: var(--font-mono); }
         .result-card-label { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
-
         .tab-bar { display: flex; gap: 0; border-bottom: 2px solid var(--border-default); margin-bottom: 20px; }
         .tab-btn { padding: 10px 20px; font-size: 14px; font-weight: 500; border: none; background: none; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; font-family: var(--font-sans); transition: all 0.15s; box-shadow: none; }
         .tab-btn:hover { color: var(--text-primary); background: none; transform: none; box-shadow: none; filter: none; }
         .tab-btn.active { color: var(--accent-fg); border-bottom-color: var(--accent-fg); }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-
         .info-box { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 16px; font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
         .info-box strong { color: var(--text-primary); }
-
         .ref-table { font-size: 12px; }
-        .ref-table th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; }
-        .ref-table td { padding: 4px 10px; font-family: var(--font-mono); font-size: 12px; }
+        .ref-table th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em; padding: 5px 8px; }
+        .ref-table td { padding: 4px 8px; font-family: var(--font-mono); font-size: 11px; text-align: center; }
+        .color-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--border-default); vertical-align: middle; margin-right: 4px; }
+        .check-block { background: var(--bg-accent); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 16px 20px; margin-top: 16px; margin-bottom: 16px; transition: all 0.3s; }
+        .check-block h4 { font-size: 14px; font-weight: 600; margin-bottom: 10px; color: var(--text-primary); }
+        .check-block.check-ok { background: var(--bg-success); border-color: var(--text-success); }
+        .check-block.check-fail { background: var(--bg-danger); border-color: var(--text-danger); }
     </style>
 </head>
 <body data-tool-id="tempsensor">
 
     <header>
         <div class="header-left">
-            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             <span class="header-title">Techniker Berechnungstools</span>
         </div>
-        <div class="header-right">
-            <button class="theme-toggle" id="themeToggle" title="Theme wechseln">
-                <span id="themeIcon">🌙</span>
-            </button>
-        </div>
+        <div class="header-right"><button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button></div>
     </header>
+    <div class="back-bar"><a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a></div>
 
-    <div class="back-bar">
-        <a href="index.html" class="back-link">
-            <svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg>
-            Zurück zur Übersicht
-        </a>
-    </div>
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="copyResults()"><svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg> Kopieren</button>
+            <button class="action-btn" onclick="resetFields()"><svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg> Zurücksetzen</button>
+            <button class="action-btn" onclick="exportPagePDF('Temperatursensor-Rechner')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+            <button class="action-btn" onclick="generateShareLink()"><svg viewBox="0 0 16 16"><path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0z"/></svg> Teilen</button>
+        </div>
+        <div class="description">🌡️ Temperatur ↔ Widerstand/Spannung für Pt100, Pt1000 und Thermoelemente (Typ K, J, T, E, N, R, S). Sensor-Prüfmodus, Toleranzklassen 1+2, Drahtfarben nach IEC.</div>
 
-    <div class="page-container">
-        <div class="container">
-            <div class="action-bar">
-                <button class="action-btn" id="copyBtn" onclick="copyResults()"><svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg> Kopieren</button>
-                <button class="action-btn" id="resetBtn" onclick="resetFields()"><svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg> Zurücksetzen</button>
-                <button class="action-btn" id="pdfBtn" onclick="exportPagePDF('Temperatursensor-Rechner')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
-                <button class="action-btn" id="shareBtn" onclick="generateShareLink()"><svg viewBox="0 0 16 16"><path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0z"/></svg> Teilen</button>
+        <div class="tab-bar">
+            <button class="tab-btn active" onclick="switchTab('rtd')">Pt100 / Pt1000</button>
+            <button class="tab-btn" onclick="switchTab('tc')">Thermoelemente</button>
+        </div>
+
+        <!-- ===== RTD TAB ===== -->
+        <div class="tab-content active" id="tab_rtd">
+            <table>
+                <tr><th colspan="6">Widerstandsthermometer</th></tr>
+                <tr><td colspan="2">Sensortyp</td><td colspan="4"><select class="input-field" id="rtd_type"><option value="100">Pt100 (R₀ = 100 Ω)</option><option value="1000">Pt1000 (R₀ = 1000 Ω)</option></select></td></tr>
+                <tr><td colspan="2">Berechnung</td><td colspan="4"><select class="input-field" id="rtd_dir"><option value="t2r">Temperatur → Widerstand</option><option value="r2t">Widerstand → Temperatur</option></select></td></tr>
+                <tr id="rtd_temp_row"><td colspan="2">Temperatur</td><td colspan="4"><input class="input-field" type="number" id="rtd_temp" value="20" step="0.1"> °C</td></tr>
+                <tr id="rtd_res_row" style="display:none;"><td colspan="2">Widerstand</td><td colspan="4"><input class="input-field" type="number" id="rtd_res" value="107.79" step="0.01"> Ω</td></tr>
+                <tr><td colspan="2">Toleranzklasse</td><td colspan="4"><select class="input-field" id="rtd_class"><option value="AA">Klasse AA (±0,1°C bei 0°C)</option><option value="A" selected>Klasse A (±0,15°C bei 0°C)</option><option value="B">Klasse B (±0,3°C bei 0°C)</option><option value="C">Klasse C (±0,6°C bei 0°C)</option></select></td></tr>
+            </table>
+            <div class="status-bar status-idle" id="rtd_status"><div class="status-dot"></div><span id="rtd_status_text">Werte eingeben</span></div>
+            <div class="result-grid" id="rtd_results" style="display:none;">
+                <div class="result-card"><div class="result-card-value" id="rtd_r_val">—</div><div class="result-card-label">Widerstand (Ω)</div></div>
+                <div class="result-card"><div class="result-card-value" id="rtd_tc">—</div><div class="result-card-label">°C</div></div>
+                <div class="result-card"><div class="result-card-value" id="rtd_tf">—</div><div class="result-card-label">°F</div></div>
+                <div class="result-card"><div class="result-card-value" id="rtd_tk">—</div><div class="result-card-label">K</div></div>
+                <div class="result-card"><div class="result-card-value" id="rtd_tol">—</div><div class="result-card-label" id="rtd_tol_lbl">Toleranz (±°C)</div></div>
             </div>
-
-            <div class="description">
-                🌡️ Temperatur ↔ Widerstand/Spannung umrechnen für Widerstandsthermometer (Pt100, Pt1000) und Thermoelemente (Typ K, J, T, E, N). Toleranzklassen nach DIN EN 60751 und IEC 60584.
-            </div>
-
-            <!-- Tabs -->
-            <div class="tab-bar">
-                <button class="tab-btn active" onclick="switchTab('rtd')">Pt100 / Pt1000</button>
-                <button class="tab-btn" onclick="switchTab('tc')">Thermoelemente</button>
-            </div>
-
-            <!-- ============ RTD TAB ============ -->
-            <div class="tab-content active" id="tab_rtd">
-
+            <div class="check-block" id="rtd_chk_block">
+                <h4>🔍 Sensor-Prüfmodus</h4>
+                <p style="font-size:12px;color:var(--text-tertiary);margin-bottom:10px;">Gemessenen Widerstand mit bekannter Referenztemperatur vergleichen — prüft ob der Sensor in Toleranz liegt.</p>
                 <table>
-                    <tr><th colspan="6">Widerstandsthermometer</th></tr>
-                    <tr>
-                        <td colspan="2">Sensortyp</td>
-                        <td colspan="4">
-                            <select class="input-field" id="rtd_type" onchange="calcRTD()">
-                                <option value="100">Pt100 (R₀ = 100 Ω)</option>
-                                <option value="1000">Pt1000 (R₀ = 1000 Ω)</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">Berechnung</td>
-                        <td colspan="4">
-                            <select class="input-field" id="rtd_dir" onchange="calcRTD()">
-                                <option value="t2r">Temperatur → Widerstand</option>
-                                <option value="r2t">Widerstand → Temperatur</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr id="rtd_temp_row">
-                        <td colspan="2">Temperatur</td>
-                        <td colspan="4">
-                            <input class="input-field" type="number" id="rtd_temp" value="20" step="0.1"> °C
-                        </td>
-                    </tr>
-                    <tr id="rtd_res_row" style="display:none;">
-                        <td colspan="2">Widerstand</td>
-                        <td colspan="4">
-                            <input class="input-field" type="number" id="rtd_res" value="107.79" step="0.01"> Ω
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">Toleranzklasse</td>
-                        <td colspan="4">
-                            <select class="input-field" id="rtd_class" onchange="calcRTD()">
-                                <option value="AA">Klasse AA (±0,1°C bei 0°C)</option>
-                                <option value="A" selected>Klasse A (±0,15°C bei 0°C)</option>
-                                <option value="B">Klasse B (±0,3°C bei 0°C)</option>
-                                <option value="C">Klasse C (±0,6°C bei 0°C)</option>
-                            </select>
-                        </td>
-                    </tr>
+                    <tr><td colspan="2">Referenztemperatur</td><td colspan="4"><input class="input-field" type="number" id="rtd_chk_t" value="" step="0.1" placeholder="z.B. 0.0"> °C</td></tr>
+                    <tr><td colspan="2">Gemessener Widerstand</td><td colspan="4"><input class="input-field" type="number" id="rtd_chk_r" value="" step="0.01" placeholder="z.B. 100.00"> Ω</td></tr>
+                    <tr><td colspan="2">Ergebnis</td><td colspan="4" class="result-field"><span id="rtd_chk_out" style="font-size:13px;"></span></td></tr>
                 </table>
-
-                <!-- RTD Ampel -->
-                <div class="status-bar status-idle" id="rtd_status">
-                    <div class="status-dot"></div>
-                    <span id="rtd_status_text">Werte eingeben</span>
-                </div>
-
-                <!-- RTD Ergebnis -->
-                <div class="result-grid" id="rtd_results" style="display:none;">
-                    <div class="result-card"><div class="result-card-value" id="rtd_r_result">—</div><div class="result-card-label" id="rtd_r_label">Widerstand (Ω)</div></div>
-                    <div class="result-card"><div class="result-card-value" id="rtd_t_result">—</div><div class="result-card-label" id="rtd_t_label">Temperatur (°C)</div></div>
-                    <div class="result-card"><div class="result-card-value" id="rtd_tol">—</div><div class="result-card-label">Toleranz (±°C)</div></div>
-                </div>
-
-                <hr class="section-divider">
-
-                <!-- RTD Referenztabelle -->
-                <table class="ref-table">
-                    <tr><th colspan="5">Referenztabelle Pt100 (DIN EN 60751)</th></tr>
-                    <thead><tr><th>°C</th><th>Ω (Pt100)</th><th>Ω (Pt1000)</th><th>Tol. A (±°C)</th><th>Tol. B (±°C)</th></tr></thead>
-                    <tbody id="rtd_ref_body"></tbody>
-                </table>
-
-                <div class="info-box" style="margin-top:16px;">
-                    <strong>Callendar-Van-Dusen-Gleichung (DIN EN 60751):</strong><br>
-                    T ≥ 0°C: R(T) = R₀ × (1 + A·T + B·T²)<br>
-                    T &lt; 0°C: R(T) = R₀ × (1 + A·T + B·T² + C·(T−100)·T³)<br>
-                    A = 3,9083×10⁻³, B = −5,775×10⁻⁷, C = −4,183×10⁻¹²
-                </div>
             </div>
-
-            <!-- ============ THERMOCOUPLE TAB ============ -->
-            <div class="tab-content" id="tab_tc">
-
-                <table>
-                    <tr><th colspan="6">Thermoelemente</th></tr>
-                    <tr>
-                        <td colspan="2">Typ</td>
-                        <td colspan="4">
-                            <select class="input-field" id="tc_type" onchange="calcTC()">
-                                <option value="K">Typ K — NiCr-Ni (−270 bis 1372°C)</option>
-                                <option value="J">Typ J — Fe-CuNi (−210 bis 1200°C)</option>
-                                <option value="T">Typ T — Cu-CuNi (−270 bis 400°C)</option>
-                                <option value="E">Typ E — NiCr-CuNi (−270 bis 1000°C)</option>
-                                <option value="N">Typ N — NiCrSi-NiSi (−270 bis 1300°C)</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">Berechnung</td>
-                        <td colspan="4">
-                            <select class="input-field" id="tc_dir" onchange="calcTC()">
-                                <option value="t2v">Temperatur → Spannung</option>
-                                <option value="v2t">Spannung → Temperatur</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr id="tc_temp_row">
-                        <td colspan="2">Temperatur</td>
-                        <td colspan="4">
-                            <input class="input-field" type="number" id="tc_temp" value="200" step="1"> °C
-                        </td>
-                    </tr>
-                    <tr id="tc_mv_row" style="display:none;">
-                        <td colspan="2">Spannung</td>
-                        <td colspan="4">
-                            <input class="input-field" type="number" id="tc_mv" value="8.138" step="0.001"> mV
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">Vergleichsstelle</td>
-                        <td colspan="4">
-                            <input class="input-field" type="number" id="tc_ref" value="0" step="0.1" style="max-width:100px"> °C
-                            <span style="font-size:12px;color:var(--text-tertiary);margin-left:8px;">(0°C = Eisbad, 25°C = Raumtemperatur)</span>
-                        </td>
-                    </tr>
-                </table>
-
-                <!-- TC Ergebnis -->
-                <div class="result-grid" id="tc_results" style="display:none;">
-                    <div class="result-card"><div class="result-card-value" id="tc_v_result">—</div><div class="result-card-label" id="tc_v_label">Spannung (mV)</div></div>
-                    <div class="result-card"><div class="result-card-value" id="tc_t_result">—</div><div class="result-card-label" id="tc_t_label">Temperatur (°C)</div></div>
-                    <div class="result-card"><div class="result-card-value" id="tc_tol">—</div><div class="result-card-label">Toleranz (IEC Klasse 1)</div></div>
-                </div>
-
-                <hr class="section-divider">
-
-                <!-- TC Referenztabelle -->
-                <table class="ref-table">
-                    <tr><th colspan="6" id="tc_ref_title">Referenztabelle Typ K (NiCr-Ni)</th></tr>
-                    <thead><tr><th>°C</th><th>mV</th><th>°C</th><th>mV</th><th>°C</th><th>mV</th></tr></thead>
-                    <tbody id="tc_ref_body"></tbody>
-                </table>
-
-                <div class="info-box" style="margin-top:16px;">
-                    <strong>Thermoelement-Typen:</strong><br>
-                    <strong>Typ K</strong> (NiCr-Ni): Universell, −270 bis 1372°C, ~41 µV/°C<br>
-                    <strong>Typ J</strong> (Fe-CuNi): Industrie, −210 bis 1200°C, ~52 µV/°C<br>
-                    <strong>Typ T</strong> (Cu-CuNi): Tieftemperatur, −270 bis 400°C, ~43 µV/°C<br>
-                    <strong>Typ E</strong> (NiCr-CuNi): Höchste Empfindlichkeit, −270 bis 1000°C, ~68 µV/°C<br>
-                    <strong>Typ N</strong> (NiCrSi-NiSi): Wie K aber stabiler, −270 bis 1300°C, ~39 µV/°C
-                </div>
-            </div>
-
-            <div class="shortcuts-hint">
-                <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
-                <span><kbd>Esc</kbd> Zurücksetzen</span>
-                <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
-                <span><kbd>Ctrl</kbd>+<kbd>L</kbd> Teilen</span>
+            <hr class="section-divider">
+            <table class="ref-table"><tr><th colspan="5">Referenztabelle (DIN EN 60751)</th></tr>
+                <thead><tr><th>°C</th><th>Pt100 (Ω)</th><th>Pt1000 (Ω)</th><th>Tol. A (±°C)</th><th>Tol. B (±°C)</th></tr></thead>
+                <tbody id="rtd_ref_body"></tbody>
+            </table>
+            <div class="info-box" style="margin-top:16px;">
+                <strong>Callendar-Van-Dusen (DIN EN 60751):</strong><br>
+                T ≥ 0°C: R(T) = R₀ × (1 + A·T + B·T²)<br>
+                T &lt; 0°C: R(T) = R₀ × (1 + A·T + B·T² + C·(T−100)·T³)<br>
+                A = 3,9083×10⁻³, B = −5,775×10⁻⁷, C = −4,183×10⁻¹²
             </div>
         </div>
-    </div>
 
-    <footer class="bottom-header">
-        <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
-    </footer>
+        <!-- ===== TC TAB ===== -->
+        <div class="tab-content" id="tab_tc">
+            <table>
+                <tr><th colspan="6">Thermoelemente</th></tr>
+                <tr><td colspan="2">Typ</td><td colspan="4"><select class="input-field" id="tc_type">
+                    <option value="K">Typ K — NiCr-Ni (−270…1372°C)</option>
+                    <option value="J">Typ J — Fe-CuNi (−210…1200°C)</option>
+                    <option value="T">Typ T — Cu-CuNi (−270…400°C)</option>
+                    <option value="E">Typ E — NiCr-CuNi (−270…1000°C)</option>
+                    <option value="N">Typ N — NiCrSi-NiSi (−270…1300°C)</option>
+                    <option value="R">Typ R — Pt13Rh-Pt (−50…1768°C)</option>
+                    <option value="S">Typ S — Pt10Rh-Pt (−50…1768°C)</option>
+                </select></td></tr>
+                <tr><td colspan="2">Berechnung</td><td colspan="4"><select class="input-field" id="tc_dir"><option value="t2v">Temperatur → Spannung</option><option value="v2t">Spannung → Temperatur</option></select></td></tr>
+                <tr id="tc_temp_row"><td colspan="2">Temperatur</td><td colspan="4"><input class="input-field" type="number" id="tc_temp" value="200" step="1"> °C</td></tr>
+                <tr id="tc_mv_row" style="display:none;"><td colspan="2">Spannung</td><td colspan="4"><input class="input-field" type="number" id="tc_mv" value="8.138" step="0.001"> mV</td></tr>
+                <tr><td colspan="2">Vergleichsstelle</td><td colspan="4"><input class="input-field" type="number" id="tc_ref" value="0" step="0.1" style="max-width:100px"> °C <span style="font-size:12px;color:var(--text-tertiary);margin-left:6px;">(0 = Eisbad, 25 = Raumtemp.)</span></td></tr>
+                <tr><td colspan="2">Toleranzklasse</td><td colspan="4"><select class="input-field" id="tc_cls"><option value="1" selected>Klasse 1 (höhere Genauigkeit)</option><option value="2">Klasse 2 (Standard)</option></select></td></tr>
+            </table>
+            <div class="status-bar status-idle" id="tc_status"><div class="status-dot"></div><span id="tc_status_text">Werte eingeben</span></div>
+            <div class="result-grid" id="tc_results" style="display:none;">
+                <div class="result-card"><div class="result-card-value" id="tc_mv_val">—</div><div class="result-card-label">Spannung (mV)</div></div>
+                <div class="result-card"><div class="result-card-value" id="tc_tc">—</div><div class="result-card-label">°C</div></div>
+                <div class="result-card"><div class="result-card-value" id="tc_tf">—</div><div class="result-card-label">°F</div></div>
+                <div class="result-card"><div class="result-card-value" id="tc_tk">—</div><div class="result-card-label">K</div></div>
+                <div class="result-card"><div class="result-card-value" id="tc_tol">—</div><div class="result-card-label" id="tc_tol_lbl">Toleranz Kl. 1 (±°C)</div></div>
+            </div>
+            <div class="check-block" id="tc_chk_block">
+                <h4>🔍 Sensor-Prüfmodus</h4>
+                <p style="font-size:12px;color:var(--text-tertiary);margin-bottom:10px;">Gemessene Spannung bei bekannter Referenztemperatur — prüft ob das Thermoelement in Toleranz liegt.</p>
+                <table>
+                    <tr><td colspan="2">Referenztemperatur</td><td colspan="4"><input class="input-field" type="number" id="tc_chk_t" value="" step="0.1" placeholder="z.B. 200"> °C</td></tr>
+                    <tr><td colspan="2">Gemessene Spannung</td><td colspan="4"><input class="input-field" type="number" id="tc_chk_mv" value="" step="0.001" placeholder="z.B. 8.138"> mV</td></tr>
+                    <tr><td colspan="2">Ergebnis</td><td colspan="4" class="result-field"><span id="tc_chk_out" style="font-size:13px;"></span></td></tr>
+                </table>
+            </div>
+            <hr class="section-divider">
+            <table class="ref-table"><tr><th colspan="5">Drahtfarben nach IEC 60584-3</th></tr>
+                <thead><tr><th>Typ</th><th>+ Leiter</th><th>− Leiter</th><th>Mantel</th><th>Werkstoff</th></tr></thead>
+                <tbody id="colorBody"></tbody>
+            </table>
+            <hr class="section-divider">
+            <table class="ref-table"><tr><th colspan="6" id="tc_ref_title">Referenztabelle Typ K (NiCr-Ni)</th></tr>
+                <thead><tr><th>°C</th><th>mV</th><th>°C</th><th>mV</th><th>°C</th><th>mV</th></tr></thead>
+                <tbody id="tc_ref_body"></tbody>
+            </table>
+            <div class="info-box" style="margin-top:16px;">
+                <strong>Typ K</strong> (NiCr-Ni): Universell, ~41 µV/°C | <strong>Typ J</strong> (Fe-CuNi): Industrie, ~52 µV/°C<br>
+                <strong>Typ T</strong> (Cu-CuNi): Tieftemp., ~43 µV/°C | <strong>Typ E</strong> (NiCr-CuNi): Höchste Empfindlichkeit, ~68 µV/°C<br>
+                <strong>Typ N</strong> (NiCrSi-NiSi): Stabil, ~39 µV/°C | <strong>Typ R/S</strong> (Edelmetall): Hochtemp., ~11–12 µV/°C
+            </div>
+        </div>
+
+        <div class="shortcuts-hint"><span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span><span><kbd>Esc</kbd> Zurücksetzen</span><span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span><span><kbd>Ctrl</kbd>+<kbd>L</kbd> Teilen</span></div>
+    </div></div>
+
+    <footer class="bottom-header"><p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p></footer>
 
     <script src="shared.js"></script>
     <script>
-        // ============ TABS ============
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.getElementById('tab_' + tab).classList.add('active');
-            event.target.classList.add('active');
-        }
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.getElementById('tab_' + tab).classList.add('active');
+        event.target.classList.add('active');
+    }
+    const toF = c => c*9/5+32, toK = c => c+273.15;
 
-        // ============ RTD: Callendar-Van-Dusen (DIN EN 60751) ============
-        const CVD_A = 3.9083e-3;
-        const CVD_B = -5.775e-7;
-        const CVD_C = -4.183e-12;
+    // ===== RTD (DIN EN 60751) =====
+    const A=3.9083e-3, B=-5.775e-7, C=-4.183e-12;
+    function r2r(t,r0){ return t>=0 ? r0*(1+A*t+B*t*t) : r0*(1+A*t+B*t*t+C*(t-100)*t*t*t); }
+    function r2t(r,r0){ let t=(r/r0-1)/A; for(let i=0;i<50;i++){const rc=r2r(t,r0),d=r-rc;if(Math.abs(d)<1e-6)break;const dt=t>=0?r0*(A+2*B*t):r0*(A+2*B*t+C*(4*t*t*t-300*t*t));t+=d/dt;}return t; }
+    function rTol(t,c){const a=Math.abs(t);switch(c){case'AA':return .1+.0017*a;case'A':return .15+.002*a;case'B':return .3+.005*a;case'C':return .6+.01*a;default:return .3+.005*a;}}
 
-        function rtdTempToRes(t, r0) {
-            if (t >= 0) {
-                return r0 * (1 + CVD_A * t + CVD_B * t * t);
-            } else {
-                return r0 * (1 + CVD_A * t + CVD_B * t * t + CVD_C * (t - 100) * t * t * t);
-            }
-        }
+    function calcRTD(){
+        const r0=+document.getElementById('rtd_type').value, dir=document.getElementById('rtd_dir').value, cls=document.getElementById('rtd_class').value;
+        document.getElementById('rtd_temp_row').style.display=dir==='t2r'?'':'none';
+        document.getElementById('rtd_res_row').style.display=dir==='r2t'?'':'none';
+        let t,r;
+        if(dir==='t2r'){t=parseFloat(document.getElementById('rtd_temp').value);if(isNaN(t))return hRTD();r=r2r(t,r0);}
+        else{r=parseFloat(document.getElementById('rtd_res').value);if(isNaN(r)||r<=0)return hRTD();t=r2t(r,r0);}
+        const tol=rTol(t,cls);
+        document.getElementById('rtd_r_val').textContent=r.toFixed(2);
+        document.getElementById('rtd_tc').textContent=t.toFixed(2);
+        document.getElementById('rtd_tf').textContent=toF(t).toFixed(2);
+        document.getElementById('rtd_tk').textContent=toK(t).toFixed(2);
+        document.getElementById('rtd_tol').textContent='±'+tol.toFixed(2);
+        document.getElementById('rtd_tol_lbl').textContent='Toleranz '+cls+' (±°C)';
+        document.getElementById('rtd_results').style.display='grid';
+        const b=document.getElementById('rtd_status'),x=document.getElementById('rtd_status_text');
+        if(t<-200||t>850){b.className='status-bar status-error';x.textContent='✕ Außerhalb Messbereich (−200…850°C)';}
+        else if(t<-100||t>600){b.className='status-bar status-warn';x.textContent='⚠ Rand des Einsatzbereichs';}
+        else{b.className='status-bar status-ok';x.textContent='✓ '+(r0===100?'Pt100':'Pt1000')+': '+t.toFixed(2)+'°C = '+r.toFixed(2)+' Ω (±'+tol.toFixed(2)+'°C)';}
+        if(typeof trackCalculation==='function')trackCalculation('tempsensor');
+    }
+    function hRTD(){document.getElementById('rtd_results').style.display='none';document.getElementById('rtd_status').className='status-bar status-idle';document.getElementById('rtd_status_text').textContent='Werte eingeben';}
 
-        function rtdResToTemp(r, r0) {
-            // Newton-Raphson iteration
-            let t = (r / r0 - 1) / CVD_A; // initial guess
-            for (let i = 0; i < 50; i++) {
-                const rCalc = rtdTempToRes(t, r0);
-                const dR = r - rCalc;
-                if (Math.abs(dR) < 0.00001) break;
-                // Derivative
-                let dRdT;
-                if (t >= 0) {
-                    dRdT = r0 * (CVD_A + 2 * CVD_B * t);
-                } else {
-                    dRdT = r0 * (CVD_A + 2 * CVD_B * t + CVD_C * (4 * t * t * t - 300 * t * t));
-                }
-                t += dR / dRdT;
-            }
-            return t;
-        }
+    function chkRTD(){
+        const r0=+document.getElementById('rtd_type').value,cls=document.getElementById('rtd_class').value;
+        const tR=parseFloat(document.getElementById('rtd_chk_t').value),rM=parseFloat(document.getElementById('rtd_chk_r').value),el=document.getElementById('rtd_chk_out'),blk=document.getElementById('rtd_chk_block');
+        if(isNaN(tR)||isNaN(rM)){el.textContent='';blk.className='check-block';return;}
+        const rI=r2r(tR,r0),tM=r2t(rM,r0),dev=tM-tR,tol=rTol(tR,cls),ok=Math.abs(dev)<=tol;
+        blk.className='check-block '+(ok?'check-ok':'check-fail');
+        el.innerHTML=(ok?'<span style="color:var(--text-success);font-weight:600;">✓ IN TOLERANZ</span>':'<span style="color:var(--text-danger);font-weight:600;">✕ AUSSERHALB TOLERANZ</span>')+
+            '<br>Soll: '+rI.toFixed(2)+' Ω | Ist: '+rM.toFixed(2)+' Ω | Abweichung: '+(dev>0?'+':'')+dev.toFixed(3)+'°C | Toleranz '+cls+': ±'+tol.toFixed(2)+'°C';
+    }
 
-        function rtdTolerance(t, cls) {
-            const absT = Math.abs(t);
-            switch (cls) {
-                case 'AA': return 0.1 + 0.0017 * absT;
-                case 'A':  return 0.15 + 0.002 * absT;
-                case 'B':  return 0.3 + 0.005 * absT;
-                case 'C':  return 0.6 + 0.01 * absT;
-                default:   return 0.3 + 0.005 * absT;
-            }
-        }
-
-        function calcRTD() {
-            const r0 = parseInt(document.getElementById('rtd_type').value);
-            const dir = document.getElementById('rtd_dir').value;
-            const cls = document.getElementById('rtd_class').value;
-
-            document.getElementById('rtd_temp_row').style.display = dir === 't2r' ? '' : 'none';
-            document.getElementById('rtd_res_row').style.display = dir === 'r2t' ? '' : 'none';
-
-            let t, r;
-            if (dir === 't2r') {
-                t = parseFloat(document.getElementById('rtd_temp').value);
-                if (isNaN(t)) return hideRTDResults();
-                r = rtdTempToRes(t, r0);
-                document.getElementById('rtd_r_result').textContent = r.toFixed(2);
-                document.getElementById('rtd_t_result').textContent = t.toFixed(2);
-                document.getElementById('rtd_r_label').textContent = 'Widerstand (Ω)';
-                document.getElementById('rtd_t_label').textContent = 'Temperatur (°C)';
-            } else {
-                r = parseFloat(document.getElementById('rtd_res').value);
-                if (isNaN(r) || r <= 0) return hideRTDResults();
-                t = rtdResToTemp(r, r0);
-                document.getElementById('rtd_r_result').textContent = r.toFixed(2);
-                document.getElementById('rtd_t_result').textContent = t.toFixed(2);
-                document.getElementById('rtd_r_label').textContent = 'Widerstand (Ω)';
-                document.getElementById('rtd_t_label').textContent = 'Temperatur (°C)';
-            }
-
-            const tol = rtdTolerance(t, cls);
-            document.getElementById('rtd_tol').textContent = '±' + tol.toFixed(2);
-            document.getElementById('rtd_results').style.display = 'grid';
-
-            // Ampel: range check
-            const bar = document.getElementById('rtd_status');
-            const txt = document.getElementById('rtd_status_text');
-            if (t < -200 || t > 850) {
-                bar.className = 'status-bar status-error';
-                txt.textContent = '✕ Temperatur außerhalb des Messbereichs (−200 bis 850°C)';
-            } else if (t < -100 || t > 600) {
-                bar.className = 'status-bar status-warn';
-                txt.textContent = '⚠ Temperatur am Rand des typischen Einsatzbereichs';
-            } else {
-                bar.className = 'status-bar status-ok';
-                txt.textContent = '✓ ' + (r0 === 100 ? 'Pt100' : 'Pt1000') + ': ' + t.toFixed(2) + '°C = ' + r.toFixed(2) + ' Ω (Toleranz ' + cls + ': ±' + tol.toFixed(2) + '°C)';
-            }
-        }
-
-        function hideRTDResults() {
-            document.getElementById('rtd_results').style.display = 'none';
-            document.getElementById('rtd_status').className = 'status-bar status-idle';
-            document.getElementById('rtd_status_text').textContent = 'Werte eingeben';
-        }
-
-        // RTD Reference table
-        function buildRTDRefTable() {
-            const tbody = document.getElementById('rtd_ref_body');
-            tbody.innerHTML = '';
-            const temps = [-200,-100,-50,0,20,25,50,100,150,200,250,300,400,500,600,700,800,850];
-            temps.forEach(t => {
-                const r100 = rtdTempToRes(t, 100);
-                const r1000 = rtdTempToRes(t, 1000);
-                const tolA = rtdTolerance(t, 'A');
-                const tolB = rtdTolerance(t, 'B');
-                tbody.innerHTML += '<tr><td>' + t + '</td><td>' + r100.toFixed(2) + '</td><td>' + r1000.toFixed(1) + '</td><td>±' + tolA.toFixed(2) + '</td><td>±' + tolB.toFixed(2) + '</td></tr>';
-            });
-        }
-
-        // ============ THERMOCOUPLE LOOKUP TABLES (IEC 60584, simplified polynomial) ============
-        // Coefficients for T→mV (simplified high-accuracy polynomials)
-        const TC_DATA = {
-            K: { // Type K: NiCr-Ni
-                name: 'Typ K (NiCr-Ni)',
-                ranges: [
-                    { min: -270, max: 0, c: [0, 3.9450128e-2, 2.3622373e-5, -3.2858906e-7, -4.9904040e-9, -6.7509059e-11, -5.7410327e-13, -3.1088872e-15, -1.0451609e-17, -1.9889266e-20, -1.6322697e-23] },
-                    { min: 0, max: 1372, c: [-1.7600414e-2, 3.8921205e-2, 1.8558770e-5, -9.9457593e-8, 3.1840945e-10, -5.6072844e-13, 5.6075059e-16, -3.2020720e-19, 9.7151147e-23, -1.2104721e-26] }
-                ],
-                tol1: function(t) { return Math.max(1.5, 0.004 * Math.abs(t)); }
-            },
-            J: { // Type J: Fe-CuNi
-                name: 'Typ J (Fe-CuNi)',
-                ranges: [
-                    { min: -210, max: 760, c: [0, 5.0381187e-2, 3.0475836e-5, -8.5681065e-8, 1.3228195e-10, -1.7052958e-13, 2.0948090e-16, -1.2538395e-19, 1.5631725e-23] },
-                    { min: 760, max: 1200, c: [2.9645625e2, -1.4976127, 3.1787103e-3, -3.1847687e-6, 1.5720819e-9, -3.0691369e-13] }
-                ],
-                tol1: function(t) { return Math.max(1.5, 0.004 * Math.abs(t)); }
-            },
-            T: { // Type T: Cu-CuNi
-                name: 'Typ T (Cu-CuNi)',
-                ranges: [
-                    { min: -270, max: 0, c: [0, 3.8748106e-2, 4.4194434e-5, 1.1844323e-7, 2.0032973e-8, 9.0138019e-10, 2.2651156e-11, 3.6071154e-13, 3.8493939e-15, 2.8213521e-17, 1.4251594e-19, 4.8768684e-22, 1.0795539e-24, 1.3945028e-27, 7.9795153e-31] },
-                    { min: 0, max: 400, c: [0, 3.8748106e-2, 3.3292227e-5, 2.0618243e-7, -2.1882256e-9, 1.0996880e-11, -3.0815759e-14, 4.5479135e-17, -2.7512902e-20] }
-                ],
-                tol1: function(t) { return Math.max(0.5, 0.004 * Math.abs(t)); }
-            },
-            E: { // Type E: NiCr-CuNi
-                name: 'Typ E (NiCr-CuNi)',
-                ranges: [
-                    { min: -270, max: 0, c: [0, 5.8665508e-2, 4.5410977e-5, -7.7998048e-7, -2.5800160e-8, -5.9452583e-10, -9.3214058e-12, -1.0284209e-13, -8.0370123e-16, -4.3979497e-18, -1.6414776e-20, -3.9673619e-23, -5.5827328e-26, -3.4657842e-29] },
-                    { min: 0, max: 1000, c: [0, 5.8665508e-2, 4.5032276e-5, 2.8908407e-8, -3.3056896e-10, 6.5024403e-13, -8.0346577e-16, 3.2483120e-19, 1.5684440e-21, -1.6944529e-23, 6.2990347e-26] }
-                ],
-                tol1: function(t) { return Math.max(1.5, 0.004 * Math.abs(t)); }
-            },
-            N: { // Type N: NiCrSi-NiSi
-                name: 'Typ N (NiCrSi-NiSi)',
-                ranges: [
-                    { min: -270, max: 0, c: [0, 2.6159105e-2, 1.0957484e-5, -9.3841315e-8, -4.6412039e-10, -2.6303357e-11, -2.2653438e-13, -7.6089300e-16, -9.3419667e-19] },
-                    { min: 0, max: 1300, c: [0, 2.5929395e-2, 1.5710141e-5, -4.3825627e-8, 9.8423321e-11, -1.3639289e-13, 1.1753707e-16, -6.1737455e-20, 1.8531682e-23, -2.4014710e-27] }
-                ],
-                tol1: function(t) { return Math.max(1.5, 0.004 * Math.abs(t)); }
-            }
-        };
-
-        function tcTempToMV(t, type) {
-            const tc = TC_DATA[type];
-            for (const range of tc.ranges) {
-                if (t >= range.min && t <= range.max) {
-                    let mv = 0;
-                    for (let i = 0; i < range.c.length; i++) {
-                        mv += range.c[i] * Math.pow(t, i);
-                    }
-                    return mv;
-                }
-            }
-            // Use closest range
-            const range = t < tc.ranges[0].min ? tc.ranges[0] : tc.ranges[tc.ranges.length - 1];
-            let mv = 0;
-            for (let i = 0; i < range.c.length; i++) {
-                mv += range.c[i] * Math.pow(t, i);
-            }
-            return mv;
-        }
-
-        function tcMVToTemp(mv, type) {
-            // Bisection search
-            const tc = TC_DATA[type];
-            const tMin = tc.ranges[0].min;
-            const tMax = tc.ranges[tc.ranges.length - 1].max;
-            let lo = tMin, hi = tMax;
-            for (let i = 0; i < 100; i++) {
-                const mid = (lo + hi) / 2;
-                const mvMid = tcTempToMV(mid, type);
-                if (Math.abs(mvMid - mv) < 0.0001) return mid;
-                if (mvMid < mv) lo = mid; else hi = mid;
-            }
-            return (lo + hi) / 2;
-        }
-
-        function calcTC() {
-            const type = document.getElementById('tc_type').value;
-            const dir = document.getElementById('tc_dir').value;
-            const refTemp = parseFloat(document.getElementById('tc_ref').value) || 0;
-
-            document.getElementById('tc_temp_row').style.display = dir === 't2v' ? '' : 'none';
-            document.getElementById('tc_mv_row').style.display = dir === 'v2t' ? '' : 'none';
-
-            const tc = TC_DATA[type];
-            let t, mv;
-
-            if (dir === 't2v') {
-                t = parseFloat(document.getElementById('tc_temp').value);
-                if (isNaN(t)) { document.getElementById('tc_results').style.display = 'none'; return; }
-                // Cold junction compensation
-                mv = tcTempToMV(t, type) - tcTempToMV(refTemp, type);
-                document.getElementById('tc_v_result').textContent = mv.toFixed(3);
-                document.getElementById('tc_t_result').textContent = t.toFixed(1);
-            } else {
-                mv = parseFloat(document.getElementById('tc_mv').value);
-                if (isNaN(mv)) { document.getElementById('tc_results').style.display = 'none'; return; }
-                // Add cold junction voltage
-                const totalMV = mv + tcTempToMV(refTemp, type);
-                t = tcMVToTemp(totalMV, type);
-                document.getElementById('tc_v_result').textContent = mv.toFixed(3);
-                document.getElementById('tc_t_result').textContent = t.toFixed(1);
-            }
-
-            const tol = tc.tol1(t);
-            document.getElementById('tc_tol').textContent = '±' + tol.toFixed(1) + '°C';
-            document.getElementById('tc_results').style.display = 'grid';
-
-            // Update ref table title
-            document.getElementById('tc_ref_title').textContent = 'Referenztabelle ' + tc.name;
-            buildTCRefTable(type);
-        }
-
-        function buildTCRefTable(type) {
-            const tbody = document.getElementById('tc_ref_body');
-            tbody.innerHTML = '';
-            const tc = TC_DATA[type];
-            const tMin = tc.ranges[0].min;
-            const tMax = tc.ranges[tc.ranges.length - 1].max;
-
-            // Generate temps in steps
-            const step = tMax > 800 ? 100 : 50;
-            const temps = [];
-            for (let t = Math.max(tMin, -200); t <= tMax; t += step) temps.push(t);
-            if (temps[temps.length - 1] !== tMax) temps.push(tMax);
-
-            // 3 columns
-            const rows = Math.ceil(temps.length / 3);
-            for (let i = 0; i < rows; i++) {
-                let html = '<tr>';
-                for (let col = 0; col < 3; col++) {
-                    const idx = i + col * rows;
-                    if (idx < temps.length) {
-                        const t = temps[idx];
-                        const mv = tcTempToMV(t, type);
-                        html += '<td>' + t + '</td><td>' + mv.toFixed(3) + '</td>';
-                    } else {
-                        html += '<td></td><td></td>';
-                    }
-                }
-                html += '</tr>';
-                tbody.innerHTML += html;
-            }
-        }
-
-        // ============ EVENTS ============
-        document.querySelectorAll('#rtd_temp, #rtd_res, #rtd_type, #rtd_dir, #rtd_class').forEach(el => {
-            el.addEventListener('input', calcRTD);
-            el.addEventListener('change', calcRTD);
+    function bRTDRef(){
+        const tb=document.getElementById('rtd_ref_body');tb.innerHTML='';
+        [-200,-100,-50,0,20,25,50,100,150,200,250,300,400,500,600,700,800,850].forEach(t=>{
+            tb.innerHTML+='<tr><td>'+t+'</td><td>'+r2r(t,100).toFixed(2)+'</td><td>'+r2r(t,1000).toFixed(1)+'</td><td>±'+rTol(t,'A').toFixed(2)+'</td><td>±'+rTol(t,'B').toFixed(2)+'</td></tr>';
         });
-        document.querySelectorAll('#tc_temp, #tc_mv, #tc_type, #tc_dir, #tc_ref').forEach(el => {
-            el.addEventListener('input', calcTC);
-            el.addEventListener('change', calcTC);
-        });
+    }
 
-        // Init
-        buildRTDRefTable();
-        calcRTD();
-        calcTC();
+    // ===== THERMOCOUPLE (IEC 60584) =====
+    const TC={
+        K:{nm:'Typ K (NiCr-Ni)',clr:{p:'#00aa00',pn:'Grün',m:'#ffffff',mn:'Weiß',s:'#00aa00',sn:'Grün'},
+            rg:[{lo:-270,hi:0,c:[0,3.9450128e-2,2.3622373e-5,-3.2858906e-7,-4.9904040e-9,-6.7509059e-11,-5.7410327e-13,-3.1088872e-15,-1.0451609e-17,-1.9889266e-20,-1.6322697e-23]},{lo:0,hi:1372,c:[-1.7600414e-2,3.8921205e-2,1.8558770e-5,-9.9457593e-8,3.1840945e-10,-5.6072844e-13,5.6075059e-16,-3.2020720e-19,9.7151147e-23,-1.2104721e-26]}],
+            t1:t=>Math.max(1.5,.004*Math.abs(t)),t2:t=>Math.max(2.5,.0075*Math.abs(t))},
+        J:{nm:'Typ J (Fe-CuNi)',clr:{p:'#111111',pn:'Schwarz',m:'#ffffff',mn:'Weiß',s:'#111111',sn:'Schwarz'},
+            rg:[{lo:-210,hi:760,c:[0,5.0381187e-2,3.0475836e-5,-8.5681065e-8,1.3228195e-10,-1.7052958e-13,2.0948090e-16,-1.2538395e-19,1.5631725e-23]},{lo:760,hi:1200,c:[2.9645625e2,-1.4976127,3.1787103e-3,-3.1847687e-6,1.5720819e-9,-3.0691369e-13]}],
+            t1:t=>Math.max(1.5,.004*Math.abs(t)),t2:t=>Math.max(2.5,.0075*Math.abs(t))},
+        T:{nm:'Typ T (Cu-CuNi)',clr:{p:'#cc6600',pn:'Braun',m:'#ffffff',mn:'Weiß',s:'#cc6600',sn:'Braun'},
+            rg:[{lo:-270,hi:0,c:[0,3.8748106e-2,4.4194434e-5,1.1844323e-7,2.0032973e-8,9.0138019e-10,2.2651156e-11,3.6071154e-13,3.8493939e-15,2.8213521e-17,1.4251594e-19,4.8768684e-22,1.0795539e-24,1.3945028e-27,7.9795153e-31]},{lo:0,hi:400,c:[0,3.8748106e-2,3.3292227e-5,2.0618243e-7,-2.1882256e-9,1.0996880e-11,-3.0815759e-14,4.5479135e-17,-2.7512902e-20]}],
+            t1:t=>Math.max(.5,.004*Math.abs(t)),t2:t=>Math.max(1,.0075*Math.abs(t))},
+        E:{nm:'Typ E (NiCr-CuNi)',clr:{p:'#9900cc',pn:'Violett',m:'#ffffff',mn:'Weiß',s:'#9900cc',sn:'Violett'},
+            rg:[{lo:-270,hi:0,c:[0,5.8665508e-2,4.5410977e-5,-7.7998048e-7,-2.5800160e-8,-5.9452583e-10,-9.3214058e-12,-1.0284209e-13,-8.0370123e-16,-4.3979497e-18,-1.6414776e-20,-3.9673619e-23,-5.5827328e-26,-3.4657842e-29]},{lo:0,hi:1000,c:[0,5.8665508e-2,4.5032276e-5,2.8908407e-8,-3.3056896e-10,6.5024403e-13,-8.0346577e-16,3.2483120e-19,1.5684440e-21,-1.6944529e-23,6.2990347e-26]}],
+            t1:t=>Math.max(1.5,.004*Math.abs(t)),t2:t=>Math.max(2.5,.0075*Math.abs(t))},
+        N:{nm:'Typ N (NiCrSi-NiSi)',clr:{p:'#ff69b4',pn:'Rosa',m:'#ffffff',mn:'Weiß',s:'#ff69b4',sn:'Rosa'},
+            rg:[{lo:-270,hi:0,c:[0,2.6159105e-2,1.0957484e-5,-9.3841315e-8,-4.6412039e-10,-2.6303357e-11,-2.2653438e-13,-7.6089300e-16,-9.3419667e-19]},{lo:0,hi:1300,c:[0,2.5929395e-2,1.5710141e-5,-4.3825627e-8,9.8423321e-11,-1.3639289e-13,1.1753707e-16,-6.1737455e-20,1.8531682e-23,-2.4014710e-27]}],
+            t1:t=>Math.max(1.5,.004*Math.abs(t)),t2:t=>Math.max(2.5,.0075*Math.abs(t))},
+        R:{nm:'Typ R (Pt13Rh-Pt)',clr:{p:'#ff8800',pn:'Orange',m:'#ffffff',mn:'Weiß',s:'#ff8800',sn:'Orange'},
+            rg:[{lo:-50,hi:1064,c:[0,5.28961729765e-3,1.39166589782e-5,-2.38855693017e-8,3.56916001063e-11,-4.62347666298e-14,5.00777441034e-17,-3.73105886191e-20,1.57716482367e-23,-2.81038625251e-27]},{lo:1064,hi:1768,c:[2.95157925316e1,-2.52061251332e-2,1.59564501865e-5,-7.64085947576e-9,2.05305291024e-12,-2.93359668173e-16]}],
+            t1:t=>Math.max(1,.003*Math.abs(t)),t2:t=>Math.max(1.5,.005*Math.abs(t))},
+        S:{nm:'Typ S (Pt10Rh-Pt)',clr:{p:'#ff8800',pn:'Orange',m:'#ffffff',mn:'Weiß',s:'#ff8800',sn:'Orange'},
+            rg:[{lo:-50,hi:1064,c:[0,5.40313308631e-3,1.25934289740e-5,-2.32477968689e-8,3.22028823036e-11,-3.31465196389e-14,2.55744251786e-17,-1.25068871393e-20,2.71443176145e-24]},{lo:1064,hi:1768,c:[1.32900444085e1,3.34509311344e-3,6.54805192818e-6,-1.64856259209e-8,1.29989605174e-12]}],
+            t1:t=>Math.max(1,.003*Math.abs(t)),t2:t=>Math.max(1.5,.005*Math.abs(t))}
+    };
+
+    function t2mv(t,k){const tc=TC[k];for(const r of tc.rg)if(t>=r.lo&&t<=r.hi){let v=0;for(let i=0;i<r.c.length;i++)v+=r.c[i]*Math.pow(t,i);return v;}const r=t<tc.rg[0].lo?tc.rg[0]:tc.rg[tc.rg.length-1];let v=0;for(let i=0;i<r.c.length;i++)v+=r.c[i]*Math.pow(t,i);return v;}
+    function mv2t(mv,k){const tc=TC[k];let lo=tc.rg[0].lo,hi=tc.rg[tc.rg.length-1].hi;for(let i=0;i<100;i++){const m=(lo+hi)/2,v=t2mv(m,k);if(Math.abs(v-mv)<.0001)return m;if(v<mv)lo=m;else hi=m;}return(lo+hi)/2;}
+
+    function calcTC(){
+        const k=document.getElementById('tc_type').value,dir=document.getElementById('tc_dir').value,ref=parseFloat(document.getElementById('tc_ref').value)||0,cls=document.getElementById('tc_cls').value;
+        document.getElementById('tc_temp_row').style.display=dir==='t2v'?'':'none';
+        document.getElementById('tc_mv_row').style.display=dir==='v2t'?'':'none';
+        const tc=TC[k];let t,mv;
+        if(dir==='t2v'){t=parseFloat(document.getElementById('tc_temp').value);if(isNaN(t))return hTC();mv=t2mv(t,k)-t2mv(ref,k);}
+        else{mv=parseFloat(document.getElementById('tc_mv').value);if(isNaN(mv))return hTC();t=mv2t(mv+t2mv(ref,k),k);}
+        const tol=cls==='1'?tc.t1(t):tc.t2(t);
+        document.getElementById('tc_mv_val').textContent=mv.toFixed(3);
+        document.getElementById('tc_tc').textContent=t.toFixed(1);
+        document.getElementById('tc_tf').textContent=toF(t).toFixed(1);
+        document.getElementById('tc_tk').textContent=toK(t).toFixed(1);
+        document.getElementById('tc_tol').textContent='±'+tol.toFixed(1);
+        document.getElementById('tc_tol_lbl').textContent='Toleranz Kl. '+cls+' (±°C)';
+        document.getElementById('tc_results').style.display='grid';
+        const tMin=tc.rg[0].lo,tMax=tc.rg[tc.rg.length-1].hi;
+        const b=document.getElementById('tc_status'),x=document.getElementById('tc_status_text');
+        if(t<tMin||t>tMax){b.className='status-bar status-error';x.textContent='✕ Außerhalb Messbereich ('+tMin+'…'+tMax+'°C)';}
+        else{b.className='status-bar status-ok';x.textContent='✓ '+tc.nm+': '+t.toFixed(1)+'°C = '+mv.toFixed(3)+' mV (±'+tol.toFixed(1)+'°C, Kl.'+cls+')';}
+        document.getElementById('tc_ref_title').textContent='Referenztabelle '+tc.nm;
+        bTCRef(k);bClr();
+    }
+    function hTC(){document.getElementById('tc_results').style.display='none';document.getElementById('tc_status').className='status-bar status-idle';document.getElementById('tc_status_text').textContent='Werte eingeben';}
+
+    function chkTC(){
+        const k=document.getElementById('tc_type').value,cls=document.getElementById('tc_cls').value;
+        const tR=parseFloat(document.getElementById('tc_chk_t').value),mvM=parseFloat(document.getElementById('tc_chk_mv').value),el=document.getElementById('tc_chk_out'),blk=document.getElementById('tc_chk_block');
+        if(isNaN(tR)||isNaN(mvM)){el.textContent='';blk.className='check-block';return;}
+        const tc=TC[k],mvI=t2mv(tR,k),tM=mv2t(mvM,k),dev=tM-tR,tol=cls==='1'?tc.t1(tR):tc.t2(tR),ok=Math.abs(dev)<=tol;
+        blk.className='check-block '+(ok?'check-ok':'check-fail');
+        el.innerHTML=(ok?'<span style="color:var(--text-success);font-weight:600;">✓ IN TOLERANZ</span>':'<span style="color:var(--text-danger);font-weight:600;">✕ AUSSERHALB TOLERANZ</span>')+
+            '<br>Soll: '+mvI.toFixed(3)+' mV | Ist: '+mvM.toFixed(3)+' mV | Abweichung: '+(dev>0?'+':'')+dev.toFixed(2)+'°C | Toleranz Kl.'+cls+': ±'+tol.toFixed(1)+'°C';
+    }
+
+    function bTCRef(k){
+        const tb=document.getElementById('tc_ref_body');tb.innerHTML='';
+        const tc=TC[k],tMin=tc.rg[0].lo,tMax=tc.rg[tc.rg.length-1].hi;
+        const step=tMax>800?100:50,temps=[];
+        for(let t=Math.max(tMin,-200);t<=tMax;t+=step)temps.push(t);
+        if(temps[temps.length-1]!==tMax)temps.push(tMax);
+        const rows=Math.ceil(temps.length/3);
+        for(let i=0;i<rows;i++){let h='<tr>';for(let c=0;c<3;c++){const idx=i+c*rows;if(idx<temps.length){const t=temps[idx];h+='<td>'+t+'</td><td>'+t2mv(t,k).toFixed(3)+'</td>';}else h+='<td></td><td></td>';}h+='</tr>';tb.innerHTML+=h;}
+    }
+
+    function bClr(){
+        const tb=document.getElementById('colorBody');tb.innerHTML='';
+        Object.entries(TC).forEach(([k,tc])=>{const c=tc.clr;
+            tb.innerHTML+='<tr><td style="font-weight:600;">'+k+'</td><td><span class="color-dot" style="background:'+c.p+'"></span>'+c.pn+'</td><td><span class="color-dot" style="background:'+c.m+'"></span>'+c.mn+'</td><td><span class="color-dot" style="background:'+c.s+'"></span>'+c.sn+'</td><td style="font-size:11px;color:var(--text-tertiary);">'+tc.nm.replace(/Typ [A-Z] \(/,'').replace(')','')+'</td></tr>';
+        });
+    }
+
+    // ===== EVENTS =====
+    document.querySelectorAll('#rtd_temp,#rtd_res,#rtd_type,#rtd_dir,#rtd_class').forEach(e=>{e.addEventListener('input',calcRTD);e.addEventListener('change',calcRTD);});
+    document.querySelectorAll('#rtd_chk_t,#rtd_chk_r,#rtd_type,#rtd_class').forEach(e=>{e.addEventListener('input',chkRTD);e.addEventListener('change',chkRTD);});
+    document.querySelectorAll('#tc_temp,#tc_mv,#tc_type,#tc_dir,#tc_ref,#tc_cls').forEach(e=>{e.addEventListener('input',calcTC);e.addEventListener('change',calcTC);});
+    document.querySelectorAll('#tc_chk_t,#tc_chk_mv,#tc_type,#tc_cls').forEach(e=>{e.addEventListener('input',chkTC);e.addEventListener('change',chkTC);});
+
+    bRTDRef();calcRTD();calcTC();
     </script>
-
 </body>
 </html>
