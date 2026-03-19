@@ -1,170 +1,123 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-theme="light">
 <head>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stromausgangsberechnung – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
+        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+        
+    </style>
 </head>
-<body>
+<body data-tool-id="stromausgang">
 
-    <!-- Header -->
     <header>
-        Techniker Berechnungstools
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln">
+                <span id="themeIcon">🌙</span>
+            </button>
+        </div>
     </header>
 
-    <!-- Navigationsleiste -->
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="Stromausgang.html">Stromausgangsberechnung</a>
-        <a href="Dichteberechnung.html">Dichteberechnung</a>
-        <a href="Impulswertigkeit.html">Impulswertigkeit</a>
-        <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
-        <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
-        <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
-		<a href="Messwertabweichung.html">Messwertabweichung</a>
-	    <a href="csv.html">Proline CSV-Umwandler</a>
-		<a href="csvauswertung.html">MultiRecorder CSV Visu.</a>
-       
-        <!-- Weitere Links zu Berechnungstools -->
-    </nav>
-
-    <div class="container">
-        <!-- Beschreibung der Berechnung -->
-        <div class="description">
-            Mit diesem Tool können Sie den Stromausgang basierend auf dem Messbereich berechnen. Geben Sie den Messbereich, den aktuellen Strom oder den Messwert ein, und das Tool berechnet den entsprechenden Messwert oder Stromwert sowie den prozentualen Anteil des Messbereichs.
-        </div>
-
-        <table>
-            <!-- Titelzeile -->
-            <tr>
-                <th colspan="6">Berechnung Stromausgang</th>
-            </tr>
-
-            <!-- Auswahl des Strombereichs -->
-            <tr>
-                <td colspan="2">Strombereich</td>
-                <td colspan="4">
-                    <select class="input-field" id="strombereich">
-                        <option value="4-20">4-20 mA</option>
-                        <option value="0-20">0-20 mA</option>
-                    </select>
-                </td>
-            </tr>
-
-            <!-- Eingabe des Messbereichs -->
-            <tr>
-                <td colspan="2">Messbereich (z.B. 100 bis 1000)</td>
-                <td colspan="4">
-                    <input class="input-field" type="number" id="messbereich_min" value="0"> bis
-                    <input class="input-field" type="number" id="messbereich_max" value="400">
-                </td>
-            </tr>
-
-            <!-- Strom zu Messwert -->
-            <tr>
-                <th colspan="6">Strom zu Messwert</th>
-            </tr>
-            <tr>
-                <td colspan="2">Istwert Strom (mA)</td>
-                <td colspan="4">
-                    <input class="input-field" type="number" id="stromwert" value="0">
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">Messwert calc:</td>
-                <td colspan="4" class="result-field">
-                    <span id="messwert_calc"></span>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">% von MB:</td>
-                <td colspan="4" class="result-field">
-                    <span id="prozent_mb_strom"></span>
-                </td>
-            </tr>
-
-            <!-- Messwert zu Strom -->
-            <tr>
-                <th colspan="6">Messwert zu Strom</th>
-            </tr>
-            <tr>
-                <td colspan="2">Messwert</td>
-                <td colspan="4">
-                    <input class="input-field" type="number" id="messwert" value="0">
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">Strom calc:</td>
-                <td colspan="4" class="result-field">
-                    <span id="strom_calc"></span> mA
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">% von MB:</td>
-                <td colspan="4" class="result-field">
-                    <span id="prozent_mb_messwert"></span>
-                </td>
-            </tr>
-        </table>
+    <div class="back-bar">
+        <a href="index.html" class="back-link">
+            <svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg>
+            Zurück zur Übersicht
+        </a>
     </div>
-	
-    <!-- Bottom Header mit Haftungsausschluss -->
+
+    <div class="page-container">
+        <div class="container">
+            <div class="action-bar">
+                <button class="action-btn" id="copyBtn" onclick="copyResults()">
+                    <svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>
+                    Kopieren
+                </button>
+                <button class="action-btn" id="resetBtn" onclick="resetFields()">
+                    <svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg>
+                    Zurücksetzen
+                </button>
+                <button class="action-btn" id="pdfBtn" onclick="exportPagePDF('Stromausgangsberechnung')">
+                    <svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
+                    PDF
+                </button>
+                <button class="action-btn" id="shareBtn" onclick="generateShareLink()">
+                    <svg viewBox="0 0 16 16"><path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0z"/></svg>
+                    Teilen
+                </button>
+            </div>
+
+            <div class="description">
+                ⚡ Berechnet den Messwert aus einem gegebenen Stromausgang (4–20 mA / 0–20 mA) und den prozentualen Anteil des Messbereichs.
+            </div>
+            <table>
+                <tr><th colspan="6">Berechnung Stromausgang</th></tr>
+                <tr><td colspan="2">Strombereich</td><td colspan="4"><select class="input-field" id="strombereich"><option value="4-20">4-20 mA</option><option value="0-20">0-20 mA</option></select></td></tr>
+                <tr><td colspan="2">Messbereich</td><td colspan="4"><input class="input-field" type="number" id="messbereich_min" value="0" style="max-width:120px"> bis <input class="input-field" type="number" id="messbereich_max" value="400" style="max-width:120px"></td></tr>
+                <tr><th colspan="6">Strom → Messwert</th></tr>
+                <tr><td colspan="2">Istwert Strom (mA)</td><td colspan="4"><input class="input-field" type="number" id="stromwert" value="0"></td></tr>
+                <tr><td colspan="2">Messwert calc:</td><td colspan="4" class="result-field"><span id="messwert_calc"></span></td></tr>
+                <tr><td colspan="2">% von MB:</td><td colspan="4" class="result-field"><span id="prozent_mb_strom"></span></td></tr>
+                <tr><th colspan="6">Messwert → Strom</th></tr>
+                <tr><td colspan="2">Messwert</td><td colspan="4"><input class="input-field" type="number" id="messwert" value="0"></td></tr>
+                <tr><td colspan="2">Strom calc:</td><td colspan="4" class="result-field"><span id="strom_calc"></span> mA</td></tr>
+                <tr><td colspan="2">% von MB:</td><td colspan="4" class="result-field"><span id="prozent_mb_messwert"></span></td></tr>
+            </table>
+<div class="shortcuts-hint">
+                <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+                <span><kbd>Esc</kbd> Zurücksetzen</span>
+                <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+                <span><kbd>Ctrl</kbd>+<kbd>L</kbd> Teilen</span>
+            </div>
+        </div>
+    </div>
+
     <footer class="bottom-header">
-        <p><strong>Haftungsausschluss:</strong> Diese Website übernimmt keine Gewähr für die Genauigkeit oder Vollständigkeit der angezeigten Messwerte und Berechnungsergebnisse. Die Nutzung erfolgt auf eigenes Risiko.</p>
+        <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
     </footer>
-	
+
+    <script src="shared.js"></script>
+
     <script>
         function berechneStromZuMesswert() {
-            const stromwert = parseFloat(document.getElementById('stromwert').value);
-            const strombereich = document.getElementById('strombereich').value;
-            const messbereich_min = parseFloat(document.getElementById('messbereich_min').value);
-            const messbereich_max = parseFloat(document.getElementById('messbereich_max').value);
-            const messbereich = messbereich_max - messbereich_min;
-
-            let messwert_calc;
-            if (strombereich === '4-20') {
-                messwert_calc = (stromwert - 4) * (messbereich / 16) + messbereich_min;
-            } else if (strombereich === '0-20') {
-                messwert_calc = stromwert * (messbereich / 20) + messbereich_min;
-            }
-
-            const prozent_mb = (messwert_calc - messbereich_min) / messbereich * 100;
-
-            document.getElementById('messwert_calc').innerText = messwert_calc.toFixed(2);
-            document.getElementById('prozent_mb_strom').innerText = prozent_mb.toFixed(2) + '%';
+            const sv = parseFloat(document.getElementById('stromwert').value);
+            const sb = document.getElementById('strombereich').value;
+            const min = parseFloat(document.getElementById('messbereich_min').value);
+            const max = parseFloat(document.getElementById('messbereich_max').value);
+            const mb = max - min;
+            if (!validateInput('messbereich_max', { greaterThan: 'messbereich_min' })) return;
+            let mw = sb === '4-20' ? (sv - 4) * (mb / 16) + min : sv * (mb / 20) + min;
+            const pct = (mw - min) / mb * 100;
+            document.getElementById('messwert_calc').innerText = mw.toFixed(2);
+            document.getElementById('prozent_mb_strom').innerText = pct.toFixed(2) + '%';
         }
-
         function berechneMesswertZuStrom() {
-            const messwert = parseFloat(document.getElementById('messwert').value);
-            const strombereich = document.getElementById('strombereich').value;
-            const messbereich_min = parseFloat(document.getElementById('messbereich_min').value);
-            const messbereich_max = parseFloat(document.getElementById('messbereich_max').value);
-            const messbereich = messbereich_max - messbereich_min;
-
-            let strom_calc;
-            if (strombereich === '4-20') {
-                strom_calc = ((messwert - messbereich_min) / messbereich) * 16 + 4;
-            } else if (strombereich === '0-20') {
-                strom_calc = ((messwert - messbereich_min) / messbereich) * 20;
-            }
-
-            const prozent_mb = (messwert - messbereich_min) / messbereich * 100;
-
-            document.getElementById('strom_calc').innerText = strom_calc.toFixed(2);
-            document.getElementById('prozent_mb_messwert').innerText = prozent_mb.toFixed(2) + '%';
+            const mw = parseFloat(document.getElementById('messwert').value);
+            const sb = document.getElementById('strombereich').value;
+            const min = parseFloat(document.getElementById('messbereich_min').value);
+            const max = parseFloat(document.getElementById('messbereich_max').value);
+            const mb = max - min;
+            if (mb === 0) return;
+            let sc = sb === '4-20' ? ((mw - min) / mb) * 16 + 4 : ((mw - min) / mb) * 20;
+            const pct = (mw - min) / mb * 100;
+            document.getElementById('strom_calc').innerText = sc.toFixed(2);
+            document.getElementById('prozent_mb_messwert').innerText = pct.toFixed(2) + '%';
         }
-
-        // Event Listener für automatische Berechnung
-        document.getElementById('strombereich').addEventListener('change', () => {
-            berechneStromZuMesswert();
-            berechneMesswertZuStrom();
-        });
-
-        document.querySelectorAll('#stromwert, #messbereich_min, #messbereich_max').forEach(input => {
-            input.addEventListener('input', berechneStromZuMesswert);
-        });
-
-        document.querySelectorAll('#messwert, #messbereich_min, #messbereich_max').forEach(input => {
-            input.addEventListener('input', berechneMesswertZuStrom);
-        });
+        document.getElementById('strombereich').addEventListener('change', () => { berechneStromZuMesswert(); berechneMesswertZuStrom(); });
+        document.querySelectorAll('#stromwert, #messbereich_min, #messbereich_max').forEach(i => i.addEventListener('input', berechneStromZuMesswert));
+        document.querySelectorAll('#messwert, #messbereich_min, #messbereich_max').forEach(i => i.addEventListener('input', berechneMesswertZuStrom));
     </script>
 
 </body>

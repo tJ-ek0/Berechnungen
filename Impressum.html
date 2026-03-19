@@ -1,86 +1,39 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Impressum</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #787c82;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #1b2b40;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-        }
-        nav {
-            background-color: #335582;
-            color: white;
-            padding: 10px;
-            text-align: center;
-        }
-        nav a {
-            color: white;
-            margin: 0 10px;
-            text-decoration: none;
-            font-size: 16px;
-        }
-        nav a:hover {
-            text-decoration: underline;
-        }
-        .container {
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-        }
-        .content {
-            background-color: #fff;
-            padding: 20px;
-            max-width: 700px;
-            width: 100%;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-        p {
-            font-size: 16px;
-            line-height: 1.6;
-            color: #333;
-        }
-    </style>
+    <title>Impressum – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
 </head>
 <body>
 
-    <!-- Header -->
     <header>
-        Techniker Berechnungstools
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln">
+                <span id="themeIcon">🌙</span>
+            </button>
+        </div>
     </header>
 
-    <!-- Navigationsleiste -->
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="Stromausgang.html">Stromausgangsberechnung</a>
-        <a href="Dichteberechnung.html">Dichteberechnung</a>
-        <a href="Impulswertigkeit.html">Impulswertigkeit</a>
-        <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
-        <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
-        <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
-		<a href="Messwertabweichung.html">Messwertbweichung</a>
-		<a href="PHWert.html">PH-Steilheit</a>
-        <a href="Impressum.html">Impressum</a>
-	</nav>
-    <!-- Container für das Impressum -->
-    <div class="container">
-        <div class="content">
+    <div class="back-bar">
+        <a href="index.html" class="back-link">
+            <svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg>
+            Zurück zur Übersicht
+        </a>
+    </div>
+
+    <div class="page-container">
+        <div class="container">
             <h2>Impressum</h2>
-            <p>
-                Angaben gemäß § 5 TMG:
-            </p>
+            <p>Angaben gemäß § 5 TMG:</p>
             <p>
                 Tobias Jurgan<br>
                 Bartelsstraße 54<br>
@@ -91,15 +44,17 @@
                 Telefon: +49 40 72379620<br>
                 E-Mail: tobias-jurgan@gmx.de
             </p>
-            <h3>Haftungsausschluss:</h3>
+
+            <h3>Haftungsausschluss</h3>
             <p>
-                <strong>Haftung für Inhalte</strong><br>
+                <strong>Haftung für Inhalte:</strong>
                 Die Inhalte unserer Seiten wurden mit größter Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte können wir jedoch keine Gewähr übernehmen.
             </p>
             <p>
-                <strong>Haftung für Links</strong><br>
+                <strong>Haftung für Links:</strong>
                 Unser Angebot enthält Links zu externen Webseiten Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen.
             </p>
+
             <h3>Urheberrecht</h3>
             <p>
                 Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Beiträge Dritter sind als solche gekennzeichnet.
@@ -107,5 +62,10 @@
         </div>
     </div>
 
+    <footer class="bottom-header">
+        <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+    </footer>
+
+    <script src="shared.js"></script>
 </body>
 </html>

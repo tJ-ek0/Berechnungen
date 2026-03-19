@@ -1,115 +1,100 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Techniker Berechnungstools</title>
-    <link rel="stylesheet" href="style.css?v=1.0">
+    <title>Messwertabweichung – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
     <style>
-        .outside-tolerance {
-            color: red;
-            font-weight: bold;
-        }
+        .outside-tolerance { color: var(--text-danger); font-weight: bold; }
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
+        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
     </style>
 </head>
-<body>
-    <header>Techniker Berechnungstools</header>
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="Stromausgang.html">Stromausgangsberechnung</a>
-        <a href="Dichteberechnung.html">Dichteberechnung</a>
-        <a href="Impulswertigkeit.html">Impulswertigkeit</a>
-        <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
-        <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
-        <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
-        <a href="Messwertabweichung.html">Messwertabweichung</a>
-        <a href="csv.html">Proline CSV-Umwandler</a>
-		<a href="csvauswertung.html">MultiRecorder CSV Visu.</a>
-    </nav>
+<body data-tool-id="abweichung">
 
-    <div class="container">
-        <div class="left-section">
-            <table style="background-color: white; margin-top: 20px;">
-                <tr>
-                    <th colspan="3">Messbereich</th>
-                </tr>
-                <tr id="messbereich2Row">
-                    <td colspan="3">
-                        <input class="input-field" type="number" id="messbereich2_min" value="0">
-                        <input class="input-field" type="number" id="messbereich2_max" value="100">
-                    </td>
-                </tr>
-                <tr>
-                    <th>Sollwert</th>
-                    <th>Istwert</th>
-                    <th>Messfehler (%)</th>
-                </tr>
-                <tr>
-                    <td><input class="input-field" type="number" id="sollwert1" value="0"></td>
-                    <td><input class="input-field" type="number" id="istwert1" value="0"></td>
-                    <td class="result-field"><span id="fehler1"></span></td>
-                </tr>
-                <tr>
-                    <td><input class="input-field" type="number" id="sollwert2" value="0"></td>
-                    <td><input class="input-field" type="number" id="istwert2" value="0"></td>
-                    <td class="result-field"><span id="fehler2"></span></td>
-                </tr>
-                <tr>
-                    <td><input class="input-field" type="number" id="sollwert3" value="0"></td>
-                    <td><input class="input-field" type="number" id="istwert3" value="0"></td>
-                    <td class="result-field"><span id="fehler3"></span></td>
-                </tr>
-                <tr>
-                    <td><input class="input-field" type="number" id="sollwert4" value="0"></td>
-                    <td><input class="input-field" type="number" id="istwert4" value="0"></td>
-                    <td class="result-field"><span id="fehler4"></span></td>
-                </tr>
-                <tr>
-                    <td><input class="input-field" type="number" id="sollwert5" value="0"></td>
-                    <td><input class="input-field" type="number" id="istwert5" value="0"></td>
-                    <td class="result-field"><span id="fehler5"></span></td>
-                </tr>
-                <tr>
-                    <td colspan="2">Abweichungstyp</td>
-                    <td colspan="1">
-                        <select class="input-field" id="abweichungstyp2" onchange="toggleMessbereich2()">
-                            <option value="messbereich">Abweichung vom Messbereich</option>
-                            <option value="messwert">Abweichung vom Messwert</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2">Grenzwert (%)</td>
-                    <td colspan="1">
-                        <input class="input-field" type="number" id="grenzwert" value="1">
-                    </td>
-                </tr>
-            </table>
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln">
+                <span id="themeIcon">🌙</span>
+            </button>
+        </div>
+    </header>
 
-            <!-- Eingabefeld für die Messstellenbezeichnung -->
-            <div style="margin-top: 20px;">
-                <label for="measurementLocation">Messstellenbezeichnung:</label>
-                <input class="input-field" type="text" id="measurementLocation" placeholder="Messstellenbezeichnung">
+    <div class="back-bar">
+        <a href="index.html" class="back-link">
+            <svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg>
+            Zurück zur Übersicht
+        </a>
+    </div>
+
+    <div class="page-container">
+        <div class="container">
+            <div class="description">
+                📏 Berechnet die prozentuale Abweichung eines gemessenen Wertes und unterstützt die Bewertung der Messgenauigkeit. Werte außerhalb des Grenzwerts werden rot markiert.
             </div>
 
-            <!-- Download-Button für PDF -->
-            <button onclick="generatePDF()">PDF herunterladen</button>
-        </div>
+            <div class="action-bar">
+                <button class="action-btn" id="copyBtn" onclick="copyResults()">
+                    <svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>
+                    Ergebnisse kopieren
+                </button>
+                <button class="action-btn" onclick="resetFields()">
+                    <svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg>
+                    Zurücksetzen
+                </button>
+            </div>
 
-        <div class="right-section">
-            <canvas id="abweichungsChart"></canvas>
+            <div class="left-section">
+                <table>
+                    <tr><th colspan="3">Messbereich</th></tr>
+                    <tr id="messbereich2Row"><td colspan="3"><input class="input-field" type="number" id="messbereich2_min" value="0" style="max-width:120px"> bis <input class="input-field" type="number" id="messbereich2_max" value="100" style="max-width:120px"></td></tr>
+                    <tr><th>Sollwert</th><th>Istwert</th><th>Messfehler (%)</th></tr>
+                    <tr><td><input class="input-field" type="number" id="sollwert1" value="0"></td><td><input class="input-field" type="number" id="istwert1" value="0"></td><td class="result-field"><span id="fehler1"></span></td></tr>
+                    <tr><td><input class="input-field" type="number" id="sollwert2" value="0"></td><td><input class="input-field" type="number" id="istwert2" value="0"></td><td class="result-field"><span id="fehler2"></span></td></tr>
+                    <tr><td><input class="input-field" type="number" id="sollwert3" value="0"></td><td><input class="input-field" type="number" id="istwert3" value="0"></td><td class="result-field"><span id="fehler3"></span></td></tr>
+                    <tr><td><input class="input-field" type="number" id="sollwert4" value="0"></td><td><input class="input-field" type="number" id="istwert4" value="0"></td><td class="result-field"><span id="fehler4"></span></td></tr>
+                    <tr><td><input class="input-field" type="number" id="sollwert5" value="0"></td><td><input class="input-field" type="number" id="istwert5" value="0"></td><td class="result-field"><span id="fehler5"></span></td></tr>
+                    <tr><td colspan="2">Abweichungstyp</td><td colspan="1"><select class="input-field" id="abweichungstyp2" onchange="toggleMessbereich2()"><option value="messbereich">Abweichung vom Messbereich</option><option value="messwert">Abweichung vom Messwert</option></select></td></tr>
+                    <tr><td colspan="2">Grenzwert (%)</td><td colspan="1"><input class="input-field" type="number" id="grenzwert" value="1"></td></tr>
+                </table>
+                <div style="margin-top: 16px;">
+                    <label for="measurementLocation" style="font-size: 14px; color: var(--text-secondary);">Messstellenbezeichnung:</label>
+                    <input class="input-field" type="text" id="measurementLocation" placeholder="Messstellenbezeichnung" style="max-width: 100%; margin-top: 6px;">
+                </div>
+                <div style="margin-top: 12px;">
+                    <button class="action-btn" onclick="generatePDF()">
+                        <svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
+                        PDF herunterladen
+                    </button>
+                </div>
+            </div>
+            <div class="right-section" style="margin-top: 24px;">
+                <canvas id="abweichungsChart"></canvas>
+            </div>
         </div>
     </div>
-	
-    <!-- Bottom Header mit Haftungsausschluss -->
+
     <footer class="bottom-header">
-        <p><strong>Haftungsausschluss:</strong> Diese Website übernimmt keine Gewähr für die Genauigkeit oder Vollständigkeit der angezeigten Messwerte und Berechnungsergebnisse. Die Nutzung erfolgt auf eigenes Risiko.</p>
+        <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
     </footer>
-	
-    <script>
+
+    <script src="shared.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+<script>
         const { jsPDF } = window.jspdf;
 
         // PDF Generierung mit Base64-Logo

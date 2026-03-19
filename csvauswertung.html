@@ -1,310 +1,130 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Techniker Berechnungstools - MultiRecorder CSV Visu.</title>
+    <title>MultiRecorder CSV-Visualisierung – Techniker Berechnungstools</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
     <style>
-        /* Style adjustments */
-        .chart-container {
-            width: 100%;
-            height: 60vh;
-            margin: auto;
-            margin-bottom: 30px;
-            padding: 20px;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-        .stats {
-            margin-top: 10px;
-            font-size: 1rem;
-            text-align: left;
-            padding: 10px;
-            border-top: 1px solid #ddd;
-        }
-        .stats p {
-            margin: 1px 0;
-        }
-        .reset-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 5px 10px;
-            cursor: pointer;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .chart-container { width: 100%; height: 55vh; margin-bottom: 24px; padding: 20px; background: var(--bg-default); border: 1px solid var(--border-default); border-radius: var(--radius-md); position: relative; }
+        .stats { margin-top: 10px; font-size: 13px; text-align: left; padding: 10px; border-top: 1px solid var(--border-default); color: var(--text-secondary); }
+        .stats p { margin: 1px 0; }
+        .reset-button { position: absolute; top: 10px; right: 10px; padding: 4px 10px; cursor: pointer; background: var(--bg-default); color: var(--text-secondary); border: 1px solid var(--border-default); border-radius: var(--radius-md); font-size: 12px; font-family: var(--font-sans); box-shadow: none; }
+        .reset-button:hover { background: var(--bg-subtle); transform: none; box-shadow: none; filter: none; }
+        .file-input-wrap { margin-bottom: 16px; }
     </style>
 </head>
-<body>
+<body data-tool-id="csvvisu">
     <header>
-        Techniker Berechnungstools
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button>
+        </div>
     </header>
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="Stromausgang.html">Stromausgangsberechnung</a>
-        <a href="Dichteberechnung.html">Dichteberechnung</a>
-        <a href="Impulswertigkeit.html">Impulswertigkeit</a>
-        <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
-        <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
-        <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
-        <a href="Messwertabweichung.html">Messwertabweichung</a>
-        <a href="csv.html">Proline CSV-Umwandler</a>
-		<a href="csvauswertung.html">MultiRecorder CSV Visu.</a>
-    </nav>
-    <div class="container2">
-        <h2>Lade hier die CSV-Datei aus dem Multirecorder hoch</h2>
-        <input type="file" id="fileInput" accept=".csv" />
-        <button id="convertButton" disabled>Start Conversion</button>
-        <button id="pdfButton" disabled>Download as PDF</button>
-        
-        <div class="chart-container">
-            <canvas id="massFlowChart"></canvas>
-            <button class="reset-button" onclick="resetZoom('massFlowChart')">Zoom zurücksetzen</button>
-            <div id="massFlowStats" class="stats"></div>
-        </div>
-        
-        <div class="chart-container">
-            <canvas id="densityChart"></canvas>
-            <button class="reset-button" onclick="resetZoom('densityChart')">Zoom zurücksetzen</button>
-            <div id="densityStats" class="stats"></div>
-        </div>
-        
-        <div class="chart-container">
-            <canvas id="temperatureChart"></canvas>
-            <button class="reset-button" onclick="resetZoom('temperatureChart')">Zoom zurücksetzen</button>
-            <div id="temperatureStats" class="stats"></div>
+    <div class="back-bar">
+        <a href="index.html" class="back-link">
+            <svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg>
+            Zurück zur Übersicht
+        </a>
+    </div>
+    <div class="page-container">
+        <div class="container2">
+            <div class="description">
+                📈 Lade hier die CSV-Datei aus dem MultiRecorder hoch, um die Daten als interaktive Graphen darzustellen.
+            </div>
+            <div class="file-input-wrap">
+                <input type="file" id="fileInput" accept=".csv" />
+            </div>
+            <div class="action-bar">
+                <button class="action-btn" id="convertButton" disabled>Start Conversion</button>
+                <button class="action-btn" id="pdfButton" disabled>Download as PDF</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="massFlowChart"></canvas>
+                <button class="reset-button" onclick="resetZoom('massFlowChart')">Zoom zurücksetzen</button>
+                <div id="massFlowStats" class="stats"></div>
+            </div>
+            <div class="chart-container">
+                <canvas id="densityChart"></canvas>
+                <button class="reset-button" onclick="resetZoom('densityChart')">Zoom zurücksetzen</button>
+                <div id="densityStats" class="stats"></div>
+            </div>
+            <div class="chart-container">
+                <canvas id="temperatureChart"></canvas>
+                <button class="reset-button" onclick="resetZoom('temperatureChart')">Zoom zurücksetzen</button>
+                <div id="temperatureStats" class="stats"></div>
+            </div>
         </div>
     </div>
     <footer class="bottom-header">
-        <p><strong>Haftungsausschluss:</strong> Diese Website übernimmt keine Gewähr für die Genauigkeit oder Vollständigkeit der angezeigten Messwerte und Berechnungsergebnisse. Die Nutzung erfolgt auf eigenes Risiko.</p>
+        <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
     </footer>
-
+    <script src="shared.js"></script>
     <script>
         let csvData = '';
-
-document.getElementById('fileInput').addEventListener('change', handleFileUpload);
-document.getElementById('convertButton').addEventListener('click', startConversion);
-document.getElementById('pdfButton').addEventListener('click', generatePDF);
-
-function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            csvData = e.target.result;
-            document.getElementById('convertButton').disabled = false;
-            document.getElementById('pdfButton').disabled = false; // Enable PDF button
-        };
-        reader.readAsText(file);
-    }
-}
-
-function startConversion() {
-    if (csvData) {
-        parseCSV(csvData);
-    } else {
-        alert("Bitte laden Sie zuerst eine CSV-Datei hoch.");
-    }
-}
-
-function parseCSV(data) {
-    try {
-        const lines = data.split("\n");
-        const labels = [];
-        const massFlowData = [];
-        const densityData = [];
-        const temperatureData = [];
-
-        lines.slice(1).forEach(line => {
-            if (line.trim() === "") return;
-
-            const columns = line.split(";");
-            if (columns.length < 11) {
-                console.error("Line skipped due to insufficient columns:", line);
-                return;
-            }
-
-            const [PCTime, , , , MassFlow, Density, , , , , Temperature] = columns;
-            const timeOnly = PCTime.split(" ")[1];
-            labels.push(timeOnly);
-            massFlowData.push(parseFloat(MassFlow));
-            densityData.push(parseFloat(Density));
-            temperatureData.push(parseFloat(Temperature));
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) { const r = new FileReader(); r.onload = function(ev) { csvData = ev.target.result; document.getElementById('convertButton').disabled = false; document.getElementById('pdfButton').disabled = false; }; r.readAsText(file); }
         });
+        document.getElementById('convertButton').addEventListener('click', function() { if (csvData) parseCSV(csvData); else alert("Bitte laden Sie zuerst eine CSV-Datei hoch."); });
+        document.getElementById('pdfButton').addEventListener('click', generatePDF);
 
-        if (massFlowData.length === 0 || densityData.length === 0 || temperatureData.length === 0) {
-            console.error("Parsed data arrays are empty.");
-            alert("Fehler: Keine gültigen Daten in der CSV gefunden. Stellen Sie sicher, dass die Spalten korrekt formatiert sind.");
-            return;
+        function parseCSV(data) {
+            try {
+                const lines = data.split("\n"); const labels=[],mf=[],den=[],temp=[];
+                lines.slice(1).forEach(line => {
+                    if(line.trim()==="")return; const c=line.split(";"); if(c.length<11)return;
+                    const[PCTime,,,,MassFlow,Density,,,,,Temperature]=c;
+                    labels.push(PCTime.split(" ")[1]); mf.push(parseFloat(MassFlow)); den.push(parseFloat(Density)); temp.push(parseFloat(Temperature));
+                });
+                if(!mf.length){alert("Keine gültigen Daten gefunden.");return;}
+                createChart("massFlowChart","Mass Flow (kg/s)",labels,mf,"massFlowStats");
+                createChart("densityChart","Density (g/l)",labels,den,"densityStats");
+                createChart("temperatureChart","Temperature (°C)",labels,temp,"temperatureStats");
+            } catch(e){console.error(e);alert("Fehler beim Einlesen der CSV-Datei.");}
         }
 
-        createChart("massFlowChart", "Mass Flow (kg/s)", labels, massFlowData, "massFlowStats");
-        createChart("densityChart", "Density (g/l)", labels, densityData, "densityStats");
-        createChart("temperatureChart", "Temperature (°C)", labels, temperatureData, "temperatureStats");
-
-    } catch (error) {
-        console.error("Error parsing CSV data:", error);
-        alert("Ein Fehler trat beim Einlesen der CSV-Datei auf. Details in der Konsole.");
-    }
-}
-
-function createChart(canvasId, label, labels, data, statsId) {
-    const ctx = document.getElementById(canvasId).getContext('2d');
-
-    // Destroy previous chart if it exists to prevent overlay
-    if (window[canvasId] && typeof window[canvasId].destroy === 'function') {
-        window[canvasId].destroy();
-    }
-
-    window[canvasId] = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: label,
-                data: data,
-                borderColor: 'blue',
-                fill: false
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: { display: true, title: { display: true, text: 'Time' } },
-                y: { display: true, title: { display: true, text: label } }
-            },
-            plugins: {
-                zoom: {
-                    pan: { enabled: true, mode: 'xy' },
-                    zoom: { drag: { enabled: true, backgroundColor: 'rgba(0, 123, 255, 0.3)' }, pinch: { enabled: true }, wheel: { enabled: true }, mode: 'xy' }
-                }
-            }
+        function createChart(id,label,labels,data,statsId) {
+            const ctx=document.getElementById(id).getContext('2d');
+            if(window[id]&&typeof window[id].destroy==='function')window[id].destroy();
+            window[id]=new Chart(ctx,{type:'line',data:{labels:labels,datasets:[{label:label,data:data,borderColor:'#0969da',fill:false,borderWidth:1.5,pointRadius:0}]},
+                options:{responsive:true,maintainAspectRatio:false,scales:{x:{display:true,title:{display:true,text:'Time'}},y:{display:true,title:{display:true,text:label}}},
+                plugins:{zoom:{pan:{enabled:true,mode:'xy'},zoom:{drag:{enabled:true,backgroundColor:'rgba(9,105,218,0.2)'},pinch:{enabled:true},wheel:{enabled:true},mode:'xy'}}}}});
+            displayStats(data,statsId);
         }
-    });
 
-    displayStats(data, statsId);
-}
+        function displayStats(data,id) {
+            const max=Math.max(...data),min=Math.min(...data),avg=(data.reduce((a,b)=>a+b,0)/data.length).toFixed(2);
+            document.getElementById(id).innerHTML='<p><strong>Max:</strong> '+max+' <strong>Min:</strong> '+min+' <strong>Avg:</strong> '+avg+'</p>';
+        }
 
-function displayStats(data, statsId) {
-    const max = Math.max(...data);
-    const min = Math.min(...data);
-    const avg = (data.reduce((a, b) => a + b, 0) / data.length).toFixed(2);
-    document.getElementById(statsId).innerHTML = `<p><strong>Max:</strong> ${max} <strong>Min:</strong> ${min} <strong>Avg:</strong> ${avg}</p>`;
-}
+        function generatePDF() {
+            const{jsPDF}=window.jspdf; const doc=new jsPDF();
+            doc.setFontSize(22);doc.setTextColor(0,51,102);doc.text("CSV Data Analysis Report",105,20,null,null,'center');
+            doc.setDrawColor(0,51,102);doc.setLineWidth(1);doc.line(20,25,190,25);
+            const fc=window["massFlowChart"];const lb=fc.data.labels;
+            doc.setFontSize(12);doc.setTextColor(0,0,0);doc.text('Start: '+(lb[0]||'N/A')+' | End: '+(lb[lb.length-1]||'N/A')+' | Date: '+new Date().toLocaleDateString(),20,35);
+            function addChart(cid,title,sid,y){const c=document.getElementById(cid);const img=c.toDataURL("image/png");doc.setFontSize(16);doc.setTextColor(0,51,102);doc.text(title,20,y);doc.addImage(img,'PNG',20,y+10,160,90);const st=document.getElementById(sid).innerText;doc.setFontSize(12);doc.setTextColor(0,0,0);doc.setFillColor(240,240,240);doc.rect(20,y+110,170,15,'F');doc.text(st,22,y+117);}
+            addChart("massFlowChart","Mass Flow Analysis","massFlowStats",50);doc.addPage();
+            addChart("densityChart","Density Analysis","densityStats",35);doc.addPage();
+            addChart("temperatureChart","Temperature Analysis","temperatureStats",35);
+            function addFooter(){doc.setFontSize(10);doc.setTextColor(100,100,100);doc.text("Disclaimer: Accuracy not guaranteed.",105,285,null,null,'center');}
+            doc.setPage(1);addFooter();doc.setPage(2);addFooter();doc.setPage(3);addFooter();
+            doc.save("CSV_Data_Analysis_Report.pdf");
+        }
 
-function generatePDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    // Styling for the header
-    doc.setFontSize(22);
-    doc.setTextColor(0, 51, 102);  // Dark blue color
-    doc.text("CSV Data Analysis Report", 105, 20, null, null, 'center');
-    doc.setDrawColor(0, 51, 102);  // Blue underline
-    doc.setLineWidth(1);
-    doc.line(20, 25, 190, 25);  // Draw underline below the title
-    
-    // Extract start and end times for the whole report, assuming they are in labels from the first chart
-    const firstChart = window["massFlowChart"];  // Assuming massFlowChart exists
-    const labels = firstChart.data.labels;
-    const startTime = labels[0] || "N/A";
-    const endTime = labels[labels.length - 1] || "N/A";
-    const date = new Date().toLocaleDateString();  // Today's date for the report
-
-    // Display Start, End, and Date under the main title
-    doc.setFontSize(12);
-    doc.setTextColor(0, 0, 0);
-    doc.text(`Start: ${startTime} | End: ${endTime} | Date: ${date}`, 20, 35);
-
-    // Helper function to add each chart and styled statistics box to the PDF
-    function addChartToPDF(canvasId, title, statsId, yPosition) {
-        const canvas = document.getElementById(canvasId);
-        const imgData = canvas.toDataURL("image/png");
-
-        // Section title styling
-        doc.setFontSize(16);
-        doc.setTextColor(0, 51, 102);
-        doc.text(title, 20, yPosition);
-
-        // Add chart image with optimized size and placement
-        doc.addImage(imgData, 'PNG', 20, yPosition + 10, 160, 90);
-
-        // Retrieve and style statistics text (Max, Min, and Avg)
-        const statsText = document.getElementById(statsId).innerText;
-
-        // Statistics box with Max, Min, and Avg values
-        doc.setFontSize(12);
-        doc.setTextColor(0, 0, 0);
-        doc.setFillColor(240, 240, 240);  // Light gray background for stats
-        doc.rect(20, yPosition + 110, 170, 15, 'F');  // Background rectangle for stats box
-        
-        // Display Max, Min, and Avg values in the stats box
-        doc.text(statsText, 22, yPosition + 117);
-    }
-
-    // Add Mass Flow chart and stats on the first page with header info
-    addChartToPDF("massFlowChart", "Mass Flow Analysis", "massFlowStats", 50);
-
-    // Page break before the next chart
-    doc.addPage();
-
-    // Add Density chart on its own page
-    addChartToPDF("densityChart", "Density Analysis", "densityStats", 35);
-
-    // Page break before the next chart
-    doc.addPage();
-
-    // Add Temperature chart on its own page
-    addChartToPDF("temperatureChart", "Temperature Analysis", "temperatureStats", 35);
-
-    // Helper function to add a footer disclaimer on each page
-    function addFooter() {
-        doc.setFontSize(10);
-        doc.setTextColor(100, 100, 100);  // Gray text color
-        doc.text("Disclaimer: This report is generated based on provided data. Accuracy not guaranteed.", 105, 285, null, null, 'center');
-    }
-
-    // Add footer on each page
-    doc.setPage(1);
-    addFooter();
-    doc.setPage(2);
-    addFooter();
-    doc.setPage(3);
-    addFooter();
-
-    // Save the styled PDF
-    doc.save("Styled_CSV_Data_Analysis_Report.pdf");
-}
-
-
-
-
-
-
-
-
-
-
-function resetZoom(chartId) {
-    const chart = window[chartId];
-    if (chart && chart.resetZoom) {
-        chart.resetZoom();
-    } else {
-        console.warn("Reset zoom not available for", chartId);
-    }
-}
-
+        function resetZoom(id){const c=window[id];if(c&&c.resetZoom)c.resetZoom();}
     </script>
 </body>
 </html>

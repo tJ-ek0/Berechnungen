@@ -1,118 +1,89 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-theme="light">
 <head>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proline CSV-Umwandler – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
+        .file-input-wrap { margin-bottom: 16px; }
+        .file-input-wrap input[type="file"] { font-family: var(--font-sans); font-size: 14px; color: var(--text-primary); }
+        #output table { margin-top: 16px; }
+    </style>
 </head>
-<body>
-
-    <!-- Header -->
+<body data-tool-id="csv">
     <header>
-        Techniker Berechnungstools
-    </header>
-
-    <!-- Navigationsleiste -->
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="Stromausgang.html">Stromausgangsberechnung</a>
-        <a href="Dichteberechnung.html">Dichteberechnung</a>
-        <a href="Impulswertigkeit.html">Impulswertigkeit</a>
-        <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
-        <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
-        <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
-        <a href="Messwertabweichung.html">Messwertabweichung</a>
-        <a href="csv.html">Proline CSV-Umwandler</a>
-		<a href="csvauswertung.html">MultiRecorder CSV Visu.</a>
-    </nav>
-
-    <!-- Container für Konvertierung -->
-    <div class="container">
-        <h1>Proline CSV Datei Konverter</h1>
-        <input type="file" id="fileInput" accept=".csv">
-        <button onclick="convertCSV()">Konvertieren</button>
-
-        <!-- Nur PDF-Export-Button -->
-        <div>
-            <button id="downloadPdfBtn" style="display:none;" onclick="downloadPDF()">Als PDF speichern</button>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
         </div>
-
-        <!-- Ausgabe der Tabelle -->
-        <div id="output"></div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button>
+        </div>
+    </header>
+    <div class="back-bar">
+        <a href="index.html" class="back-link">
+            <svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg>
+            Zurück zur Übersicht
+        </a>
     </div>
-	
-    <!-- Bottom Header mit Haftungsausschluss -->
+    <div class="page-container">
+        <div class="container">
+            <div class="description">
+                📄 Wandelt die CSV-Datei vom Promag in ein PDF-Format um. Laden Sie eine CSV-Datei hoch und klicken Sie auf "Konvertieren".
+            </div>
+            <div class="file-input-wrap">
+                <input type="file" id="fileInput" accept=".csv">
+            </div>
+            <div class="action-bar">
+                <button class="action-btn" onclick="convertCSV()">
+                    <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0z"/></svg>
+                    Konvertieren
+                </button>
+                <button class="action-btn" id="downloadPdfBtn" style="display:none;" onclick="downloadPDF()">
+                    <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
+                    Als PDF speichern
+                </button>
+            </div>
+            <div id="output"></div>
+        </div>
+    </div>
     <footer class="bottom-header">
-        <p><strong>Haftungsausschluss:</strong> Diese Website übernimmt keine Gewähr für die Genauigkeit oder Vollständigkeit der angezeigten Messwerte und Berechnungsergebnisse. Die Nutzung erfolgt auf eigenes Risiko.</p>
+        <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
     </footer>
-	
+    <script src="shared.js"></script>
     <script>
         function convertCSV() {
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
-
-            if (!file) {
-                alert("Bitte eine CSV-Datei hochladen!");
-                return;
-            }
-
+            const file = document.getElementById('fileInput').files[0];
+            if (!file) { alert("Bitte eine CSV-Datei hochladen!"); return; }
             const reader = new FileReader();
             reader.onload = function(event) {
-                let csvContent = event.target.result;
-                csvContent = csvContent.replace(/"/g, ""); // Entferne alle Anführungszeichen
-                const rows = csvContent.split("\n");
-
+                let csv = event.target.result.replace(/"/g, "");
+                const rows = csv.split("\n");
                 let html = '<table>';
-                rows.forEach(row => {
-                    const cells = row.split(",");
-                    html += '<tr>';
-                    cells.forEach(cell => {
-                        html += `<td>${cell.trim()}</td>`;
-                    });
-                    html += '</tr>';
-                });
+                rows.forEach(row => { const cells = row.split(","); html += '<tr>'; cells.forEach(cell => { html += '<td>' + cell.trim() + '</td>'; }); html += '</tr>'; });
                 html += '</table>';
-
                 document.getElementById('output').innerHTML = html;
-                document.getElementById('downloadPdfBtn').style.display = 'block';
+                document.getElementById('downloadPdfBtn').style.display = 'inline-flex';
             };
-
             reader.readAsText(file);
         }
-
         function downloadPDF() {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF();
-            const outputTable = document.getElementById('output').getElementsByTagName('table')[0];
-
-            if (!outputTable) {
-                alert("Keine Tabelle zum Speichern gefunden!");
-                return;
-            }
-
+            const t = document.getElementById('output').getElementsByTagName('table')[0];
+            if (!t) { alert("Keine Tabelle zum Speichern gefunden!"); return; }
             const rows = [];
-            for (let i = 0; i < outputTable.rows.length; i++) {
-                let row = [];
-                for (let j = 0; j < outputTable.rows[i].cells.length; j++) {
-                    row.push(outputTable.rows[i].cells[j].innerText);
-                }
-                rows.push(row);
-            }
-
-            // Verwenden von autoTable, um die Tabelle über mehrere Seiten zu verteilen
-            pdf.autoTable({
-                head: [rows[0]], // Erste Zeile als Kopfzeile
-                body: rows.slice(1), // Restliche Zeilen als Körper
-                startY: 10,
-                theme: 'grid',
-                headStyles: { fillColor: '#089ce4' }, // Header-Farbe auf #089ce4 gesetzt
-                styles: { fontSize: 10 },
-                margin: { top: 10 }
-            });
-
+            for (let i = 0; i < t.rows.length; i++) { let r = []; for (let j = 0; j < t.rows[i].cells.length; j++) { r.push(t.rows[i].cells[j].innerText); } rows.push(r); }
+            pdf.autoTable({ head: [rows[0]], body: rows.slice(1), startY: 10, theme: 'grid', headStyles: { fillColor: '#089ce4' }, styles: { fontSize: 10 }, margin: { top: 10 } });
             pdf.save('konvertierte_tabelle.pdf');
         }
     </script>
-
 </body>
 </html>

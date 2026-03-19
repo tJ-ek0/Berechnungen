@@ -1,196 +1,101 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-theme="light">
 <head>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volumen-Masse-Umrechnung – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
+        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+        
+    </style>
 </head>
-<body>
+<body data-tool-id="volmasse">
 
-    <!-- Header -->
     <header>
-        Techniker Berechnungstools
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln">
+                <span id="themeIcon">🌙</span>
+            </button>
+        </div>
     </header>
 
-    <!-- Navigationsleiste -->
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="Stromausgang.html">Stromausgangsberechnung</a>
-        <a href="Dichteberechnung.html">Dichteberechnung</a>
-        <a href="Impulswertigkeit.html">Impulswertigkeit</a>
-        <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
-        <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
-        <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
-		<a href="Messwertabweichung.html">Messwertabweichung</a>
-	    <a href="csv.html">Proline CSV-Umwandler</a>
-		<a href="csvauswertung.html">MultiRecorder CSV Visu.</a>
-        
-    </nav>
-
-    <!-- Container für die Berechnung -->
-    <div class="container">
-        <!-- Beschreibung der Berechnung -->
-        <div class="description">
-            Dieses Tool ermöglicht die Umrechnung von Volumen in Masse und umgekehrt, basierend auf der Dichte des Materials. Wählen Sie die gewünschte Umrechnungsart aus, geben Sie den Volumen- oder Massenwert sowie die Dichte ein, und das Tool berechnet das Ergebnis in der gewünschten Einheit.
-        </div>
-
-        <table>
-            <tr>
-                <th colspan="6">Volumen-Masse-Umrechnung</th>
-            </tr>
-
-            <!-- Auswahl Volumen zu Masse oder Masse zu Volumen -->
-            <tr>
-                <td colspan="2">Umrechnung</td>
-                <td colspan="4">
-                    <select class="input-field" id="umrechnungsart">
-                        <option value="volumenZuMasse">Volumen zu Masse</option>
-                        <option value="masseZuVolumen">Masse zu Volumen</option>
-                    </select>
-                </td>
-            </tr>
-
-            <!-- Eingabewert -->
-            <tr>
-                <td colspan="2" id="eingabe_label">Volumen</td>
-                <td colspan="4">
-                    <input class="input-field" type="number" id="eingabe_wert" value="0">
-                    <select class="input-field" id="eingabe_einheit">
-                        <option value="l">l</option>
-                        <option value="m³">m³</option>
-                    </select>
-                </td>
-            </tr>
-
-            <!-- Dichteeingabe -->
-            <tr>
-                <td colspan="2">Dichte (kg/l)</td>
-                <td colspan="4">
-                    <input class="input-field" type="number" id="dichte" value="0">
-                </td>
-            </tr>
-
-            <!-- Ausgabe in -->
-            <tr>
-                <td colspan="2" id="ausgabe_label">Ausgabe in</td>
-                <td colspan="4">
-                    <select class="input-field" id="ausgabe_einheit">
-                        <option value="kg">kg</option>
-                        <option value="t">t</option>
-                    </select>
-                </td>
-            </tr>
-
-            <!-- Ergebnis -->
-            <tr>
-                <td colspan="2">Ergebnis</td>
-                <td colspan="4" class="result-field">
-                    <span id="ergebnis"></span>
-                </td>
-            </tr>
-        </table>
+    <div class="back-bar">
+        <a href="index.html" class="back-link">
+            <svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg>
+            Zurück zur Übersicht
+        </a>
     </div>
-	
-    <!-- Bottom Header mit Haftungsausschluss -->
+
+    <div class="page-container">
+        <div class="container">
+            <div class="action-bar">
+                <button class="action-btn" id="copyBtn" onclick="copyResults()">
+                    <svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>
+                    Kopieren
+                </button>
+                <button class="action-btn" id="resetBtn" onclick="resetFields()">
+                    <svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg>
+                    Zurücksetzen
+                </button>
+                <button class="action-btn" id="pdfBtn" onclick="exportPagePDF('Volumen-Masse-Umrechnung')">
+                    <svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
+                    PDF
+                </button>
+                <button class="action-btn" id="shareBtn" onclick="generateShareLink()">
+                    <svg viewBox="0 0 16 16"><path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0z"/></svg>
+                    Teilen
+                </button>
+            </div>
+
+            <div class="description">
+                🔄 Umrechnung von Volumen in Masse und umgekehrt, basierend auf der Dichte des Materials.
+            </div>
+            <table>
+                <tr><th colspan="6">Volumen-Masse-Umrechnung</th></tr>
+                <tr><td colspan="2">Umrechnung</td><td colspan="4"><select class="input-field" id="umrechnungsart"><option value="volumenZuMasse">Volumen zu Masse</option><option value="masseZuVolumen">Masse zu Volumen</option></select></td></tr>
+                <tr><td colspan="2" id="eingabe_label">Volumen</td><td colspan="4"><input class="input-field" type="number" id="eingabe_wert" value="0"> <select class="input-field" id="eingabe_einheit"><option value="l">l</option><option value="m³">m³</option></select></td></tr>
+                <tr><td colspan="2">Dichte (kg/l)</td><td colspan="4"><input class="input-field" type="number" id="dichte" value="0"></td></tr>
+                <tr><td colspan="2" id="ausgabe_label">Masse in</td><td colspan="4"><select class="input-field" id="ausgabe_einheit"><option value="kg">kg</option><option value="t">t</option></select></td></tr>
+                <tr><td colspan="2">Ergebnis</td><td colspan="4" class="result-field"><span id="ergebnis"></span></td></tr>
+            </table>
+<div class="shortcuts-hint">
+                <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+                <span><kbd>Esc</kbd> Zurücksetzen</span>
+                <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+                <span><kbd>Ctrl</kbd>+<kbd>L</kbd> Teilen</span>
+            </div>
+        </div>
+    </div>
+
     <footer class="bottom-header">
-        <p><strong>Haftungsausschluss:</strong> Diese Website übernimmt keine Gewähr für die Genauigkeit oder Vollständigkeit der angezeigten Messwerte und Berechnungsergebnisse. Die Nutzung erfolgt auf eigenes Risiko.</p>
+        <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
     </footer>
-	
+
+    <script src="shared.js"></script>
+
     <script>
-        // Funktion zum Ändern der Labels und Einheiten basierend auf der Auswahl
-        function aendereUmrechnungsart() {
-            const umrechnungsart = document.getElementById('umrechnungsart').value;
-            const eingabeLabel = document.getElementById('eingabe_label');
-            const ausgabeLabel = document.getElementById('ausgabe_label');
-            const eingabeEinheit = document.getElementById('eingabe_einheit');
-            const ausgabeEinheit = document.getElementById('ausgabe_einheit');
-
-            // Anpassung für "Volumen zu Masse"
-            if (umrechnungsart === 'volumenZuMasse') {
-                eingabeLabel.innerText = 'Volumen';
-                ausgabeLabel.innerText = 'Masse in';
-                eingabeEinheit.innerHTML = `
-                    <option value="l">l</option>
-                    <option value="m³">m³</option>
-                `;
-                ausgabeEinheit.innerHTML = `
-                    <option value="kg">kg</option>
-                    <option value="t">t</option>
-                `;
-            }
-            // Anpassung für "Masse zu Volumen"
-            else {
-                eingabeLabel.innerText = 'Masse';
-                ausgabeLabel.innerText = 'Volumen in';
-                eingabeEinheit.innerHTML = `
-                    <option value="kg">kg</option>
-                    <option value="t">t</option>
-                `;
-                ausgabeEinheit.innerHTML = `
-                    <option value="l">l</option>
-                    <option value="m³">m³</option>
-                `;
-            }
+        function aendereUmrechnungsart(){const ua=document.getElementById('umrechnungsart').value,el=document.getElementById('eingabe_label'),al=document.getElementById('ausgabe_label'),ee=document.getElementById('eingabe_einheit'),ae=document.getElementById('ausgabe_einheit');if(ua==='volumenZuMasse'){el.innerText='Volumen';al.innerText='Masse in';ee.innerHTML='<option value="l">l</option><option value="m³">m³</option>';ae.innerHTML='<option value="kg">kg</option><option value="t">t</option>';}else{el.innerText='Masse';al.innerText='Volumen in';ee.innerHTML='<option value="kg">kg</option><option value="t">t</option>';ae.innerHTML='<option value="l">l</option><option value="m³">m³</option>';}}
+        function berechneErgebnis(){
+            const ua=document.getElementById('umrechnungsart').value,ew=parseFloat(document.getElementById('eingabe_wert').value),ee=document.getElementById('eingabe_einheit').value,ae=document.getElementById('ausgabe_einheit').value,d=parseFloat(document.getElementById('dichte').value);
+            if(!validateInput('dichte',{notZero:true}))return;
+            let erg=0;
+            if(ua==='volumenZuMasse'){let vl=ee==='m³'?ew*1000:ew;erg=vl*d;if(ae==='t')erg/=1000;}else{let mk=ee==='t'?ew*1000:ew;erg=mk/d;if(ae==='m³')erg/=1000;}
+            document.getElementById('ergebnis').innerText=erg.toFixed(2)+' '+ae;
         }
-
-        // Funktion zur Berechnung der Umrechnung
-        function berechneErgebnis() {
-            const umrechnungsart = document.getElementById('umrechnungsart').value;
-            const eingabeWert = parseFloat(document.getElementById('eingabe_wert').value);
-            const eingabeEinheit = document.getElementById('eingabe_einheit').value;
-            const ausgabeEinheit = document.getElementById('ausgabe_einheit').value;
-            const dichte = parseFloat(document.getElementById('dichte').value);
-
-            let ergebnis = 0;
-
-            // Umrechnung von Volumen zu Masse
-            if (umrechnungsart === 'volumenZuMasse') {
-                let volumenInLiter = eingabeWert;
-
-                // Volumen in Liter umrechnen, wenn m³ gewählt ist
-                if (eingabeEinheit === 'm³') {
-                    volumenInLiter = eingabeWert * 1000;
-                }
-
-                // Berechnung der Masse
-                ergebnis = volumenInLiter * dichte;
-
-                // Ergebnis in Tonne umrechnen, wenn t gewählt ist
-                if (ausgabeEinheit === 't') {
-                    ergebnis = ergebnis / 1000;
-                }
-            }
-            // Umrechnung von Masse zu Volumen
-            else {
-                let masseInKg = eingabeWert;
-
-                // Masse in Kilogramm umrechnen, wenn t gewählt ist
-                if (eingabeEinheit === 't') {
-                    masseInKg = eingabeWert * 1000;
-                }
-
-                // Berechnung des Volumens
-                ergebnis = masseInKg / dichte;
-
-                // Ergebnis in m³ umrechnen, wenn m³ gewählt ist
-                if (ausgabeEinheit === 'm³') {
-                    ergebnis = ergebnis / 1000;
-                }
-            }
-
-            // Ergebnis anzeigen
-            document.getElementById('ergebnis').innerText = ergebnis.toFixed(2) + " " + ausgabeEinheit;
-        }
-
-        // Event Listener für Umrechnungsart und Berechnungen
-        document.getElementById('umrechnungsart').addEventListener('change', function() {
-            aendereUmrechnungsart();
-            berechneErgebnis();
-        });
-
-        document.querySelectorAll('#eingabe_wert, #eingabe_einheit, #dichte, #ausgabe_einheit').forEach(input => {
-            input.addEventListener('input', berechneErgebnis);
-        });
-
-        // Initialisieren mit der richtigen Umrechnungsart
+        document.getElementById('umrechnungsart').addEventListener('change',function(){aendereUmrechnungsart();berechneErgebnis();});
+        document.querySelectorAll('#eingabe_wert,#eingabe_einheit,#dichte,#ausgabe_einheit').forEach(i=>i.addEventListener('input',berechneErgebnis));
         aendereUmrechnungsart();
     </script>
 

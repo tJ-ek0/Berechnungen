@@ -1,71 +1,298 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Techniker Berechnungstools</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-default); flex-wrap: wrap; gap: 8px; }
+        .page-header h2 { border: none; padding: 0; margin: 0; font-size: 20px; }
+        .tool-count { font-size: 12px; color: var(--text-tertiary); background: var(--bg-subtle); border: 1px solid var(--border-default); padding: 2px 10px; border-radius: 20px; font-weight: 500; }
+
+        /* Search */
+        .search-bar { position: relative; margin-bottom: 16px; }
+        .search-bar input { width: 100%; padding: 10px 14px 10px 38px; border: 1px solid var(--border-default); border-radius: var(--radius-md); font-family: var(--font-sans); font-size: 14px; color: var(--text-primary); background: var(--bg-default); outline: none; transition: all 0.2s ease; }
+        .search-bar input:focus { border-color: var(--accent-fg); box-shadow: 0 0 0 3px rgba(9,105,218,0.15); }
+        .search-bar input::placeholder { color: var(--text-tertiary); }
+        .search-bar svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; fill: var(--text-tertiary); pointer-events: none; }
+
+        /* Category Filter */
+        .filter-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+        .filter-tag { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease; }
+        .filter-tag:hover { border-color: var(--accent-fg); color: var(--accent-fg); }
+        .filter-tag.active { background: var(--accent-emphasis); color: var(--text-on-emphasis); border-color: var(--accent-emphasis); }
+
+        /* Tool Grid */
+        .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+        .tool-card { background: var(--bg-default); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 16px; cursor: grab; transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s, opacity 0.15s; position: relative; user-select: none; text-decoration: none; display: block; }
+        .tool-card:hover { border-color: var(--border-muted); box-shadow: var(--shadow-md); }
+        .tool-card.dragging { opacity: 0.4; transform: scale(0.97); border-style: dashed; border-color: var(--accent-fg); }
+        .tool-card.drag-over { border-color: var(--accent-fg); box-shadow: 0 0 0 2px var(--accent-fg); }
+        .tool-card.hidden { display: none; }
+        .tool-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+        .tool-card-info { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+        .tool-icon { width: 36px; height: 36px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; background: var(--bg-accent); }
+        .tool-card-title { font-size: 14px; font-weight: 600; color: var(--text-link); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .tool-card-desc { font-size: 12px; color: var(--text-tertiary); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .tool-card-tags { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
+        .tool-tag { font-size: 11px; padding: 1px 8px; border-radius: 20px; background: var(--bg-subtle); color: var(--text-tertiary); border: 1px solid var(--border-subtle); }
+
+        /* Star */
+        .star-btn { background: none; border: none; cursor: pointer; padding: 4px; font-size: 16px; color: var(--text-tertiary); transition: all 0.2s; flex-shrink: 0; border-radius: var(--radius-sm); width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; box-shadow: none; }
+        .star-btn:hover { background: var(--bg-subtle); color: var(--star-color); transform: none; box-shadow: none; filter: none; }
+        .star-btn.active { color: var(--star-color); }
+        .star-btn svg { width: 16px; height: 16px; fill: currentColor; }
+
+        /* Section */
+        .section-label { font-size: 12px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border-default); }
+        .favorites-section { margin-bottom: 20px; }
+        .favorites-section.hidden { display: none; }
+        .no-results { text-align: center; padding: 40px 20px; color: var(--text-tertiary); font-size: 14px; display: none; }
+        .footer-links { margin-top: 8px; }
+        .footer-links a { color: var(--text-link); text-decoration: none; font-size: 12px; }
+        .footer-links a:hover { text-decoration: underline; }
+
+        @media (max-width: 600px) {
+            .tool-grid { grid-template-columns: 1fr; }
+            .page-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+        }
+    </style>
 </head>
 <body>
 
     <header>
-        Techniker Berechnungstools 
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln">
+                <span id="themeIcon">🌙</span>
+            </button>
+        </div>
     </header>
 
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="Stromausgang.html">Stromausgangsberechnung</a>
-        <a href="Dichteberechnung.html">Dichteberechnung</a>
-        <a href="Impulswertigkeit.html">Impulswertigkeit</a>
-        <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
-        <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
-        <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
-        <a href="Messwertabweichung.html">Messwertabweichung</a>
-        <a href="csv.html">Proline CSV-Umwandler</a>
-		<a href="csvauswertung.html">MultiRecorder CSV Visu.</a>
-    </nav>
+    <div class="page-container">
+        <div class="page-header">
+            <h2>Berechnungstools</h2>
+            <span class="tool-count" id="toolCount"></span>
+        </div>
 
-    <div class="container">
-        <h2>Willkommen bei den Techniker Berechnungstools</h2>
-        <p>Diese Sammlung umfasst verschiedene Berechnungstools für Techniker und Ingenieure zur Berechnung technischer Messwerte und zur Kalibrierung von Instrumenten. Wählen Sie das gewünschte Tool im Navigationsmenü, um spezifische Berechnungen durchzuführen und Ihre Arbeit zu vereinfachen.</p>
-        
-        <h3>Verfügbare Berechnungstools:</h3>
-        <ul>
-            <li><strong>Stromausgangsberechnung</strong><br>
-                Berechnet den Messwert aus einem gegebenen Stromausgang (z. B. 4-20 mA oder 0-20 mA) und ermöglicht die prozentuale Darstellung des Messbereichs.</li><br>
-            
-            <li><strong>Dichteberechnung</strong><br>
-                Ermöglicht die Berechnung der Dichte eines Materials durch Eingabe mehrerer Gewichtsmessungen und des Volumens, um die durchschnittliche Dichte in kg/l zu erhalten.</li><br>
-            
-            <li><strong>Impulswertigkeitsberechnung</strong><br>
-                Berechnet die Impulswertigkeit anhand von Volumen- oder Massenflusswerten und unterstützt Einheitenumrechnungen je nach Messbedingungen.</li><br>
-            
-            <li><strong>Volumen-Masse-Umrechnung</strong><br>
-                Konvertiert Volumen in Masse und umgekehrt basierend auf der angegebenen Dichte, unterstützt dabei Einheiten wie m³, l, kg und t.</li><br>
-            
-            <li><strong>Fließgeschwindigkeit</strong><br>
-                Berechnet die Fließgeschwindigkeit von Flüssigkeiten in Rohrleitungen basierend auf Rohrdurchmesser und Volumen- oder Massenstrom.</li><br>
-            
-            <li><strong>Kalibrierpunkte-Berechnung</strong><br>
-                Erstellt eine Kalibrierungstabelle für Instrumente, zeigt die berechneten Strom- und Messwerte und die prozentuale Abweichung an.</li><br>
-            
-            <li><strong>Messabweichung</strong><br>
-                Berechnet die prozentuale Abweichung eines gemessenen Wertes und unterstützt die Bewertung der Messgenauigkeit.</li><br>
-            
-            <li><strong>CSV Umwandler</strong><br>
-                Wandelt die CSV Datei vom Promag in ein PDF Format um.</li><br>
+        <div class="search-bar">
+            <svg viewBox="0 0 16 16"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
+            <input type="text" id="searchInput" placeholder="Tools durchsuchen...">
+        </div>
 
-	<li><strong>MultiRecorder Visualisierung</strong><br>
-                Bildet die Daten aus dem Multirecorder in einem Graph da.</li><br>
-        </ul>
+        <div class="filter-bar" id="filterBar">
+            <button class="filter-tag active" data-cat="all">Alle</button>
+        </div>
 
-        <p>Mit diesen Berechnungstools haben Sie eine praktische und benutzerfreundliche Sammlung an der Hand, um präzise Messwerte für technische Anwendungen zu berechnen. Wählen Sie das gewünschte Tool aus dem Navigationsmenü und starten Sie die Berechnung!</p>
+        <div class="favorites-section" id="favoritesSection">
+            <div class="section-label">Favoriten</div>
+            <div class="tool-grid" id="favoritesGrid"></div>
+        </div>
+
+        <div>
+            <div class="section-label" id="allToolsLabel">Alle Tools</div>
+            <div class="tool-grid" id="toolsGrid"></div>
+        </div>
+
+        <div class="no-results" id="noResults">Kein Tool gefunden.</div>
     </div>
 
-    <!-- Bottom Header mit Haftungsausschluss -->
     <footer class="bottom-header">
-        <p><strong>Haftungsausschluss:</strong> Diese Website übernimmt keine Gewähr für die Genauigkeit oder Vollständigkeit der angezeigten Messwerte und Berechnungsergebnisse. Die Nutzung erfolgt auf eigenes Risiko.</p>
+        <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+        <div class="footer-links"><a href="Impressum.html">Impressum</a></div>
     </footer>
 
+    <script src="shared.js"></script>
+    <script>
+        const DEFAULT_TOOLS = [
+            { id: 'stromausgang', title: 'Stromausgangsberechnung', desc: 'Messwert aus Stromausgang berechnen (4–20 mA / 0–20 mA) mit %-Darstellung.', icon: '⚡', href: 'Stromausgang.html', tags: ['Kalibrierung', 'Strom'] },
+            { id: 'dichte', title: 'Dichteberechnung', desc: 'Dichte eines Stoffes über Mehrfachwägung und Volumen berechnen.', icon: '⚖️', href: 'Dichteberechnung.html', tags: ['Durchfluss'] },
+            { id: 'impuls', title: 'Impulswertigkeitsberechnung', desc: 'Impulswertigkeit aus Volumen- oder Massenflusswerten berechnen.', icon: '📊', href: 'Impulswertigkeit.html', tags: ['Durchfluss', 'Impuls'] },
+            { id: 'volmasse', title: 'Volumen-Masse-Umrechnung', desc: 'Volumen ↔ Masse konvertieren – unterstützt m³, l, kg, t.', icon: '🔄', href: 'VolumenMasse.html', tags: ['Umrechnung'] },
+            { id: 'fliess', title: 'Fließgeschwindigkeit', desc: 'Fließgeschwindigkeit in Rohrleitungen berechnen.', icon: '🌊', href: 'Fliessgeschwindigkeit.html', tags: ['Durchfluss'] },
+            { id: 'kalibrier', title: 'Kalibrierpunkte', desc: 'Kalibrierungstabelle mit Strom-, Messwerten und Abweichung.', icon: '🎯', href: 'Kalibrierpunkte.html', tags: ['Kalibrierung', 'Strom'] },
+            { id: 'abweichung', title: 'Messwertabweichung', desc: 'Prozentuale Abweichung zur Bewertung der Messgenauigkeit.', icon: '📏', href: 'Messwertabweichung.html', tags: ['Kalibrierung'] },
+            { id: 'ph', title: 'pH-Steilheitstest', desc: 'Steilheit einer pH-Sonde prüfen und bewerten.', icon: '🧪', href: 'PHWert.html', tags: ['Analytik'] },
+            { id: 'csv', title: 'Proline CSV-Umwandler', desc: 'CSV-Datei vom Promag ins PDF-Format umwandeln.', icon: '📄', href: 'csv.html', tags: ['CSV', 'Export'] },
+            { id: 'csvvisu', title: 'MultiRecorder CSV-Visualisierung', desc: 'Daten aus dem MultiRecorder als Graph darstellen.', icon: '📈', href: 'csvauswertung.html', tags: ['CSV', 'Visualisierung'] },
+        ];
+
+        let toolOrder = [];
+        let favorites = new Set();
+        let draggedId = null;
+        let activeFilter = 'all';
+        let searchQuery = '';
+
+        // All unique categories
+        const ALL_CATEGORIES = [...new Set(DEFAULT_TOOLS.flatMap(t => t.tags))].sort();
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem('techtools_state');
+                if (saved) {
+                    const state = JSON.parse(saved);
+                    if (state.order) toolOrder = state.order;
+                    if (state.favorites) favorites = new Set(state.favorites);
+                }
+            } catch(e) {}
+            const existing = new Set(toolOrder);
+            DEFAULT_TOOLS.forEach(t => { if (!existing.has(t.id)) toolOrder.push(t.id); });
+            const validIds = new Set(DEFAULT_TOOLS.map(t => t.id));
+            toolOrder = toolOrder.filter(id => validIds.has(id));
+        }
+
+        function saveState() {
+            try {
+                const existing = getGlobalState();
+                const state = Object.assign(existing, {
+                    order: toolOrder,
+                    favorites: Array.from(favorites),
+                    theme: document.documentElement.getAttribute('data-theme')
+                });
+                localStorage.setItem('techtools_state', JSON.stringify(state));
+            } catch(e) {}
+        }
+
+        function getToolById(id) { return DEFAULT_TOOLS.find(t => t.id === id); }
+
+        function matchesFilter(tool) {
+            const matchesCat = activeFilter === 'all' || tool.tags.includes(activeFilter);
+            const matchesSearch = searchQuery === '' ||
+                tool.title.toLowerCase().includes(searchQuery) ||
+                tool.desc.toLowerCase().includes(searchQuery) ||
+                tool.tags.some(t => t.toLowerCase().includes(searchQuery));
+            return matchesCat && matchesSearch;
+        }
+
+        const starSvgEmpty = '<svg viewBox="0 0 16 16"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694z"/></svg>';
+        const starSvgFilled = '<svg viewBox="0 0 16 16"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25z"/></svg>';
+
+        function createCard(tool) {
+            const card = document.createElement('div');
+            card.className = 'tool-card' + (matchesFilter(tool) ? '' : ' hidden');
+            card.draggable = true;
+            card.dataset.id = tool.id;
+
+            const isFav = favorites.has(tool.id);
+            const tagsHtml = tool.tags.map(t => '<span class="tool-tag">' + t + '</span>').join('');
+
+            card.innerHTML =
+                '<div class="tool-card-top"><div class="tool-card-info"><div class="tool-icon">' + tool.icon + '</div><span class="tool-card-title">' + tool.title + '</span></div>' +
+                '<button class="star-btn ' + (isFav ? 'active' : '') + '" data-id="' + tool.id + '" title="Favorit">' + (isFav ? starSvgFilled : starSvgEmpty) + '</button></div>' +
+                '<div class="tool-card-desc">' + tool.desc + '</div>' +
+                '<div class="tool-card-tags">' + tagsHtml + '</div>';
+
+            card.querySelector('.star-btn').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(tool.id); });
+            card.addEventListener('click', (e) => { if (e.target.closest('.star-btn')) return; if (card.dataset.wasDragged === 'true') { card.dataset.wasDragged = 'false'; return; } window.location.href = tool.href; });
+            card.addEventListener('dragstart', (e) => { draggedId = tool.id; card.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', tool.id); });
+            card.addEventListener('dragend', () => { card.classList.remove('dragging'); card.dataset.wasDragged = 'true'; document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over')); draggedId = null; });
+            card.addEventListener('dragover', (e) => { e.preventDefault(); if (card.dataset.id !== draggedId) card.classList.add('drag-over'); });
+            card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+            card.addEventListener('drop', (e) => { e.preventDefault(); card.classList.remove('drag-over'); if (draggedId && draggedId !== card.dataset.id) reorderTools(draggedId, card.dataset.id); });
+            return card;
+        }
+
+        function render() {
+            const favGrid = document.getElementById('favoritesGrid');
+            const toolsGrid = document.getElementById('toolsGrid');
+            const favSection = document.getElementById('favoritesSection');
+            const allLabel = document.getElementById('allToolsLabel');
+            const noResults = document.getElementById('noResults');
+
+            favGrid.innerHTML = '';
+            toolsGrid.innerHTML = '';
+
+            const favTools = toolOrder.filter(id => favorites.has(id));
+            const otherTools = toolOrder.filter(id => !favorites.has(id));
+            let visibleCount = 0;
+
+            if (favTools.length > 0) {
+                favSection.classList.remove('hidden');
+                allLabel.textContent = 'Weitere Tools';
+                favTools.forEach(id => {
+                    const tool = getToolById(id);
+                    if (tool) {
+                        const card = createCard(tool);
+                        favGrid.appendChild(card);
+                        if (matchesFilter(tool)) visibleCount++;
+                    }
+                });
+            } else {
+                favSection.classList.add('hidden');
+                allLabel.textContent = 'Alle Tools';
+            }
+
+            otherTools.forEach(id => {
+                const tool = getToolById(id);
+                if (tool) {
+                    const card = createCard(tool);
+                    toolsGrid.appendChild(card);
+                    if (matchesFilter(tool)) visibleCount++;
+                }
+            });
+
+            document.getElementById('toolCount').textContent = DEFAULT_TOOLS.length + ' Tools';
+            noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+
+        function toggleFavorite(id) {
+            if (favorites.has(id)) favorites.delete(id); else favorites.add(id);
+            saveState(); render();
+        }
+
+        function reorderTools(fromId, toId) {
+            const fromIdx = toolOrder.indexOf(fromId);
+            const toIdx = toolOrder.indexOf(toId);
+            if (fromIdx === -1 || toIdx === -1) return;
+            toolOrder.splice(fromIdx, 1);
+            toolOrder.splice(toIdx, 0, fromId);
+            if (favorites.has(toId) && !favorites.has(fromId)) favorites.add(fromId);
+            if (!favorites.has(toId) && favorites.has(fromId)) favorites.delete(fromId);
+            saveState(); render();
+        }
+
+        // Build filter bar
+        function buildFilterBar() {
+            const bar = document.getElementById('filterBar');
+            ALL_CATEGORIES.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'filter-tag';
+                btn.dataset.cat = cat;
+                btn.textContent = cat;
+                bar.appendChild(btn);
+            });
+            bar.addEventListener('click', (e) => {
+                const tag = e.target.closest('.filter-tag');
+                if (!tag) return;
+                activeFilter = tag.dataset.cat;
+                bar.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+                tag.classList.add('active');
+                render();
+            });
+        }
+
+        // Search
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+            render();
+        });
+
+        // Override theme toggle to also save tool state
+        const origToggle = toggleTheme;
+        document.getElementById('themeToggle').removeEventListener('click', toggleTheme);
+        document.getElementById('themeToggle').addEventListener('click', () => { origToggle(); saveState(); });
+
+        loadState();
+        buildFilterBar();
+        render();
+    </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>pH-Steilheitstest – Techniker Berechnungstools</title>
+    <title>Fließgeschwindigkeit – Techniker Berechnungstools</title>
     <link rel="stylesheet" href="style.css">
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
@@ -15,7 +15,7 @@
         
     </style>
 </head>
-<body data-tool-id="ph">
+<body data-tool-id="fliess">
 
     <header>
         <div class="header-left">
@@ -49,7 +49,7 @@
                     <svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg>
                     Zurücksetzen
                 </button>
-                <button class="action-btn" id="pdfBtn" onclick="exportPagePDF('pH-Steilheitstest')">
+                <button class="action-btn" id="pdfBtn" onclick="exportPagePDF('Fließgeschwindigkeit')">
                     <svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
                     PDF
                 </button>
@@ -60,16 +60,13 @@
             </div>
 
             <div class="description">
-                🧪 Prüft die Steilheit einer pH-Sonde. Normale Steilheit: ca. 59 mV/pH bei 25°C. Akzeptabler Bereich: ±55 bis ±65 mV/pH.
+                🌊 Berechnet die Fließgeschwindigkeit von Fluids in Rohrleitungen basierend auf Nennweite und Durchfluss.
             </div>
             <table>
-                <tr><th colspan="6">pH-Sonde Steilheitstest</th></tr>
-                <tr><td colspan="2">pH-Wert 1</td><td colspan="4"><input class="input-field" type="number" id="ph_wert1" value="0" step="0.01"></td></tr>
-                <tr><td colspan="2">pH-Wert 2</td><td colspan="4"><input class="input-field" type="number" id="ph_wert2" value="0" step="0.01"></td></tr>
-                <tr><td colspan="2">Spannung 1 (mV)</td><td colspan="4"><input class="input-field" type="number" id="spannung1" value="0" step="0.1"> mV</td></tr>
-                <tr><td colspan="2">Spannung 2 (mV)</td><td colspan="4"><input class="input-field" type="number" id="spannung2" value="0" step="0.1"> mV</td></tr>
-                <tr><td colspan="2">Steilheit</td><td colspan="4" class="result-field"><span id="steilheit"></span> mV/pH</td></tr>
-                <tr><td colspan="2">Sondenstatus</td><td colspan="4" class="result-field" id="sonden_status"><span id="status"></span></td></tr>
+                <tr><th colspan="6">Fließgeschwindigkeit Berechnung</th></tr>
+                <tr><td colspan="2">Nennweite in mm</td><td colspan="4"><input class="input-field" type="number" id="nennweite" value="0"></td></tr>
+                <tr><td colspan="2">Durchfluss</td><td colspan="4"><input class="input-field" type="number" id="durchfluss" value="0"> <select class="input-field" id="durchfluss_einheit"><option value="m³/h">m³/h</option><option value="l/h">l/h</option><option value="t/h">t/h</option><option value="kg/h">kg/h</option><option value="m³/min">m³/min</option><option value="l/min">l/min</option><option value="t/min">t/min</option><option value="kg/min">kg/min</option><option value="m³/sek">m³/sek</option><option value="l/sek">l/sek</option><option value="t/sek">t/sek</option><option value="kg/sek">kg/sek</option></select></td></tr>
+                <tr><td colspan="2">Fließgeschwindigkeit</td><td colspan="4" class="result-field"><span id="fliessgeschwindigkeit"></span> m/s</td></tr>
             </table>
 <div class="shortcuts-hint">
                 <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
@@ -87,19 +84,14 @@
     <script src="shared.js"></script>
 
     <script>
-        function pruefePHWerte(){
-            const ph1=parseFloat(document.getElementById('ph_wert1').value),ph2=parseFloat(document.getElementById('ph_wert2').value);
-            const s1=parseFloat(document.getElementById('spannung1').value),s2=parseFloat(document.getElementById('spannung2').value);
-            const dp=ph2-ph1;
-            if(dp===0){document.getElementById('steilheit').innerText='—';document.getElementById('status').innerText='—';return;}
-            const st=(s2-s1)/dp;
-            document.getElementById('steilheit').innerText=st.toFixed(2);
-            const el=document.getElementById('sonden_status');
-            if((st>=55&&st<=65)||(st<=-55&&st>=-65)){el.className='result-field good';document.getElementById('status').innerText='Good';}
-            else{el.className='result-field bad';document.getElementById('status').innerText='Bad';}
+        function umDF(d,e){switch(e){case'm³/h':return d/3600;case'l/h':return d/1000/3600;case't/h':case'kg/h':return d/1000/3600;case'm³/min':return d/60;case'l/min':return d/1000/60;case't/min':case'kg/min':return d/1000/60;case'm³/sek':return d;case'l/sek':return d/1000;case't/sek':case'kg/sek':return d/1000;default:return d;}}
+        function berechneFliess(){
+            const nw=parseFloat(document.getElementById('nennweite').value),df=parseFloat(document.getElementById('durchfluss').value),e=document.getElementById('durchfluss_einheit').value;
+            if(!validateInput('nennweite',{notZero:true}))return;
+            const r=(nw/1000)/2,A=Math.PI*r*r,dm=umDF(df,e),v=dm/A;
+            document.getElementById('fliessgeschwindigkeit').innerText=v.toFixed(2);
         }
-        document.querySelectorAll('#ph_wert1,#ph_wert2,#spannung1,#spannung2').forEach(i=>i.addEventListener('input',pruefePHWerte));
-        pruefePHWerte();
+        document.querySelectorAll('#nennweite,#durchfluss,#durchfluss_einheit').forEach(i=>i.addEventListener('input',berechneFliess));
     </script>
 
 </body>

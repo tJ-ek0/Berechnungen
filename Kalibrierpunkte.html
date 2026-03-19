@@ -1,147 +1,101 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-theme="light">
 <head>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalibrierpunkte – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
+        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+        
+    </style>
 </head>
-<body>
+<body data-tool-id="kalibrier">
 
-    <!-- Header -->
     <header>
-        Techniker Berechnungstools
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln">
+                <span id="themeIcon">🌙</span>
+            </button>
+        </div>
     </header>
 
-    <!-- Navigationsleiste -->
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="Stromausgang.html">Stromausgangsberechnung</a>
-        <a href="Dichteberechnung.html">Dichteberechnung</a>
-        <a href="Impulswertigkeit.html">Impulswertigkeit</a>
-        <a href="VolumenMasse.html">Volumen-Masse-Umrechnung</a>
-        <a href="Fließgeschwindigkeit.html">Fließgeschwindigkeit</a>
-        <a href="Kalibrierpunkte.html">Kalibrierpunkte</a>
-		<a href="Messwertabweichung.html">Messwertabweichung</a>
-		<a href="csv.html">Proline CSV-Umwandler</a>
-		<a href="csvauswertung.html">MultiRecorder CSV Visu.</a>
-        
-    </nav>
-
-    <!-- Container für die Berechnung -->
-    <div class="container">
-        <!-- Beschreibung der Berechnung -->
-        <div class="description">
-            Mit diesem Tool können Sie Kalibrierpunkte berechnen, die zur Überprüfung und Justierung von Messgeräten benötigt werden. Geben Sie einfach den Messbereich, den Strombereich und die Anzahl der gewünschten Kalibrierpunkte ein. Das Tool berechnet automatisch die entsprechenden Stromwerte und Messwerte, die dann zur Kalibrierung verwendet werden können.
-        </div>
-
-        <table>
-            <tr>
-                <th colspan="6">Kalibrierpunkte Berechnung</th>
-            </tr>
-
-            <!-- Eingabe des Messbereichs -->
-            <tr>
-                <td colspan="2">Messbereich</td>
-                <td colspan="4">
-                    <input class="input-field" type="number" id="messbereich_min" value="0">
-                    
-                    <input class="input-field" type="number" id="messbereich_max" value="100">
-                </td>
-            </tr>
-
-            <!-- Auswahl des Strombereichs -->
-            <tr>
-                <td colspan="2">Strombereich</td>
-                <td colspan="4">
-                    <select class="input-field" id="strombereich">
-                        <option value="0-20">0...20 mA</option>
-                        <option value="4-20">4...20 mA</option>
-                    </select> 
-                </td>
-            </tr>
-
-            <!-- Eingabe der Anzahl der Kalibrierpunkte -->
-            <tr>
-                <td colspan="2">Kalibrierpunkte</td>
-                <td colspan="4">
-                    <input class="input-field" type="number" id="kalibrierpunkte" value="3">
-                </td>
-            </tr>
-
-            <!-- Dynamisch generierte Tabelle -->
-            <tr>
-                <td colspan="6">
-                    <table id="kalibrierpunkte_tabelle">
-                        <thead>
-                            <tr>
-                                <th>Punkt</th>
-                                <th>Strom (mA)</th>
-                                <th>Messwert</th>
-                                <th>%</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Dynamische Zeilen werden hier generiert -->
-                        </tbody>
-                    </table>
-                </td>
-            </tr>
-        </table>
+    <div class="back-bar">
+        <a href="index.html" class="back-link">
+            <svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg>
+            Zurück zur Übersicht
+        </a>
     </div>
-	
-    <!-- Bottom Header mit Haftungsausschluss -->
+
+    <div class="page-container">
+        <div class="container">
+            <div class="action-bar">
+                <button class="action-btn" id="copyBtn" onclick="copyResults()">
+                    <svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>
+                    Kopieren
+                </button>
+                <button class="action-btn" id="resetBtn" onclick="resetFields()">
+                    <svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg>
+                    Zurücksetzen
+                </button>
+                <button class="action-btn" id="pdfBtn" onclick="exportPagePDF('Kalibrierpunkte')">
+                    <svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
+                    PDF
+                </button>
+                <button class="action-btn" id="shareBtn" onclick="generateShareLink()">
+                    <svg viewBox="0 0 16 16"><path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0z"/></svg>
+                    Teilen
+                </button>
+            </div>
+
+            <div class="description">
+                🎯 Berechnet Kalibrierpunkte zur Überprüfung und Justierung von Messgeräten. Gibt Strom-, Messwerte und prozentuale Anteile aus.
+            </div>
+            <table>
+                <tr><th colspan="6">Kalibrierpunkte Berechnung</th></tr>
+                <tr><td colspan="2">Messbereich</td><td colspan="4"><input class="input-field" type="number" id="messbereich_min" value="0" style="max-width:120px"> bis <input class="input-field" type="number" id="messbereich_max" value="100" style="max-width:120px"></td></tr>
+                <tr><td colspan="2">Strombereich</td><td colspan="4"><select class="input-field" id="strombereich"><option value="0-20">0...20 mA</option><option value="4-20">4...20 mA</option></select></td></tr>
+                <tr><td colspan="2">Kalibrierpunkte</td><td colspan="4"><input class="input-field" type="number" id="kalibrierpunkte" value="3"></td></tr>
+                <tr><td colspan="6"><table id="kalibrierpunkte_tabelle"><thead><tr><th>Punkt</th><th>Strom (mA)</th><th>Messwert</th><th>%</th></tr></thead><tbody></tbody></table></td></tr>
+            </table>
+<div class="shortcuts-hint">
+                <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+                <span><kbd>Esc</kbd> Zurücksetzen</span>
+                <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+                <span><kbd>Ctrl</kbd>+<kbd>L</kbd> Teilen</span>
+            </div>
+        </div>
+    </div>
+
     <footer class="bottom-header">
-        <p><strong>Haftungsausschluss:</strong> Diese Website übernimmt keine Gewähr für die Genauigkeit oder Vollständigkeit der angezeigten Messwerte und Berechnungsergebnisse. Die Nutzung erfolgt auf eigenes Risiko.</p>
+        <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
     </footer>
-	
+
+    <script src="shared.js"></script>
+
     <script>
-        // Funktion zur Berechnung der Kalibrierpunkte
-        function berechneKalibrierpunkte() {
-            const messbereich_min = parseFloat(document.getElementById('messbereich_min').value);
-            const messbereich_max = parseFloat(document.getElementById('messbereich_max').value);
-            const strombereich = document.getElementById('strombereich').value;
-            const kalibrierpunkte_anzahl = parseInt(document.getElementById('kalibrierpunkte').value);
-
-            let strom_min, strom_max;
-
-            // Strombereich festlegen
-            if (strombereich === '0-20') {
-                strom_min = 0;
-                strom_max = 20;
-            } else {
-                strom_min = 4;
-                strom_max = 20;
-            }
-
-            const messbereich_spannweite = messbereich_max - messbereich_min;
-            const strom_spannweite = strom_max - strom_min;
-            const tabelle_body = document.getElementById('kalibrierpunkte_tabelle').querySelector('tbody');
-
-            // Tabelle leeren
-            tabelle_body.innerHTML = '';
-
-            // Kalibrierpunkte berechnen und in die Tabelle einfügen
-            for (let i = 1; i <= kalibrierpunkte_anzahl; i++) {
-                const prozent = (i / kalibrierpunkte_anzahl) * 100;
-                const strom = strom_min + (strom_spannweite * prozent / 100);
-                const messwert = messbereich_min + (messbereich_spannweite * prozent / 100);
-
-                const zeile = `
-                    <tr>
-                        <td>${i}</td>
-                        <td>${strom.toFixed(2)}</td>
-                        <td>${messwert.toFixed(2)}</td>
-                        <td>${prozent.toFixed(2)}</td>
-                    </tr>
-                `;
-                tabelle_body.innerHTML += zeile;
-            }
+        function berechneKalibrierpunkte(){
+            const min=parseFloat(document.getElementById('messbereich_min').value),max=parseFloat(document.getElementById('messbereich_max').value);
+            const sb=document.getElementById('strombereich').value,anz=parseInt(document.getElementById('kalibrierpunkte').value);
+            if(!validateInput('kalibrierpunkte',{min:1}))return;
+            const smin=sb==='0-20'?0:4,smax=20,mbs=max-min,ss=smax-smin;
+            const tbody=document.getElementById('kalibrierpunkte_tabelle').querySelector('tbody');
+            tbody.innerHTML='';
+            for(let i=1;i<=anz;i++){const pct=(i/anz)*100,strom=smin+(ss*pct/100),mw=min+(mbs*pct/100);
+            tbody.innerHTML+='<tr><td>'+i+'</td><td>'+strom.toFixed(2)+'</td><td>'+mw.toFixed(2)+'</td><td>'+pct.toFixed(2)+'</td></tr>';}
         }
-
-        // Event Listener für die Berechnung bei Änderungen der Eingabefelder
-        document.querySelectorAll('#messbereich_min, #messbereich_max, #strombereich, #kalibrierpunkte').forEach(input => {
-            input.addEventListener('input', berechneKalibrierpunkte);
-        });
-
-        // Initiale Berechnung
+        document.querySelectorAll('#messbereich_min,#messbereich_max,#strombereich,#kalibrierpunkte').forEach(i=>i.addEventListener('input',berechneKalibrierpunkte));
         berechneKalibrierpunkte();
     </script>
 

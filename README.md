@@ -9,7 +9,7 @@ Dieses Projekt besteht aus einer Sammlung von Berechnungstools, die verschiedene
 - **Dichteberechnung.html**: Berechnung der Dichte basierend auf verschiedenen Messwerten.
 - **Impulswertigkeit.html**: Berechnung der Impulswertigkeit und Impulsbreite.
 - **VolumenMasse.html**: Umrechnung von Volumen in Masse oder Masse in Volumen.
-- **Fließgeschwindigkeit.html**: Berechnung der Fließgeschwindigkeit basierend auf Durchfluss und Nennweite.
+- **Fliessgeschwindigkeit.html**: Berechnung der Fließgeschwindigkeit basierend auf Durchfluss und Nennweite.
 - **Kalibrierpunkte.html**: Berechnung von Kalibrierpunkten auf Basis eines Mess- und Strombereichs.
 - **Profinetauslastung.html**: Berechnung der Profinetauslastung (Network Calculation Tool).
 - **impressum.html**: Impressum der Website.
@@ -31,7 +31,7 @@ Hier wird die Impulswertigkeit basierend auf Durchflussmenge und Impulswertigkei
 ### 5. **VolumenMasse.html**
 Dieses Tool ermöglicht die Umrechnung zwischen Volumen und Masse. Der Benutzer gibt entweder Volumen oder Masse sowie die Dichte ein, und das Tool berechnet das entsprechende Ergebnis in m³, l, kg oder t.
 
-### 6. **Fließgeschwindigkeit.html**
+### 6. **Fliessgeschwindigkeit.html**
 Mit diesem Tool kann die Fließgeschwindigkeit eines Fluids basierend auf dem Durchfluss und der Nennweite des Rohres berechnet werden. Es unterstützt verschiedene Einheiten für den Durchfluss wie m³/h, l/h, kg/h und mehr.
 
 ### 7. **Kalibrierpunkte.html**
