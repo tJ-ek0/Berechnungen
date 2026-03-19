@@ -271,13 +271,14 @@
             const distName = DISTURBANCE_NAMES[disturbance];
 
             // Scale: total length maps to ~500px, minimum pipe segment 30px
-            const totalDN = upDN + downDN + 5; // 5 DN for meter symbol
+            const totalDN = upDN + downDN + 5;
             const scale = Math.min(500 / Math.max(totalDN, 10), 20);
 
+            const distBoxW = 90;
             const upW = Math.max(upDN * scale, 20);
-            const meterW = 50;
+            const meterW = 60;
             const downW = Math.max(downDN * scale, 20);
-            const totalW = upW + meterW + downW + 60;
+            const totalW = distBoxW + upW + meterW + downW + 40;
             const h = 100;
 
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -285,28 +286,40 @@
             const fillColor = isDark ? '#58a6ff' : '#0969da';
             const textColor = isDark ? '#8b949e' : '#57606a';
             const accentColor = isDark ? '#3fb950' : '#1a7f37';
+            const warnColor = isDark ? '#f0883e' : '#bf5600';
 
             let svg = '<svg class="pipe-svg" viewBox="0 0 ' + totalW + ' ' + h + '" xmlns="http://www.w3.org/2000/svg">';
 
-            // Störquelle icon
-            svg += '<rect x="5" y="30" width="20" height="30" rx="3" fill="' + (isDark ? '#f0883e' : '#bf5600') + '" opacity="0.3"/>';
-            svg += '<text x="15" y="50" text-anchor="middle" font-size="10" fill="' + textColor + '">⚠</text>';
-            svg += '<text x="15" y="75" text-anchor="middle" font-size="7" fill="' + textColor + '">' + distName + '</text>';
+            // Störquelle box
+            const distX = 5;
+            const distCX = distX + distBoxW / 2;
+            svg += '<rect x="' + distX + '" y="25" width="' + distBoxW + '" height="40" rx="4" fill="' + warnColor + '" opacity="0.15" stroke="' + warnColor + '" stroke-width="1"/>';
+            svg += '<text x="' + distCX + '" y="40" text-anchor="middle" font-size="8" font-weight="600" fill="' + textColor + '">Störquelle</text>';
+
+            // Split distName into max 2 lines
+            var line1 = distName, line2 = '';
+            if (distName.length > 16) {
+                var mid = distName.lastIndexOf(' ', 16);
+                if (mid === -1) mid = 16;
+                line1 = distName.substring(0, mid);
+                line2 = distName.substring(mid).trim();
+            }
+            svg += '<text x="' + distCX + '" y="53" text-anchor="middle" font-size="7" font-weight="500" fill="' + warnColor + '">' + line1 + '</text>';
+            if (line2) svg += '<text x="' + distCX + '" y="61" text-anchor="middle" font-size="7" font-weight="500" fill="' + warnColor + '">' + line2 + '</text>';
 
             // Upstream pipe
-            const upStart = 30;
+            const upStart = distX + distBoxW + 5;
             svg += '<rect x="' + upStart + '" y="40" width="' + upW + '" height="10" fill="' + pipeColor + '" rx="2"/>';
             if (upDN > 0) {
                 svg += '<text x="' + (upStart + upW / 2) + '" y="36" text-anchor="middle" font-size="9" font-weight="600" fill="' + fillColor + '">' + upDN + '× DN = ' + (upMM / 1000).toFixed(2) + ' m</text>';
-                // Arrow
                 svg += '<line x1="' + upStart + '" y1="56" x2="' + (upStart + upW) + '" y2="56" stroke="' + fillColor + '" stroke-width="1" marker-end="url(#arrow)"/>';
                 svg += '<text x="' + (upStart + upW / 2) + '" y="66" text-anchor="middle" font-size="7" fill="' + textColor + '">Einlauf</text>';
             }
 
             // Meter
             const meterStart = upStart + upW + 5;
-            svg += '<rect x="' + meterStart + '" y="32" width="' + meterW + '" height="26" rx="4" fill="' + accentColor + '" opacity="0.2" stroke="' + accentColor + '" stroke-width="1.5"/>';
-            svg += '<text x="' + (meterStart + meterW / 2) + '" y="48" text-anchor="middle" font-size="8" font-weight="600" fill="' + accentColor + '">' + meterName + '</text>';
+            svg += '<rect x="' + meterStart + '" y="30" width="' + meterW + '" height="30" rx="4" fill="' + accentColor + '" opacity="0.15" stroke="' + accentColor + '" stroke-width="1.5"/>';
+            svg += '<text x="' + (meterStart + meterW / 2) + '" y="49" text-anchor="middle" font-size="8" font-weight="600" fill="' + accentColor + '">' + meterName + '</text>';
 
             // Downstream pipe
             const downStart = meterStart + meterW + 5;
