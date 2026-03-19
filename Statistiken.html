@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistiken – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; }
+        .stat-card { background: var(--bg-default); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 16px; text-align: center; }
+        .stat-card-value { font-size: 28px; font-weight: 700; color: var(--accent-fg); font-family: var(--font-mono); }
+        .stat-card-label { font-size: 12px; color: var(--text-tertiary); margin-top: 4px; }
+
+        .section-title { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; margin-top: 24px; }
+
+        .tool-stats-table { width: 100%; }
+        .tool-stats-table th { text-align: left; font-size: 12px; color: var(--text-tertiary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+        .tool-stats-table td { padding: 8px 12px; font-size: 13px; }
+        .tool-stats-table .tool-name { font-weight: 500; color: var(--text-primary); }
+        .tool-stats-table .tool-count { font-family: var(--font-mono); color: var(--accent-fg); font-weight: 600; }
+        .tool-stats-table .tool-last { font-size: 12px; color: var(--text-tertiary); }
+
+        .chart-wrap { background: var(--bg-default); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px; }
+        .chart-wrap canvas { width: 100% !important; height: 250px !important; }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-tertiary); font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln">
+                <span id="themeIcon">🌙</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="back-bar">
+        <a href="index.html" class="back-link">
+            <svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg>
+            Zurück zur Übersicht
+        </a>
+    </div>
+
+    <div class="page-container">
+        <div class="container">
+            <h2 style="margin-bottom:4px;">Nutzungsstatistiken</h2>
+            <p style="font-size:13px;color:var(--text-tertiary);margin-bottom:20px;">Lokale Statistiken deiner Nutzung — alle Daten werden nur in deinem Browser gespeichert.</p>
+
+            <!-- Übersicht -->
+            <div class="stat-cards" id="overviewCards"></div>
+
+            <!-- Besuche Chart -->
+            <div class="chart-wrap" id="visitChartWrap" style="display:none;">
+                <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:10px;">Seitenaufrufe (letzte 14 Tage)</div>
+                <canvas id="visitChart"></canvas>
+            </div>
+
+            <!-- Tool-Nutzung Chart -->
+            <div class="chart-wrap" id="toolChartWrap" style="display:none;">
+                <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:10px;">Aufrufe pro Tool</div>
+                <canvas id="toolChart"></canvas>
+            </div>
+
+            <!-- Tool-Tabelle -->
+            <div class="section-title">Tool-Details</div>
+            <table class="tool-stats-table" id="toolTable">
+                <thead>
+                    <tr>
+                        <th>Tool</th>
+                        <th>Aufrufe</th>
+                        <th>Berechnungen</th>
+                        <th>Zuletzt verwendet</th>
+                    </tr>
+                </thead>
+                <tbody id="toolTableBody"></tbody>
+            </table>
+            <div class="empty-state" id="emptyState" style="display:none;">Noch keine Nutzungsdaten vorhanden. Verwende die Tools und komm dann hierher zurück!</div>
+
+        </div>
+    </div>
+
+    <footer class="bottom-header">
+        <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+    </footer>
+
+    <script src="shared.js"></script>
+    <script>
+        const TOOL_NAMES = {
+            'stromausgang': 'Stromausgangsberechnung',
+            'dichte': 'Dichteberechnung',
+            'impuls': 'Impulswertigkeit',
+            'volmasse': 'Volumen-Masse-Umrechnung',
+            'fliess': 'Fließgeschwindigkeit',
+            'kalibrier': 'Kalibrierpunkte',
+            'abweichung': 'Messwertabweichung',
+            'ph': 'pH Steilheit',
+            'csv': 'CSV-Umwandler',
+            'csvvisu': 'CSV-Visualisierung',
+            'tempsensor': 'Temperatursensor-Rechner',
+            'einheiten': 'Einheiten-Universalrechner',
+            'tank': 'Tankinhalt-Rechner',
+            'dampf': 'Dampftabelle',
+            'einbau': 'Einlaufstrecken-Rechner',
+            'burden': '4-20mA Bürdenrechner',
+            'blende': 'Blenden/DP-Durchflussrechner',
+            'schutzart': 'Schutzarten-Nachschlagewerk',
+            'flansch': 'DN/Flansch-Tabelle',
+            'viskositaet': 'Viskositäts-Umrechner'
+        };
+
+        function getChartColors() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            return {
+                grid: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                tick: isDark ? '#8b949e' : '#57606a',
+                bar: isDark ? '#58a6ff' : '#0969da',
+                barBg: isDark ? 'rgba(88,166,255,0.3)' : 'rgba(9,105,218,0.2)'
+            };
+        }
+
+        let visitChartInst = null;
+        let toolChartInst = null;
+
+        function loadStats() {
+            const state = getGlobalState();
+            const stats = state.stats || {};
+            const lastUsed = state.lastUsed || {};
+
+            const totalVisits = stats.totalVisits || 0;
+            const totalCalc = stats.totalCalculations || 0;
+            const toolCount = Object.keys(lastUsed).length;
+
+            // First use date
+            let firstDate = '—';
+            if (stats.visits) {
+                const allDates = [];
+                Object.values(stats.visits).forEach(pages => {
+                    Object.keys(pages).forEach(d => allDates.push(d));
+                });
+                if (allDates.length > 0) {
+                    allDates.sort();
+                    firstDate = formatDate(allDates[0]);
+                }
+            }
+
+            // Overview cards
+            const cards = document.getElementById('overviewCards');
+            cards.innerHTML =
+                '<div class="stat-card"><div class="stat-card-value">' + totalVisits + '</div><div class="stat-card-label">Seitenaufrufe gesamt</div></div>' +
+                '<div class="stat-card"><div class="stat-card-value">' + totalCalc + '</div><div class="stat-card-label">Berechnungen gesamt</div></div>' +
+                '<div class="stat-card"><div class="stat-card-value">' + toolCount + '</div><div class="stat-card-label">Tools verwendet</div></div>' +
+                '<div class="stat-card"><div class="stat-card-value" style="font-size:16px;">' + firstDate + '</div><div class="stat-card-label">Erste Nutzung</div></div>';
+
+            if (totalVisits === 0 && totalCalc === 0 && toolCount === 0) {
+                document.getElementById('emptyState').style.display = 'block';
+                document.getElementById('toolTable').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('toolTable').style.display = '';
+
+            // Visit chart (last 14 days)
+            renderVisitChart(stats.visits || {});
+
+            // Tool usage chart
+            renderToolChart(lastUsed, stats.calculations || {});
+
+            // Tool table
+            renderToolTable(lastUsed, stats.calculations || {});
+        }
+
+        function formatDate(dateStr) {
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+
+        function formatDateTime(ts) {
+            return new Date(ts).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        function renderVisitChart(visits) {
+            const wrap = document.getElementById('visitChartWrap');
+            const colors = getChartColors();
+
+            // Build last 14 days
+            const labels = [];
+            const data = [];
+            for (let i = 13; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const key = d.toISOString().slice(0, 10);
+                labels.push(d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }));
+                let dayTotal = 0;
+                Object.values(visits).forEach(pages => {
+                    if (pages[key]) dayTotal += pages[key];
+                });
+                data.push(dayTotal);
+            }
+
+            if (data.some(v => v > 0)) {
+                wrap.style.display = 'block';
+                if (visitChartInst) visitChartInst.destroy();
+                visitChartInst = new Chart(document.getElementById('visitChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Aufrufe',
+                            data: data,
+                            backgroundColor: colors.barBg,
+                            borderColor: colors.bar,
+                            borderWidth: 1,
+                            borderRadius: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        scales: {
+                            x: { ticks: { color: colors.tick }, grid: { color: colors.grid } },
+                            y: { beginAtZero: true, ticks: { color: colors.tick, stepSize: 1 }, grid: { color: colors.grid } }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+        }
+
+        function renderToolChart(lastUsed, calculations) {
+            const wrap = document.getElementById('toolChartWrap');
+            const colors = getChartColors();
+
+            const toolIds = Object.keys(TOOL_NAMES);
+            const labels = [];
+            const data = [];
+
+            toolIds.forEach(id => {
+                const count = lastUsed[id]?.count || 0;
+                if (count > 0) {
+                    labels.push(TOOL_NAMES[id]);
+                    data.push(count);
+                }
+            });
+
+            if (labels.length > 0) {
+                wrap.style.display = 'block';
+                if (toolChartInst) toolChartInst.destroy();
+                toolChartInst = new Chart(document.getElementById('toolChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Aufrufe',
+                            data: data,
+                            backgroundColor: colors.barBg,
+                            borderColor: colors.bar,
+                            borderWidth: 1,
+                            borderRadius: 3
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true, maintainAspectRatio: false,
+                        scales: {
+                            x: { beginAtZero: true, ticks: { color: colors.tick, stepSize: 1 }, grid: { color: colors.grid } },
+                            y: { ticks: { color: colors.tick }, grid: { display: false } }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+        }
+
+        function renderToolTable(lastUsed, calculations) {
+            const tbody = document.getElementById('toolTableBody');
+            tbody.innerHTML = '';
+
+            const toolIds = Object.keys(TOOL_NAMES);
+
+            // Sort by usage count desc
+            toolIds.sort((a, b) => (lastUsed[b]?.count || 0) - (lastUsed[a]?.count || 0));
+
+            toolIds.forEach(id => {
+                const usage = lastUsed[id];
+                const calcCount = calculations[id] || 0;
+                const count = usage?.count || 0;
+                const last = usage?.timestamp ? formatDateTime(usage.timestamp) : '—';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML =
+                    '<td class="tool-name">' + TOOL_NAMES[id] + '</td>' +
+                    '<td class="tool-count">' + count + '</td>' +
+                    '<td class="tool-count">' + calcCount + '</td>' +
+                    '<td class="tool-last">' + last + '</td>';
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Theme change re-render
+        onThemeChanged(loadStats);
+
+        loadStats();
+    </script>
+
+</body>
+</html>

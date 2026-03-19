@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dampftabelle – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
+        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+
+        .section-divider { border: none; border-top: 1px solid var(--border-default); margin: 24px 0; }
+
+        .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-top: 16px; margin-bottom: 16px; }
+        .result-card { background: var(--bg-success); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 12px; text-align: center; }
+        .result-card-value { font-size: 16px; font-weight: 600; color: var(--text-success); font-family: var(--font-mono); }
+        .result-card-label { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+        .result-card-sub { font-size: 10px; color: var(--text-tertiary); }
+
+        .info-box { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 16px; font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+        .info-box strong { color: var(--text-primary); }
+
+        .ref-table { font-size: 12px; }
+        .ref-table th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em; padding: 6px 8px; }
+        .ref-table td { padding: 4px 8px; font-family: var(--font-mono); font-size: 11px; text-align: center; }
+        .ref-table tr.highlight { background: var(--bg-accent); }
+
+        .search-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .search-row input { max-width: 140px; }
+    </style>
+</head>
+<body data-tool-id="dampf">
+
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button>
+        </div>
+    </header>
+
+    <div class="back-bar">
+        <a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a>
+    </div>
+
+    <div class="page-container">
+        <div class="container">
+            <div class="action-bar">
+                <button class="action-btn" onclick="copyResults()"><svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg> Kopieren</button>
+                <button class="action-btn" onclick="resetFields()"><svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg> Zurücksetzen</button>
+                <button class="action-btn" onclick="exportPagePDF('Dampftabelle')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+            </div>
+
+            <div class="description">
+                ♨️ Sattdampftabelle — Druck ↔ Temperatur, Enthalpie, Dichte und spez. Volumen von Wasser und Sattdampf auf der Siedelinie. Werte nach IAPWS-IF97.
+            </div>
+
+            <!-- Eingabe -->
+            <table>
+                <tr><th colspan="6">Sattdampf-Berechnung</th></tr>
+                <tr>
+                    <td colspan="2">Eingabe über</td>
+                    <td colspan="4">
+                        <select class="input-field" id="inputMode" onchange="toggleMode()">
+                            <option value="pressure">Druck → alle Werte</option>
+                            <option value="temperature">Temperatur → alle Werte</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr id="pressureRow">
+                    <td colspan="2">Druck (absolut)</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="inputPressure" value="10" step="any" style="max-width:140px">
+                        <select class="input-field" id="pressureUnit" style="max-width:100px">
+                            <option value="bar" selected>bar</option>
+                            <option value="MPa">MPa</option>
+                            <option value="kPa">kPa</option>
+                            <option value="psi">psi</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr id="temperatureRow" style="display:none;">
+                    <td colspan="2">Temperatur</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="inputTemperature" value="180" step="any" style="max-width:140px"> °C
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Ergebnis-Karten -->
+            <div class="result-grid" id="resultGrid" style="display:none;">
+                <div class="result-card">
+                    <div class="result-card-value" id="res_t">—</div>
+                    <div class="result-card-label">Temperatur (°C)</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-value" id="res_p">—</div>
+                    <div class="result-card-label">Druck (bar abs.)</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-value" id="res_hf">—</div>
+                    <div class="result-card-label">h' Wasser (kJ/kg)</div>
+                    <div class="result-card-sub">Enthalpie Siedewasser</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-value" id="res_hg">—</div>
+                    <div class="result-card-label">h'' Dampf (kJ/kg)</div>
+                    <div class="result-card-sub">Enthalpie Sattdampf</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-value" id="res_hfg">—</div>
+                    <div class="result-card-label">Δh Verdampfung (kJ/kg)</div>
+                    <div class="result-card-sub">Verdampfungsenthalpie</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-value" id="res_rhof">—</div>
+                    <div class="result-card-label">ρ' Wasser (kg/m³)</div>
+                    <div class="result-card-sub">Dichte Siedewasser</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-value" id="res_rhog">—</div>
+                    <div class="result-card-label">ρ'' Dampf (kg/m³)</div>
+                    <div class="result-card-sub">Dichte Sattdampf</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-value" id="res_vg">—</div>
+                    <div class="result-card-label">v'' Dampf (m³/kg)</div>
+                    <div class="result-card-sub">Spez. Volumen</div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>Legende:</strong> h' = Enthalpie des siedenden Wassers, h'' = Enthalpie des Sattdampfs, Δh = Verdampfungsenthalpie (h'' − h'), ρ' = Dichte Wasser auf der Siedelinie, ρ'' = Dichte des Sattdampfs, v'' = spezifisches Volumen des Sattdampfs.<br>
+                <strong>Gültigkeitsbereich:</strong> 0,01°C (Tripelpunkt) bis 373,95°C (kritischer Punkt bei 220,64 bar).
+            </div>
+
+            <hr class="section-divider">
+
+            <!-- Referenztabelle -->
+            <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:10px;">Sattdampftabelle (Auszug)</div>
+            <div style="overflow-x:auto;">
+                <table class="ref-table" id="refTable">
+                    <thead>
+                        <tr>
+                            <th>bar</th>
+                            <th>°C</th>
+                            <th>h' (kJ/kg)</th>
+                            <th>h'' (kJ/kg)</th>
+                            <th>Δh (kJ/kg)</th>
+                            <th>ρ' (kg/m³)</th>
+                            <th>ρ'' (kg/m³)</th>
+                            <th>v'' (m³/kg)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="refBody"></tbody>
+                </table>
+            </div>
+
+            <div class="shortcuts-hint" style="margin-top:16px;">
+                <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+                <span><kbd>Esc</kbd> Zurücksetzen</span>
+                <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bottom-header">
+        <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+    </footer>
+
+    <script src="shared.js"></script>
+    <script>
+        // ============ SATURATED STEAM DATA (IAPWS-IF97) ============
+        // [pressure(bar), temperature(°C), h'(kJ/kg), h''(kJ/kg), rho_f(kg/m³), rho_g(kg/m³)]
+        const STEAM_DATA = [
+            [0.01, 6.98, 29.3, 2514.4, 999.8, 0.00768],
+            [0.02, 17.51, 73.5, 2533.6, 998.8, 0.01468],
+            [0.04, 28.96, 121.4, 2554.5, 996.0, 0.02793],
+            [0.06, 36.16, 151.5, 2567.5, 993.6, 0.04015],
+            [0.08, 41.51, 173.9, 2577.1, 991.6, 0.05156],
+            [0.1, 45.81, 191.8, 2584.8, 990.0, 0.06242],
+            [0.2, 60.06, 251.4, 2609.9, 983.2, 0.1194],
+            [0.3, 69.10, 289.2, 2625.4, 978.5, 0.1722],
+            [0.4, 75.87, 317.6, 2636.9, 974.8, 0.2229],
+            [0.5, 81.33, 340.5, 2645.9, 971.8, 0.2721],
+            [0.6, 85.94, 359.9, 2653.6, 969.1, 0.3199],
+            [0.7, 89.95, 376.7, 2660.0, 966.7, 0.3667],
+            [0.8, 93.50, 391.7, 2665.8, 964.4, 0.4126],
+            [0.9, 96.71, 405.2, 2670.9, 962.3, 0.4577],
+            [1.0, 99.63, 417.4, 2675.5, 960.3, 0.5903],
+            [1.2, 104.80, 439.3, 2683.5, 956.5, 0.6959],
+            [1.4, 109.31, 458.4, 2690.3, 953.2, 0.8000],
+            [1.6, 113.32, 475.4, 2696.1, 950.1, 0.9027],
+            [1.8, 116.93, 490.7, 2701.2, 947.2, 1.004],
+            [2.0, 120.23, 504.7, 2706.7, 944.5, 1.129],
+            [2.5, 127.43, 535.1, 2716.9, 938.3, 1.392],
+            [3.0, 133.55, 561.5, 2725.3, 932.7, 1.651],
+            [3.5, 138.88, 584.3, 2732.4, 927.6, 1.908],
+            [4.0, 143.63, 604.7, 2738.6, 922.9, 2.163],
+            [4.5, 147.93, 623.2, 2743.9, 918.5, 2.416],
+            [5.0, 151.86, 640.2, 2748.7, 914.4, 2.668],
+            [6.0, 158.85, 670.6, 2756.8, 907.0, 3.170],
+            [7.0, 164.97, 697.2, 2763.5, 900.3, 3.667],
+            [8.0, 170.43, 721.1, 2769.1, 894.0, 4.162],
+            [9.0, 175.38, 742.8, 2773.7, 888.1, 4.654],
+            [10.0, 179.91, 762.8, 2778.1, 882.5, 5.145],
+            [12.0, 187.99, 798.6, 2784.8, 872.0, 6.127],
+            [14.0, 195.07, 830.3, 2790.0, 862.3, 7.105],
+            [16.0, 201.41, 858.8, 2794.0, 853.3, 8.080],
+            [18.0, 207.15, 884.8, 2797.1, 844.7, 9.053],
+            [20.0, 212.42, 908.8, 2799.5, 836.6, 10.04],
+            [25.0, 223.99, 962.1, 2803.4, 817.7, 12.51],
+            [30.0, 233.90, 1008.4, 2804.2, 800.4, 15.00],
+            [35.0, 242.60, 1049.7, 2803.4, 784.3, 17.54],
+            [40.0, 250.40, 1087.3, 2801.4, 769.2, 20.10],
+            [45.0, 257.49, 1121.9, 2798.3, 755.0, 22.72],
+            [50.0, 263.99, 1154.2, 2794.3, 741.5, 25.39],
+            [60.0, 275.64, 1213.4, 2784.3, 716.2, 31.00],
+            [70.0, 285.88, 1267.0, 2772.1, 692.5, 36.91],
+            [80.0, 295.06, 1316.6, 2758.0, 670.0, 43.16],
+            [90.0, 303.40, 1363.3, 2742.1, 648.4, 49.83],
+            [100.0, 311.06, 1407.6, 2724.7, 627.5, 56.99],
+            [120.0, 324.75, 1491.3, 2684.9, 587.3, 72.82],
+            [140.0, 336.75, 1571.1, 2637.6, 548.6, 91.41],
+            [160.0, 347.44, 1649.7, 2580.6, 510.2, 114.1],
+            [180.0, 357.06, 1732.0, 2510.6, 469.6, 143.5],
+            [200.0, 365.81, 1826.3, 2418.4, 420.7, 185.5],
+            [220.64, 373.95, 2084.0, 2084.0, 322.0, 322.0],
+        ];
+
+        // ============ INTERPOLATION ============
+        function interpolate(data, inputCol, inputVal, outputCol) {
+            // Find bracketing rows
+            for (let i = 0; i < data.length - 1; i++) {
+                if (inputVal >= data[i][inputCol] && inputVal <= data[i + 1][inputCol]) {
+                    const x0 = data[i][inputCol], x1 = data[i + 1][inputCol];
+                    const y0 = data[i][outputCol], y1 = data[i + 1][outputCol];
+                    const t = (inputVal - x0) / (x1 - x0);
+                    return y0 + t * (y1 - y0);
+                }
+            }
+            // Extrapolate from nearest end
+            if (inputVal <= data[0][inputCol]) return data[0][outputCol];
+            return data[data.length - 1][outputCol];
+        }
+
+        function lookupByPressure(pBar) {
+            return {
+                t: interpolate(STEAM_DATA, 0, pBar, 1),
+                hf: interpolate(STEAM_DATA, 0, pBar, 2),
+                hg: interpolate(STEAM_DATA, 0, pBar, 3),
+                rhof: interpolate(STEAM_DATA, 0, pBar, 4),
+                rhog: interpolate(STEAM_DATA, 0, pBar, 5),
+                p: pBar
+            };
+        }
+
+        function lookupByTemperature(tC) {
+            return {
+                p: interpolate(STEAM_DATA, 1, tC, 0),
+                hf: interpolate(STEAM_DATA, 1, tC, 2),
+                hg: interpolate(STEAM_DATA, 1, tC, 3),
+                rhof: interpolate(STEAM_DATA, 1, tC, 4),
+                rhog: interpolate(STEAM_DATA, 1, tC, 5),
+                t: tC
+            };
+        }
+
+        // ============ PRESSURE UNIT CONVERSION ============
+        function toBar(val, unit) {
+            switch (unit) {
+                case 'bar': return val;
+                case 'MPa': return val * 10;
+                case 'kPa': return val / 100;
+                case 'psi': return val * 0.0689476;
+                default: return val;
+            }
+        }
+
+        // ============ UI ============
+        function toggleMode() {
+            const mode = document.getElementById('inputMode').value;
+            document.getElementById('pressureRow').style.display = mode === 'pressure' ? '' : 'none';
+            document.getElementById('temperatureRow').style.display = mode === 'temperature' ? '' : 'none';
+            calc();
+        }
+
+        function calc() {
+            const mode = document.getElementById('inputMode').value;
+            let result;
+
+            if (mode === 'pressure') {
+                const val = parseFloat(document.getElementById('inputPressure').value);
+                const unit = document.getElementById('pressureUnit').value;
+                if (isNaN(val) || val <= 0) return hideResults();
+                const pBar = toBar(val, unit);
+                if (pBar < 0.01 || pBar > 220.64) return hideResults();
+                result = lookupByPressure(pBar);
+            } else {
+                const tC = parseFloat(document.getElementById('inputTemperature').value);
+                if (isNaN(tC) || tC < 6.98 || tC > 373.95) return hideResults();
+                result = lookupByTemperature(tC);
+            }
+
+            const hfg = result.hg - result.hf;
+            const vg = result.rhog > 0 ? 1 / result.rhog : 0;
+
+            document.getElementById('resultGrid').style.display = 'grid';
+            document.getElementById('res_t').textContent = result.t.toFixed(2);
+            document.getElementById('res_p').textContent = result.p.toFixed(3);
+            document.getElementById('res_hf').textContent = result.hf.toFixed(1);
+            document.getElementById('res_hg').textContent = result.hg.toFixed(1);
+            document.getElementById('res_hfg').textContent = hfg.toFixed(1);
+            document.getElementById('res_rhof').textContent = result.rhof.toFixed(1);
+            document.getElementById('res_rhog').textContent = result.rhog.toFixed(3);
+            document.getElementById('res_vg').textContent = vg.toFixed(4);
+        }
+
+        function hideResults() {
+            document.getElementById('resultGrid').style.display = 'none';
+        }
+
+        // ============ REFERENCE TABLE ============
+        function buildRefTable() {
+            const tbody = document.getElementById('refBody');
+            tbody.innerHTML = '';
+            STEAM_DATA.forEach(row => {
+                const [p, t, hf, hg, rhof, rhog] = row;
+                const hfg = hg - hf;
+                const vg = rhog > 0 ? 1 / rhog : 0;
+                tbody.innerHTML += '<tr>' +
+                    '<td>' + p.toFixed(2) + '</td>' +
+                    '<td>' + t.toFixed(2) + '</td>' +
+                    '<td>' + hf.toFixed(1) + '</td>' +
+                    '<td>' + hg.toFixed(1) + '</td>' +
+                    '<td>' + hfg.toFixed(1) + '</td>' +
+                    '<td>' + rhof.toFixed(1) + '</td>' +
+                    '<td>' + rhog.toFixed(3) + '</td>' +
+                    '<td>' + vg.toFixed(4) + '</td>' +
+                    '</tr>';
+            });
+        }
+
+        // ============ EVENTS ============
+        document.querySelectorAll('#inputPressure, #pressureUnit, #inputTemperature').forEach(el => {
+            el.addEventListener('input', calc);
+            el.addEventListener('change', calc);
+        });
+
+        // Init
+        buildRefTable();
+        calc();
+    </script>
+
+</body>
+</html>

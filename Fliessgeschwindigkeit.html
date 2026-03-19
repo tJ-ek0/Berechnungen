@@ -5,14 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fließgeschwindigkeit – Techniker Berechnungstools</title>
     <link rel="stylesheet" href="style.css">
-    
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
     <style>
         .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
         .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
         .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
         .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
-        
+
+        .status-bar { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-default); margin-bottom: 20px; font-size: 14px; font-weight: 500; transition: all 0.3s; }
+        .status-bar.status-ok { background: var(--bg-success); color: var(--text-success); border-color: var(--text-success); }
+        .status-bar.status-warn { background: var(--bg-attention); color: var(--text-attention); border-color: var(--text-attention); }
+        .status-bar.status-error { background: var(--bg-danger); color: var(--text-danger); border-color: var(--text-danger); }
+        .status-bar.status-idle { background: var(--bg-subtle); color: var(--text-tertiary); }
+        .status-bar.status-low { background: var(--bg-accent); color: var(--accent-fg); border-color: var(--accent-fg); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .status-ok .status-dot { background: var(--text-success); }
+        .status-warn .status-dot { background: var(--text-attention); }
+        .status-error .status-dot { background: var(--text-danger); }
+        .status-idle .status-dot { background: var(--text-tertiary); }
+        .status-low .status-dot { background: var(--accent-fg); }
+
+        .section-divider { border: none; border-top: 1px solid var(--border-default); margin: 24px 0; }
+        .info-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--text-secondary); margin-top: 8px; }
+        .info-tag { background: var(--bg-subtle); border: 1px solid var(--border-default); padding: 3px 10px; border-radius: 20px; font-size: 12px; font-family: var(--font-mono); }
+
+        .dichte-hint { font-size: 12px; color: var(--text-tertiary); margin-top: 4px; display: none; }
+        .dichte-hint.visible { display: block; }
     </style>
 </head>
 <body data-tool-id="fliess">
@@ -60,15 +78,186 @@
             </div>
 
             <div class="description">
-                🌊 Berechnet die Fließgeschwindigkeit von Fluids in Rohrleitungen basierend auf Nennweite und Durchfluss.
+                🌊 Berechnet die Fließgeschwindigkeit von Fluids in Rohrleitungen. Die Ampel bewertet ob die Geschwindigkeit im optimalen Bereich liegt.<br><br>
+                ℹ️ <strong>Richtwerte:</strong> Unter 0,5 m/s = zu langsam (Ablagerungen möglich), 0,5–3 m/s = ideal, 3–6 m/s = erhöht (noch akzeptabel), über 6 m/s = kritisch (Erosion, Druckverlust).
             </div>
+
+            <!-- Ampel -->
+            <div class="status-bar status-idle" id="statusBar">
+                <div class="status-dot"></div>
+                <span id="statusText">Werte eingeben um die Bewertung zu starten</span>
+            </div>
+
+            <!-- Hauptberechnung -->
             <table>
-                <tr><th colspan="6">Fließgeschwindigkeit Berechnung</th></tr>
-                <tr><td colspan="2">Nennweite in mm</td><td colspan="4"><input class="input-field" type="number" id="nennweite" value="0"></td></tr>
-                <tr><td colspan="2">Durchfluss</td><td colspan="4"><input class="input-field" type="number" id="durchfluss" value="0"> <select class="input-field" id="durchfluss_einheit"><option value="m³/h">m³/h</option><option value="l/h">l/h</option><option value="t/h">t/h</option><option value="kg/h">kg/h</option><option value="m³/min">m³/min</option><option value="l/min">l/min</option><option value="t/min">t/min</option><option value="kg/min">kg/min</option><option value="m³/sek">m³/sek</option><option value="l/sek">l/sek</option><option value="t/sek">t/sek</option><option value="kg/sek">kg/sek</option></select></td></tr>
-                <tr><td colspan="2">Fließgeschwindigkeit</td><td colspan="4" class="result-field"><span id="fliessgeschwindigkeit"></span> m/s</td></tr>
+                <tr><th colspan="6">Durchfluss → Fließgeschwindigkeit</th></tr>
+                <tr>
+                    <td colspan="2">Nennweite</td>
+                    <td colspan="4">
+                        <select class="input-field" id="dn_select">
+                            <option value="">— Manuell eingeben —</option>
+                            <option value="4">DN4 (4 mm)</option>
+                            <option value="6">DN6 (6 mm)</option>
+                            <option value="8">DN8 (8 mm)</option>
+                            <option value="10">DN10 (10 mm)</option>
+                            <option value="15">DN15 (15 mm)</option>
+                            <option value="20">DN20 (20 mm)</option>
+                            <option value="25">DN25 (25 mm)</option>
+                            <option value="32">DN32 (32 mm)</option>
+                            <option value="40">DN40 (40 mm)</option>
+                            <option value="50">DN50 (50 mm)</option>
+                            <option value="65">DN65 (65 mm)</option>
+                            <option value="80">DN80 (80 mm)</option>
+                            <option value="100">DN100 (100 mm)</option>
+                            <option value="125">DN125 (125 mm)</option>
+                            <option value="150">DN150 (150 mm)</option>
+                            <option value="200">DN200 (200 mm)</option>
+                            <option value="250">DN250 (250 mm)</option>
+                            <option value="300">DN300 (300 mm)</option>
+                            <option value="350">DN350 (350 mm)</option>
+                            <option value="400">DN400 (400 mm)</option>
+                            <option value="500">DN500 (500 mm)</option>
+                            <option value="600">DN600 (600 mm)</option>
+                            <option value="800">DN800 (800 mm)</option>
+                            <option value="1000">DN1000 (1000 mm)</option>
+                        </select>
+                        <input class="input-field" type="number" id="nennweite" value="0" step="any" placeholder="mm" style="max-width:120px"> mm
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Durchfluss</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="durchfluss" value="0" step="any">
+                        <select class="input-field" id="durchfluss_einheit">
+                            <option value="m3h" selected>m³/h</option>
+                            <option value="lh">l/h</option>
+                            <option value="lmin">l/min</option>
+                            <option value="m3min">m³/min</option>
+                            <option value="m3sek">m³/sek</option>
+                            <option value="lsek">l/sek</option>
+                            <option value="th">t/h</option>
+                            <option value="kgh">kg/h</option>
+                            <option value="tmin">t/min</option>
+                            <option value="kgmin">kg/min</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr id="dichteRow" style="display:none;">
+                    <td colspan="2">Dichte (kg/l)</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="dichte" value="1" step="any">
+                        <span class="dichte-hint visible" id="dichteHint">Wird für Masseeinheiten (t/h, kg/h etc.) benötigt</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Fließgeschwindigkeit</td>
+                    <td colspan="4" class="result-field"><span id="ergebnis_v"></span> m/s</td>
+                </tr>
+                <tr>
+                    <td colspan="2">Rohrquerschnitt</td>
+                    <td colspan="4" class="result-field"><span id="ergebnis_a"></span></td>
+                </tr>
             </table>
-<div class="shortcuts-hint">
+
+            <hr class="section-divider">
+
+            <!-- Rückrechnung: Max. Durchfluss -->
+            <table>
+                <tr><th colspan="6">Gewünschte Geschwindigkeit → Max. Durchfluss</th></tr>
+                <tr>
+                    <td colspan="2">Nennweite</td>
+                    <td colspan="4">
+                        <select class="input-field" id="rev1_dn">
+                            <option value="">— Manuell —</option>
+                            <option value="15">DN15</option><option value="25">DN25</option><option value="32">DN32</option><option value="40">DN40</option>
+                            <option value="50">DN50</option><option value="65">DN65</option><option value="80">DN80</option><option value="100">DN100</option>
+                            <option value="125">DN125</option><option value="150">DN150</option><option value="200">DN200</option><option value="250">DN250</option>
+                            <option value="300">DN300</option><option value="400">DN400</option><option value="500">DN500</option><option value="600">DN600</option>
+                        </select>
+                        <input class="input-field" type="number" id="rev1_nw" value="0" step="any" style="max-width:100px"> mm
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Max. Geschwindigkeit</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="rev1_v" value="3" step="any"> m/s
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Max. Durchfluss</td>
+                    <td colspan="4" class="result-field"><span id="rev1_result"></span></td>
+                </tr>
+            </table>
+
+            <hr class="section-divider">
+
+            <!-- Rückrechnung: Benötigte Nennweite -->
+            <table>
+                <tr><th colspan="6">Durchfluss + Geschwindigkeit → Benötigte Nennweite</th></tr>
+                <tr>
+                    <td colspan="2">Durchfluss</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="rev2_flow" value="0" step="any">
+                        <select class="input-field" id="rev2_einheit">
+                            <option value="m3h" selected>m³/h</option>
+                            <option value="lh">l/h</option>
+                            <option value="lmin">l/min</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Max. Geschwindigkeit</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="rev2_v" value="3" step="any"> m/s
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Min. Nennweite (berechnet)</td>
+                    <td colspan="4" class="result-field"><span id="rev2_result"></span></td>
+                </tr>
+                <tr>
+                    <td colspan="2">Empfohlene DN-Größe</td>
+                    <td colspan="4" class="result-field"><span id="rev2_dn"></span></td>
+                </tr>
+            </table>
+
+            <hr class="section-divider">
+
+            <!-- Vergleichstabelle -->
+            <table>
+                <tr><th colspan="6">📋 Vergleichstabelle: Geschwindigkeit bei verschiedenen DN</th></tr>
+                <tr><td colspan="6" style="padding:4px 16px;">
+                    <div class="info-row">
+                        <span>Durchfluss:</span>
+                        <input class="input-field" type="number" id="tab_flow" value="10" step="any" style="max-width:100px">
+                        <select class="input-field" id="tab_einheit" style="max-width:100px">
+                            <option value="m3h" selected>m³/h</option>
+                            <option value="lh">l/h</option>
+                            <option value="lmin">l/min</option>
+                            <option value="th">t/h</option>
+                            <option value="kgh">kg/h</option>
+                        </select>
+                        <span id="tab_dichte_wrap" style="display:none;">
+                            <span>Dichte:</span>
+                            <input class="input-field" type="number" id="tab_dichte" value="1" step="any" style="max-width:80px"> kg/l
+                        </span>
+                    </div>
+                </td></tr>
+            </table>
+            <table id="vergleichstabelle">
+                <thead>
+                    <tr>
+                        <th>DN</th>
+                        <th>mm</th>
+                        <th>Fläche (cm²)</th>
+                        <th>v (m/s)</th>
+                        <th>Bewertung</th>
+                    </tr>
+                </thead>
+                <tbody id="vergleich_body"></tbody>
+            </table>
+
+            <div class="shortcuts-hint">
                 <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
                 <span><kbd>Esc</kbd> Zurücksetzen</span>
                 <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
@@ -82,16 +271,243 @@
     </footer>
 
     <script src="shared.js"></script>
-
     <script>
-        function umDF(d,e){switch(e){case'm³/h':return d/3600;case'l/h':return d/1000/3600;case't/h':case'kg/h':return d/1000/3600;case'm³/min':return d/60;case'l/min':return d/1000/60;case't/min':case'kg/min':return d/1000/60;case'm³/sek':return d;case'l/sek':return d/1000;case't/sek':case'kg/sek':return d/1000;default:return d;}}
-        function berechneFliess(){
-            const nw=parseFloat(document.getElementById('nennweite').value),df=parseFloat(document.getElementById('durchfluss').value),e=document.getElementById('durchfluss_einheit').value;
-            if(!validateInput('nennweite',{notZero:true}))return;
-            const r=(nw/1000)/2,A=Math.PI*r*r,dm=umDF(df,e),v=dm/A;
-            document.getElementById('fliessgeschwindigkeit').innerText=v.toFixed(2);
+        const DN_SIZES = [4,6,8,10,15,20,25,32,40,50,65,80,100,125,150,200,250,300,350,400,500,600,800,1000];
+        const MASSE_EINHEITEN = ['th','kgh','tmin','kgmin'];
+
+        function fmt(n) {
+            if (n === 0) return '0';
+            const a = Math.abs(n);
+            if (a >= 10000) return n.toLocaleString('de-DE', {maximumFractionDigits:1});
+            if (a >= 100) return n.toFixed(1);
+            if (a >= 1) return n.toFixed(2);
+            return n.toFixed(3);
         }
-        document.querySelectorAll('#nennweite,#durchfluss,#durchfluss_einheit').forEach(i=>i.addEventListener('input',berechneFliess));
+
+        function querschnitt(mm) {
+            const r = mm / 2 / 1000;
+            return Math.PI * r * r;
+        }
+
+        function isMasseEinheit(e) { return MASSE_EINHEITEN.includes(e); }
+
+        function showDichteRow() {
+            const e = document.getElementById('durchfluss_einheit').value;
+            document.getElementById('dichteRow').style.display = isMasseEinheit(e) ? '' : 'none';
+        }
+
+        // Durchfluss → m³/s
+        function flowToM3s(val, einheit, dichte) {
+            const d = dichte || 1;
+            switch (einheit) {
+                case 'm3h':  return val / 3600;
+                case 'lh':   return val / 1000 / 3600;
+                case 'lmin': return val / 1000 / 60;
+                case 'm3min':return val / 60;
+                case 'm3sek':return val;
+                case 'lsek': return val / 1000;
+                case 'th':   return (val * 1000 / d) / 1000 / 3600;  // t/h → kg/h → l/h → m³/s
+                case 'kgh':  return (val / d) / 1000 / 3600;
+                case 'tmin': return (val * 1000 / d) / 1000 / 60;
+                case 'kgmin':return (val / d) / 1000 / 60;
+                default:     return val / 3600;
+            }
+        }
+
+        // Simple: vol flow only → m³/s
+        function simpleFlowToM3s(val, einheit) {
+            switch (einheit) {
+                case 'm3h':  return val / 3600;
+                case 'lh':   return val / 1000 / 3600;
+                case 'lmin': return val / 1000 / 60;
+                default:     return val / 3600;
+            }
+        }
+
+        // Geschwindigkeit bewerten
+        function bewertung(v) {
+            if (v <= 0) return { cls: 'status-idle', text: '—', short: '—' };
+            if (v < 0.5) return { cls: 'status-low', text: 'Zu langsam — Ablagerungsgefahr', short: 'Zu langsam' };
+            if (v <= 3)  return { cls: 'status-ok', text: 'Ideal (' + fmt(v) + ' m/s)', short: 'Ideal' };
+            if (v <= 6)  return { cls: 'status-warn', text: 'Erhöht (' + fmt(v) + ' m/s) — noch akzeptabel', short: 'Erhöht' };
+            return { cls: 'status-error', text: 'Kritisch (' + fmt(v) + ' m/s) — Erosion, Druckverlust', short: 'Kritisch' };
+        }
+
+        // ============ HAUPTBERECHNUNG ============
+        function berechneHaupt() {
+            const nw = parseFloat(document.getElementById('nennweite').value) || 0;
+            const df = parseFloat(document.getElementById('durchfluss').value) || 0;
+            const einheit = document.getElementById('durchfluss_einheit').value;
+            const dichte = parseFloat(document.getElementById('dichte').value) || 1;
+
+            if (nw <= 0 || df <= 0) {
+                document.getElementById('ergebnis_v').textContent = '';
+                document.getElementById('ergebnis_a').textContent = '';
+                updateAmpel(0);
+                return;
+            }
+
+            const A = querschnitt(nw);
+            const m3s = flowToM3s(df, einheit, dichte);
+            const v = m3s / A;
+
+            document.getElementById('ergebnis_v').textContent = fmt(v);
+
+            const A_cm2 = A * 10000;
+            const A_mm2 = A * 1000000;
+            document.getElementById('ergebnis_a').textContent = fmt(A_cm2) + ' cm²  (' + fmt(A_mm2) + ' mm²)';
+
+            updateAmpel(v);
+        }
+
+        function updateAmpel(v) {
+            const bar = document.getElementById('statusBar');
+            const text = document.getElementById('statusText');
+            const b = bewertung(v);
+            bar.className = 'status-bar ' + b.cls;
+            if (v <= 0) {
+                text.textContent = 'Werte eingeben um die Bewertung zu starten';
+            } else {
+                const symbol = b.cls === 'status-ok' ? '✓' : b.cls === 'status-warn' ? '⚠' : b.cls === 'status-error' ? '✕' : 'ℹ';
+                text.textContent = symbol + ' ' + b.text;
+            }
+        }
+
+        // DN-Dropdown sync
+        document.getElementById('dn_select').addEventListener('change', function() {
+            if (this.value) document.getElementById('nennweite').value = this.value;
+            berechneHaupt();
+        });
+        document.getElementById('nennweite').addEventListener('input', function() {
+            document.getElementById('dn_select').value = '';
+            berechneHaupt();
+        });
+
+        // Dichte-Zeile
+        document.getElementById('durchfluss_einheit').addEventListener('change', function() {
+            showDichteRow();
+            berechneHaupt();
+        });
+
+        document.querySelectorAll('#durchfluss, #dichte').forEach(el => {
+            el.addEventListener('input', berechneHaupt);
+        });
+
+        // ============ RÜCKRECHNUNG 1: Max. Durchfluss ============
+        function berechneRev1() {
+            const nw = parseFloat(document.getElementById('rev1_nw').value) || 0;
+            const vMax = parseFloat(document.getElementById('rev1_v').value) || 0;
+
+            if (nw <= 0 || vMax <= 0) {
+                document.getElementById('rev1_result').textContent = '';
+                return;
+            }
+
+            const A = querschnitt(nw);
+            const m3s = vMax * A;
+            const m3h = m3s * 3600;
+            const lmin = m3s * 60 * 1000;
+
+            document.getElementById('rev1_result').textContent = fmt(m3h) + ' m³/h  (' + fmt(lmin) + ' l/min)';
+        }
+
+        document.getElementById('rev1_dn').addEventListener('change', function() {
+            if (this.value) document.getElementById('rev1_nw').value = this.value;
+            berechneRev1();
+        });
+        document.querySelectorAll('#rev1_nw, #rev1_v').forEach(el => {
+            el.addEventListener('input', function() {
+                if (el.id === 'rev1_nw') document.getElementById('rev1_dn').value = '';
+                berechneRev1();
+            });
+        });
+
+        // ============ RÜCKRECHNUNG 2: Benötigte Nennweite ============
+        function berechneRev2() {
+            const df = parseFloat(document.getElementById('rev2_flow').value) || 0;
+            const einheit = document.getElementById('rev2_einheit').value;
+            const vMax = parseFloat(document.getElementById('rev2_v').value) || 0;
+
+            if (df <= 0 || vMax <= 0) {
+                document.getElementById('rev2_result').textContent = '';
+                document.getElementById('rev2_dn').textContent = '';
+                return;
+            }
+
+            const m3s = simpleFlowToM3s(df, einheit);
+            // A = Q / v, A = π * (d/2)², d = 2 * sqrt(A / π)
+            const A_needed = m3s / vMax;
+            const d_m = 2 * Math.sqrt(A_needed / Math.PI);
+            const d_mm = d_m * 1000;
+
+            document.getElementById('rev2_result').textContent = fmt(d_mm) + ' mm';
+
+            // Nächste DN-Größe finden
+            let empfohlen = DN_SIZES.find(dn => dn >= d_mm);
+            if (!empfohlen) empfohlen = DN_SIZES[DN_SIZES.length - 1];
+
+            // Geschwindigkeit mit empfohlener DN prüfen
+            const A_dn = querschnitt(empfohlen);
+            const v_dn = m3s / A_dn;
+
+            document.getElementById('rev2_dn').textContent = 'DN' + empfohlen + ' (' + empfohlen + ' mm) → ' + fmt(v_dn) + ' m/s';
+        }
+
+        document.querySelectorAll('#rev2_flow, #rev2_einheit, #rev2_v').forEach(el => {
+            el.addEventListener('input', berechneRev2);
+            el.addEventListener('change', berechneRev2);
+        });
+
+        // ============ VERGLEICHSTABELLE ============
+        function showTabDichte() {
+            const e = document.getElementById('tab_einheit').value;
+            document.getElementById('tab_dichte_wrap').style.display = MASSE_EINHEITEN.includes(e) ? 'inline' : 'none';
+        }
+
+        function updateVergleich() {
+            const df = parseFloat(document.getElementById('tab_flow').value) || 0;
+            const einheit = document.getElementById('tab_einheit').value;
+            const dichte = parseFloat(document.getElementById('tab_dichte').value) || 1;
+            const tbody = document.getElementById('vergleich_body');
+            tbody.innerHTML = '';
+
+            showTabDichte();
+            if (df <= 0) return;
+
+            const m3s = flowToM3s(df, einheit, dichte);
+            const relevantDN = [15,25,32,40,50,65,80,100,125,150,200,250,300,400,500,600];
+
+            relevantDN.forEach(dn => {
+                const A = querschnitt(dn);
+                const v = m3s / A;
+                const A_cm2 = A * 10000;
+                const b = bewertung(v);
+
+                let bewertungHtml = '';
+                if (b.cls === 'status-ok') bewertungHtml = '<span style="color:var(--text-success);font-weight:600;">✓ ' + b.short + '</span>';
+                else if (b.cls === 'status-warn') bewertungHtml = '<span style="color:var(--text-attention);font-weight:600;">⚠ ' + b.short + '</span>';
+                else if (b.cls === 'status-error') bewertungHtml = '<span style="color:var(--text-danger);font-weight:600;">✕ ' + b.short + '</span>';
+                else if (b.cls === 'status-low') bewertungHtml = '<span style="color:var(--accent-fg);font-weight:600;">ℹ ' + b.short + '</span>';
+                else bewertungHtml = '—';
+
+                tbody.innerHTML += '<tr>' +
+                    '<td>DN' + dn + '</td>' +
+                    '<td>' + dn + '</td>' +
+                    '<td>' + fmt(A_cm2) + '</td>' +
+                    '<td>' + fmt(v) + '</td>' +
+                    '<td>' + bewertungHtml + '</td>' +
+                    '</tr>';
+            });
+        }
+
+        document.querySelectorAll('#tab_flow, #tab_einheit, #tab_dichte').forEach(el => {
+            el.addEventListener('input', updateVergleich);
+            el.addEventListener('change', updateVergleich);
+        });
+
+        // ============ INIT ============
+        showDichteRow();
+        updateVergleich();
     </script>
 
 </body>

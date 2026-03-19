@@ -5,14 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stromausgangsberechnung – Techniker Berechnungstools</title>
     <link rel="stylesheet" href="style.css">
-    
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
     <style>
         .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
         .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
         .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
         .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
-        
+
+        .status-bar { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-default); margin-bottom: 20px; font-size: 14px; font-weight: 500; transition: all 0.3s; }
+        .status-bar.status-ok { background: var(--bg-success); color: var(--text-success); border-color: var(--text-success); }
+        .status-bar.status-warn { background: var(--bg-attention); color: var(--text-attention); border-color: var(--text-attention); }
+        .status-bar.status-error { background: var(--bg-danger); color: var(--text-danger); border-color: var(--text-danger); }
+        .status-bar.status-idle { background: var(--bg-subtle); color: var(--text-tertiary); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .status-ok .status-dot { background: var(--text-success); }
+        .status-warn .status-dot { background: var(--text-attention); }
+        .status-error .status-dot { background: var(--text-danger); }
+        .status-idle .status-dot { background: var(--text-tertiary); }
+
+        .section-divider { border: none; border-top: 1px solid var(--border-default); margin: 24px 0; }
+
+        .quick-table { margin-top: 16px; }
+        .quick-table table { margin-bottom: 0; }
+        .quick-table h4 { font-size: 14px; font-weight: 600; margin-bottom: 10px; color: var(--text-primary); }
+
+        .signal-label { font-size: 12px; color: var(--text-tertiary); font-weight: 500; }
     </style>
 </head>
 <body data-tool-id="stromausgang">
@@ -60,22 +77,133 @@
             </div>
 
             <div class="description">
-                ⚡ Berechnet den Messwert aus einem gegebenen Stromausgang (4–20 mA / 0–20 mA) und den prozentualen Anteil des Messbereichs.
+                ⚡ Berechnet den Messwert aus einem gegebenen Signalausgang (4–20 mA, 0–20 mA oder 0–10 V) und den prozentualen Anteil des Messbereichs. Unterstützt drei Berechnungsrichtungen: Signal → Messwert, Messwert → Signal und Prozent → Signal + Messwert.<br><br>
+                ℹ️ <strong>NAMUR NE43 Signalstatus</strong> (nur bei 4–20 mA): Die Ampel zeigt den Signalstatus nach NAMUR-Standard. Unter 3,6 mA oder über 21 mA = Gerätefehler, 3,6–3,8 mA oder 20,5–21 mA = Warnbereich.
             </div>
+
+            <!-- NAMUR Status -->
+            <div class="status-bar status-idle" id="statusBar">
+                <div class="status-dot"></div>
+                <span id="statusText">Signalwert eingeben für NAMUR-Prüfung (nur 4–20 mA)</span>
+            </div>
+
+            <!-- Grundeinstellungen -->
             <table>
-                <tr><th colspan="6">Berechnung Stromausgang</th></tr>
-                <tr><td colspan="2">Strombereich</td><td colspan="4"><select class="input-field" id="strombereich"><option value="4-20">4-20 mA</option><option value="0-20">0-20 mA</option></select></td></tr>
-                <tr><td colspan="2">Messbereich</td><td colspan="4"><input class="input-field" type="number" id="messbereich_min" value="0" style="max-width:120px"> bis <input class="input-field" type="number" id="messbereich_max" value="400" style="max-width:120px"></td></tr>
-                <tr><th colspan="6">Strom → Messwert</th></tr>
-                <tr><td colspan="2">Istwert Strom (mA)</td><td colspan="4"><input class="input-field" type="number" id="stromwert" value="0"></td></tr>
-                <tr><td colspan="2">Messwert calc:</td><td colspan="4" class="result-field"><span id="messwert_calc"></span></td></tr>
-                <tr><td colspan="2">% von MB:</td><td colspan="4" class="result-field"><span id="prozent_mb_strom"></span></td></tr>
-                <tr><th colspan="6">Messwert → Strom</th></tr>
-                <tr><td colspan="2">Messwert</td><td colspan="4"><input class="input-field" type="number" id="messwert" value="0"></td></tr>
-                <tr><td colspan="2">Strom calc:</td><td colspan="4" class="result-field"><span id="strom_calc"></span> mA</td></tr>
-                <tr><td colspan="2">% von MB:</td><td colspan="4" class="result-field"><span id="prozent_mb_messwert"></span></td></tr>
+                <tr><th colspan="6">Signalbereich &amp; Messbereich</th></tr>
+                <tr>
+                    <td colspan="2">Signalbereich</td>
+                    <td colspan="4">
+                        <select class="input-field" id="signalbereich">
+                            <option value="4-20mA">4–20 mA</option>
+                            <option value="0-20mA">0–20 mA</option>
+                            <option value="0-10V">0–10 V</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Messbereich</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="messbereich_min" value="0" style="max-width:120px">
+                        bis
+                        <input class="input-field" type="number" id="messbereich_max" value="400" style="max-width:120px">
+                        <select class="input-field" id="messbereich_einheit" style="max-width:100px">
+                            <option value="m³/h">m³/h</option>
+                            <option value="l/min">l/min</option>
+                            <option value="l/h">l/h</option>
+                            <option value="kg/h">kg/h</option>
+                            <option value="t/h">t/h</option>
+                            <option value="bar">bar</option>
+                            <option value="mbar">mbar</option>
+                            <option value="°C">°C</option>
+                            <option value="mm">mm</option>
+                            <option value="m">m</option>
+                            <option value="pH">pH</option>
+                            <option value="µS/cm">µS/cm</option>
+                            <option value="mS/cm">mS/cm</option>
+                            <option value="%">%</option>
+                            <option value="">ohne Einheit</option>
+                        </select>
+                    </td>
+                </tr>
             </table>
-<div class="shortcuts-hint">
+
+            <!-- Signal → Messwert -->
+            <table>
+                <tr><th colspan="6">Signal → Messwert</th></tr>
+                <tr>
+                    <td colspan="2">Istwert Signal</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="signalwert" value="0" step="any">
+                        <span class="signal-label" id="signalEinheitLabel1">mA</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Messwert calc:</td>
+                    <td colspan="4" class="result-field"><span id="messwert_calc"></span> <span id="einheitLabel1"></span></td>
+                </tr>
+                <tr>
+                    <td colspan="2">% von MB:</td>
+                    <td colspan="4" class="result-field"><span id="prozent_mb_signal"></span></td>
+                </tr>
+            </table>
+
+            <!-- Messwert → Signal -->
+            <table>
+                <tr><th colspan="6">Messwert → Signal</th></tr>
+                <tr>
+                    <td colspan="2">Messwert</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="messwert" value="0" step="any">
+                        <span class="signal-label" id="einheitLabel2"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Signal calc:</td>
+                    <td colspan="4" class="result-field"><span id="signal_calc"></span> <span id="signalEinheitLabel2">mA</span></td>
+                </tr>
+                <tr>
+                    <td colspan="2">% von MB:</td>
+                    <td colspan="4" class="result-field"><span id="prozent_mb_messwert"></span></td>
+                </tr>
+            </table>
+
+            <!-- Prozent → Signal + Messwert -->
+            <table>
+                <tr><th colspan="6">Prozent → Signal + Messwert</th></tr>
+                <tr>
+                    <td colspan="2">Gewünschter %-Wert</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="prozent_input" value="0" step="any"> %
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Signal:</td>
+                    <td colspan="4" class="result-field"><span id="pct_signal_calc"></span> <span id="signalEinheitLabel3">mA</span></td>
+                </tr>
+                <tr>
+                    <td colspan="2">Messwert:</td>
+                    <td colspan="4" class="result-field"><span id="pct_messwert_calc"></span> <span id="einheitLabel3"></span></td>
+                </tr>
+            </table>
+
+            <hr class="section-divider">
+
+            <!-- Schnelltabelle -->
+            <div class="quick-table">
+                <h4>📋 Schnellübersicht Kalibrierpunkte</h4>
+                <table id="schnelltabelle">
+                    <thead>
+                        <tr>
+                            <th>%</th>
+                            <th id="thSignal">Signal (mA)</th>
+                            <th id="thMesswert">Messwert</th>
+                        </tr>
+                    </thead>
+                    <tbody id="schnelltabelle_body"></tbody>
+                </table>
+            </div>
+
+            <div class="shortcuts-hint">
                 <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
                 <span><kbd>Esc</kbd> Zurücksetzen</span>
                 <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
@@ -89,35 +217,182 @@
     </footer>
 
     <script src="shared.js"></script>
-
     <script>
-        function berechneStromZuMesswert() {
-            const sv = parseFloat(document.getElementById('stromwert').value);
-            const sb = document.getElementById('strombereich').value;
-            const min = parseFloat(document.getElementById('messbereich_min').value);
-            const max = parseFloat(document.getElementById('messbereich_max').value);
-            const mb = max - min;
-            if (!validateInput('messbereich_max', { greaterThan: 'messbereich_min' })) return;
-            let mw = sb === '4-20' ? (sv - 4) * (mb / 16) + min : sv * (mb / 20) + min;
-            const pct = (mw - min) / mb * 100;
-            document.getElementById('messwert_calc').innerText = mw.toFixed(2);
-            document.getElementById('prozent_mb_strom').innerText = pct.toFixed(2) + '%';
+        // ============ SIGNALBEREICH-CONFIG ============
+        function getSignalConfig() {
+            const sb = document.getElementById('signalbereich').value;
+            switch (sb) {
+                case '4-20mA': return { min: 4, max: 20, einheit: 'mA', isNamur: true };
+                case '0-20mA': return { min: 0, max: 20, einheit: 'mA', isNamur: false };
+                case '0-10V':  return { min: 0, max: 10, einheit: 'V',  isNamur: false };
+                default:       return { min: 4, max: 20, einheit: 'mA', isNamur: true };
+            }
         }
-        function berechneMesswertZuStrom() {
-            const mw = parseFloat(document.getElementById('messwert').value);
-            const sb = document.getElementById('strombereich').value;
+
+        function getEinheit() {
+            return document.getElementById('messbereich_einheit').value;
+        }
+
+        function getMB() {
             const min = parseFloat(document.getElementById('messbereich_min').value);
             const max = parseFloat(document.getElementById('messbereich_max').value);
-            const mb = max - min;
-            if (mb === 0) return;
-            let sc = sb === '4-20' ? ((mw - min) / mb) * 16 + 4 : ((mw - min) / mb) * 20;
-            const pct = (mw - min) / mb * 100;
-            document.getElementById('strom_calc').innerText = sc.toFixed(2);
+            return { min, max, spanne: max - min };
+        }
+
+        // ============ UI LABELS UPDATE ============
+        function updateLabels() {
+            const cfg = getSignalConfig();
+            const einheit = getEinheit();
+            document.getElementById('signalEinheitLabel1').textContent = cfg.einheit;
+            document.getElementById('signalEinheitLabel2').textContent = cfg.einheit;
+            document.getElementById('signalEinheitLabel3').textContent = cfg.einheit;
+            document.getElementById('einheitLabel1').textContent = einheit;
+            document.getElementById('einheitLabel2').textContent = einheit;
+            document.getElementById('einheitLabel3').textContent = einheit;
+            document.getElementById('thSignal').textContent = 'Signal (' + cfg.einheit + ')';
+            document.getElementById('thMesswert').textContent = 'Messwert' + (einheit ? ' (' + einheit + ')' : '');
+
+            // NAMUR hint
+            const bar = document.getElementById('statusBar');
+            if (!cfg.isNamur) {
+                bar.className = 'status-bar status-idle';
+                document.getElementById('statusText').textContent = 'NAMUR-Prüfung nur für 4–20 mA verfügbar';
+            }
+        }
+
+        // ============ BERECHNUNGEN ============
+        // Signal → Messwert
+        function berechneSignalZuMesswert() {
+            const sv = parseFloat(document.getElementById('signalwert').value);
+            const cfg = getSignalConfig();
+            const mb = getMB();
+            if (mb.spanne === 0) return;
+
+            const pct = (sv - cfg.min) / (cfg.max - cfg.min) * 100;
+            const mw = mb.min + (mb.spanne * pct / 100);
+
+            document.getElementById('messwert_calc').innerText = mw.toFixed(2);
+            document.getElementById('prozent_mb_signal').innerText = pct.toFixed(2) + '%';
+
+            updateNamurStatus(sv, cfg);
+        }
+
+        // Messwert → Signal
+        function berechneMesswertZuSignal() {
+            const mw = parseFloat(document.getElementById('messwert').value);
+            const cfg = getSignalConfig();
+            const mb = getMB();
+            if (mb.spanne === 0) return;
+
+            const pct = (mw - mb.min) / mb.spanne * 100;
+            const signal = cfg.min + ((cfg.max - cfg.min) * pct / 100);
+
+            document.getElementById('signal_calc').innerText = signal.toFixed(2);
             document.getElementById('prozent_mb_messwert').innerText = pct.toFixed(2) + '%';
         }
-        document.getElementById('strombereich').addEventListener('change', () => { berechneStromZuMesswert(); berechneMesswertZuStrom(); });
-        document.querySelectorAll('#stromwert, #messbereich_min, #messbereich_max').forEach(i => i.addEventListener('input', berechneStromZuMesswert));
-        document.querySelectorAll('#messwert, #messbereich_min, #messbereich_max').forEach(i => i.addEventListener('input', berechneMesswertZuStrom));
+
+        // Prozent → Signal + Messwert
+        function berechneProzent() {
+            const pct = parseFloat(document.getElementById('prozent_input').value);
+            const cfg = getSignalConfig();
+            const mb = getMB();
+
+            const signal = cfg.min + ((cfg.max - cfg.min) * pct / 100);
+            const mw = mb.min + (mb.spanne * pct / 100);
+
+            document.getElementById('pct_signal_calc').innerText = signal.toFixed(2);
+            document.getElementById('pct_messwert_calc').innerText = mw.toFixed(2);
+        }
+
+        // ============ NAMUR NE43 STATUS ============
+        function updateNamurStatus(signalwert, cfg) {
+            const bar = document.getElementById('statusBar');
+            const text = document.getElementById('statusText');
+
+            if (!cfg.isNamur) {
+                bar.className = 'status-bar status-idle';
+                text.textContent = 'NAMUR-Prüfung nur für 4–20 mA verfügbar';
+                return;
+            }
+
+            if (isNaN(signalwert) || signalwert === 0) {
+                bar.className = 'status-bar status-idle';
+                text.textContent = 'Signalwert eingeben für NAMUR-Prüfung';
+                return;
+            }
+
+            if (signalwert < 3.6 || signalwert > 21.0) {
+                bar.className = 'status-bar status-error';
+                text.textContent = '✕ NAMUR NE43: Gerätefehler — Signal (' + signalwert.toFixed(2) + ' mA) außerhalb des gültigen Bereichs (3,6–21,0 mA)';
+            } else if (signalwert < 3.8) {
+                bar.className = 'status-bar status-warn';
+                text.textContent = '⚠ NAMUR NE43: Unterer Warnbereich — Signal (' + signalwert.toFixed(2) + ' mA) zwischen 3,6–3,8 mA';
+            } else if (signalwert > 20.5) {
+                bar.className = 'status-bar status-warn';
+                text.textContent = '⚠ NAMUR NE43: Oberer Warnbereich — Signal (' + signalwert.toFixed(2) + ' mA) zwischen 20,5–21,0 mA';
+            } else if (signalwert < 4.0) {
+                bar.className = 'status-bar status-warn';
+                text.textContent = '⚠ Signal (' + signalwert.toFixed(2) + ' mA) unterhalb des Messbereichs (< 4 mA) — Messwert unter 0%';
+            } else if (signalwert > 20.0) {
+                bar.className = 'status-bar status-warn';
+                text.textContent = '⚠ Signal (' + signalwert.toFixed(2) + ' mA) oberhalb des Messbereichs (> 20 mA) — Messwert über 100%';
+            } else {
+                bar.className = 'status-bar status-ok';
+                const pct = ((signalwert - 4) / 16 * 100);
+                text.textContent = '✓ NAMUR NE43: Signal OK — ' + signalwert.toFixed(2) + ' mA (' + pct.toFixed(1) + '% vom MB)';
+            }
+        }
+
+        // ============ SCHNELLTABELLE ============
+        function updateSchnelltabelle() {
+            const cfg = getSignalConfig();
+            const mb = getMB();
+            const einheit = getEinheit();
+            const tbody = document.getElementById('schnelltabelle_body');
+            const punkte = [0, 25, 50, 75, 100];
+
+            tbody.innerHTML = '';
+            punkte.forEach(pct => {
+                const signal = cfg.min + ((cfg.max - cfg.min) * pct / 100);
+                const mw = mb.min + (mb.spanne * pct / 100);
+                tbody.innerHTML += '<tr>' +
+                    '<td>' + pct + '%</td>' +
+                    '<td>' + signal.toFixed(2) + ' ' + cfg.einheit + '</td>' +
+                    '<td>' + mw.toFixed(2) + (einheit ? ' ' + einheit : '') + '</td>' +
+                    '</tr>';
+            });
+        }
+
+        // ============ ALLES NEU BERECHNEN ============
+        function berechneAlles() {
+            updateLabels();
+            berechneSignalZuMesswert();
+            berechneMesswertZuSignal();
+            berechneProzent();
+            updateSchnelltabelle();
+        }
+
+        // ============ EVENT LISTENERS ============
+        // Signalbereich wechsel
+        document.getElementById('signalbereich').addEventListener('change', berechneAlles);
+
+        // Messbereich und Einheit
+        document.querySelectorAll('#messbereich_min, #messbereich_max, #messbereich_einheit').forEach(el => {
+            el.addEventListener('input', berechneAlles);
+            el.addEventListener('change', berechneAlles);
+        });
+
+        // Signal → Messwert
+        document.getElementById('signalwert').addEventListener('input', berechneSignalZuMesswert);
+
+        // Messwert → Signal
+        document.getElementById('messwert').addEventListener('input', berechneMesswertZuSignal);
+
+        // Prozent → beide
+        document.getElementById('prozent_input').addEventListener('input', berechneProzent);
+
+        // Initial
+        berechneAlles();
     </script>
 
 </body>

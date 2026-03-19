@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Einheiten-Universalrechner – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
+        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+
+        .cat-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+        .cat-btn { padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; font-family: var(--font-sans); box-shadow: none; }
+        .cat-btn:hover { border-color: var(--accent-fg); color: var(--accent-fg); transform: none; box-shadow: none; filter: none; }
+        .cat-btn.active { background: var(--accent-emphasis); color: var(--text-on-emphasis); border-color: var(--accent-emphasis); }
+
+        .converter-box { background: var(--bg-default); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 20px; margin-bottom: 20px; }
+        .converter-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+        .converter-row input { flex: 1; min-width: 120px; max-width: 250px; }
+        .converter-row select { min-width: 160px; }
+        .swap-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border-default); background: var(--bg-subtle); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--text-secondary); transition: all 0.15s; flex-shrink: 0; box-shadow: none; }
+        .swap-btn:hover { background: var(--bg-accent); color: var(--accent-fg); border-color: var(--accent-fg); transform: none; box-shadow: none; filter: none; }
+
+        .all-units-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; margin-top: 16px; }
+        .unit-result { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+        .unit-result-name { font-size: 12px; color: var(--text-tertiary); }
+        .unit-result-value { font-size: 14px; font-weight: 600; color: var(--text-primary); font-family: var(--font-mono); }
+
+        .section-divider { border: none; border-top: 1px solid var(--border-default); margin: 24px 0; }
+    </style>
+</head>
+<body data-tool-id="einheiten">
+
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button>
+        </div>
+    </header>
+
+    <div class="back-bar">
+        <a href="index.html" class="back-link">
+            <svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg>
+            Zurück zur Übersicht
+        </a>
+    </div>
+
+    <div class="page-container">
+        <div class="container">
+            <div class="action-bar">
+                <button class="action-btn" id="copyBtn" onclick="copyResults()"><svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg> Kopieren</button>
+                <button class="action-btn" id="resetBtn" onclick="resetFields()"><svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg> Zurücksetzen</button>
+            </div>
+
+            <div class="description">
+                📐 Universeller Einheitenrechner für Druck, Temperatur, Länge, Fläche, Volumen, Masse, Durchfluss und Geschwindigkeit. Wert eingeben — alle Einheiten werden sofort umgerechnet.
+            </div>
+
+            <!-- Kategorie-Auswahl -->
+            <div class="cat-bar" id="catBar"></div>
+
+            <!-- Converter -->
+            <div class="converter-box">
+                <div class="converter-row">
+                    <input class="input-field" type="number" id="inputVal" value="1" step="any">
+                    <select class="input-field" id="inputUnit"></select>
+                    <button class="swap-btn" onclick="swapUnits()" title="Einheiten tauschen">⇄</button>
+                    <select class="input-field" id="outputUnit"></select>
+                </div>
+                <div class="converter-row">
+                    <div style="font-size:20px;font-weight:700;color:var(--accent-fg);font-family:var(--font-mono);" id="mainResult">—</div>
+                </div>
+            </div>
+
+            <!-- Alle Einheiten gleichzeitig -->
+            <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:10px;">Alle Einheiten</div>
+            <div class="all-units-grid" id="allUnitsGrid"></div>
+
+            <div class="shortcuts-hint" style="margin-top:20px;">
+                <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+                <span><kbd>Esc</kbd> Zurücksetzen</span>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bottom-header">
+        <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+    </footer>
+
+    <script src="shared.js"></script>
+    <script>
+        // ============ UNIT DEFINITIONS ============
+        // Each unit: { name, abbr, toBase(v), fromBase(v) }
+        // "Base" is the SI base unit for each category
+
+        const CATEGORIES = {
+            'Druck': {
+                icon: '🔴',
+                base: 'Pa',
+                units: [
+                    { name: 'Pascal', abbr: 'Pa', factor: 1 },
+                    { name: 'Hektopascal', abbr: 'hPa', factor: 100 },
+                    { name: 'Kilopascal', abbr: 'kPa', factor: 1000 },
+                    { name: 'Megapascal', abbr: 'MPa', factor: 1e6 },
+                    { name: 'Bar', abbr: 'bar', factor: 1e5 },
+                    { name: 'Millibar', abbr: 'mbar', factor: 100 },
+                    { name: 'PSI', abbr: 'psi', factor: 6894.757 },
+                    { name: 'Atmosphäre', abbr: 'atm', factor: 101325 },
+                    { name: 'mmHg (Torr)', abbr: 'mmHg', factor: 133.322 },
+                    { name: 'mm Wassersäule', abbr: 'mmWS', factor: 9.80665 },
+                    { name: 'inH₂O', abbr: 'inH2O', factor: 249.089 },
+                ]
+            },
+            'Temperatur': {
+                icon: '🌡️',
+                base: '°C',
+                units: [
+                    { name: 'Celsius', abbr: '°C', toBase: v => v, fromBase: v => v },
+                    { name: 'Fahrenheit', abbr: '°F', toBase: v => (v - 32) * 5/9, fromBase: v => v * 9/5 + 32 },
+                    { name: 'Kelvin', abbr: 'K', toBase: v => v - 273.15, fromBase: v => v + 273.15 },
+                    { name: 'Rankine', abbr: '°R', toBase: v => (v - 491.67) * 5/9, fromBase: v => (v + 273.15) * 9/5 },
+                ]
+            },
+            'Länge': {
+                icon: '📏',
+                base: 'm',
+                units: [
+                    { name: 'Millimeter', abbr: 'mm', factor: 0.001 },
+                    { name: 'Zentimeter', abbr: 'cm', factor: 0.01 },
+                    { name: 'Meter', abbr: 'm', factor: 1 },
+                    { name: 'Kilometer', abbr: 'km', factor: 1000 },
+                    { name: 'Zoll (Inch)', abbr: 'in', factor: 0.0254 },
+                    { name: 'Fuß (Foot)', abbr: 'ft', factor: 0.3048 },
+                    { name: 'Yard', abbr: 'yd', factor: 0.9144 },
+                    { name: 'Meile', abbr: 'mi', factor: 1609.344 },
+                    { name: 'Mikrometer', abbr: 'µm', factor: 1e-6 },
+                ]
+            },
+            'Fläche': {
+                icon: '⬜',
+                base: 'm²',
+                units: [
+                    { name: 'Quadratmillimeter', abbr: 'mm²', factor: 1e-6 },
+                    { name: 'Quadratzentimeter', abbr: 'cm²', factor: 1e-4 },
+                    { name: 'Quadratmeter', abbr: 'm²', factor: 1 },
+                    { name: 'Hektar', abbr: 'ha', factor: 10000 },
+                    { name: 'Quadratkilometer', abbr: 'km²', factor: 1e6 },
+                    { name: 'Quadratzoll', abbr: 'in²', factor: 6.4516e-4 },
+                    { name: 'Quadratfuß', abbr: 'ft²', factor: 0.092903 },
+                ]
+            },
+            'Volumen': {
+                icon: '🧊',
+                base: 'l',
+                units: [
+                    { name: 'Milliliter', abbr: 'ml', factor: 0.001 },
+                    { name: 'Liter', abbr: 'l', factor: 1 },
+                    { name: 'Kubikmeter', abbr: 'm³', factor: 1000 },
+                    { name: 'Kubikzentimeter', abbr: 'cm³', factor: 0.001 },
+                    { name: 'US Gallone', abbr: 'gal(US)', factor: 3.78541 },
+                    { name: 'Imperial Gallone', abbr: 'gal(imp)', factor: 4.54609 },
+                    { name: 'Barrel (Öl)', abbr: 'bbl', factor: 158.987 },
+                    { name: 'Kubikfuß', abbr: 'ft³', factor: 28.3168 },
+                ]
+            },
+            'Masse': {
+                icon: '⚖️',
+                base: 'kg',
+                units: [
+                    { name: 'Milligramm', abbr: 'mg', factor: 1e-6 },
+                    { name: 'Gramm', abbr: 'g', factor: 0.001 },
+                    { name: 'Kilogramm', abbr: 'kg', factor: 1 },
+                    { name: 'Tonne', abbr: 't', factor: 1000 },
+                    { name: 'Pfund (lb)', abbr: 'lb', factor: 0.453592 },
+                    { name: 'Unze (oz)', abbr: 'oz', factor: 0.0283495 },
+                ]
+            },
+            'Durchfluss': {
+                icon: '🌊',
+                base: 'l/h',
+                units: [
+                    { name: 'Liter/Stunde', abbr: 'l/h', factor: 1 },
+                    { name: 'Liter/Minute', abbr: 'l/min', factor: 60 },
+                    { name: 'Liter/Sekunde', abbr: 'l/s', factor: 3600 },
+                    { name: 'Kubikmeter/Stunde', abbr: 'm³/h', factor: 1000 },
+                    { name: 'Kubikmeter/Minute', abbr: 'm³/min', factor: 60000 },
+                    { name: 'US Gallonen/Minute', abbr: 'gpm(US)', factor: 227.125 },
+                    { name: 'Kubikfuß/Stunde', abbr: 'ft³/h', factor: 28316.8 / 1000 },
+                ]
+            },
+            'Geschwindigkeit': {
+                icon: '💨',
+                base: 'm/s',
+                units: [
+                    { name: 'Meter/Sekunde', abbr: 'm/s', factor: 1 },
+                    { name: 'Kilometer/Stunde', abbr: 'km/h', factor: 1/3.6 },
+                    { name: 'Fuß/Sekunde', abbr: 'ft/s', factor: 0.3048 },
+                    { name: 'Meilen/Stunde', abbr: 'mph', factor: 0.44704 },
+                    { name: 'Knoten', abbr: 'kn', factor: 0.514444 },
+                ]
+            },
+        };
+
+        let activeCat = 'Druck';
+
+        // ============ CONVERSION ============
+        function toBase(value, unit) {
+            if (unit.toBase) return unit.toBase(value);
+            return value * unit.factor;
+        }
+
+        function fromBase(baseValue, unit) {
+            if (unit.fromBase) return unit.fromBase(baseValue);
+            return baseValue / unit.factor;
+        }
+
+        function convert(value, fromUnit, toUnit) {
+            const base = toBase(value, fromUnit);
+            return fromBase(base, toUnit);
+        }
+
+        function fmt(n) {
+            if (n === 0) return '0';
+            const abs = Math.abs(n);
+            if (abs >= 1e9 || abs < 1e-6) return n.toExponential(4);
+            if (abs >= 1e6) return n.toLocaleString('de-DE', { maximumFractionDigits: 2 });
+            if (abs >= 100) return n.toFixed(3);
+            if (abs >= 1) return n.toFixed(4);
+            if (abs >= 0.01) return n.toFixed(5);
+            return n.toFixed(6);
+        }
+
+        // ============ UI ============
+        function buildCatBar() {
+            const bar = document.getElementById('catBar');
+            bar.innerHTML = '';
+            Object.keys(CATEGORIES).forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'cat-btn' + (cat === activeCat ? ' active' : '');
+                btn.textContent = CATEGORIES[cat].icon + ' ' + cat;
+                btn.onclick = () => {
+                    activeCat = cat;
+                    bar.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    buildUnitSelects();
+                    calc();
+                };
+                bar.appendChild(btn);
+            });
+        }
+
+        function buildUnitSelects() {
+            const cat = CATEGORIES[activeCat];
+            const inSel = document.getElementById('inputUnit');
+            const outSel = document.getElementById('outputUnit');
+            inSel.innerHTML = '';
+            outSel.innerHTML = '';
+            cat.units.forEach((u, i) => {
+                inSel.innerHTML += '<option value="' + i + '">' + u.abbr + ' — ' + u.name + '</option>';
+                outSel.innerHTML += '<option value="' + i + '">' + u.abbr + ' — ' + u.name + '</option>';
+            });
+            // Set smart defaults
+            if (cat.units.length > 1) outSel.selectedIndex = 1;
+        }
+
+        function calc() {
+            const cat = CATEGORIES[activeCat];
+            const val = parseFloat(document.getElementById('inputVal').value);
+            if (isNaN(val)) {
+                document.getElementById('mainResult').textContent = '—';
+                document.getElementById('allUnitsGrid').innerHTML = '';
+                return;
+            }
+            const fromIdx = parseInt(document.getElementById('inputUnit').value);
+            const toIdx = parseInt(document.getElementById('outputUnit').value);
+            const fromUnit = cat.units[fromIdx];
+            const toUnit = cat.units[toIdx];
+
+            const result = convert(val, fromUnit, toUnit);
+            document.getElementById('mainResult').textContent = fmt(result) + ' ' + toUnit.abbr;
+
+            // All units grid
+            const grid = document.getElementById('allUnitsGrid');
+            grid.innerHTML = '';
+            cat.units.forEach(u => {
+                const converted = convert(val, fromUnit, u);
+                const div = document.createElement('div');
+                div.className = 'unit-result';
+                div.innerHTML = '<span class="unit-result-name">' + u.name + ' (' + u.abbr + ')</span><span class="unit-result-value">' + fmt(converted) + '</span>';
+                grid.appendChild(div);
+            });
+        }
+
+        function swapUnits() {
+            const inSel = document.getElementById('inputUnit');
+            const outSel = document.getElementById('outputUnit');
+            const tmp = inSel.value;
+            inSel.value = outSel.value;
+            outSel.value = tmp;
+            calc();
+        }
+
+        // ============ EVENTS ============
+        document.getElementById('inputVal').addEventListener('input', calc);
+        document.getElementById('inputUnit').addEventListener('change', calc);
+        document.getElementById('outputUnit').addEventListener('change', calc);
+
+        // ============ INIT ============
+        buildCatBar();
+        buildUnitSelects();
+        calc();
+    </script>
+
+</body>
+</html>

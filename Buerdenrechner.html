@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4-20mA Bürdenrechner – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
+        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+
+        .section-divider { border: none; border-top: 1px solid var(--border-default); margin: 24px 0; }
+
+        .status-bar { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-default); margin-bottom: 20px; font-size: 14px; font-weight: 500; transition: all 0.3s; }
+        .status-bar.status-ok { background: var(--bg-success); color: var(--text-success); border-color: var(--text-success); }
+        .status-bar.status-warn { background: var(--bg-attention); color: var(--text-attention); border-color: var(--text-attention); }
+        .status-bar.status-error { background: var(--bg-danger); color: var(--text-danger); border-color: var(--text-danger); }
+        .status-bar.status-idle { background: var(--bg-subtle); color: var(--text-tertiary); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .status-ok .status-dot { background: var(--text-success); }
+        .status-warn .status-dot { background: var(--text-attention); }
+        .status-error .status-dot { background: var(--text-danger); }
+        .status-idle .status-dot { background: var(--text-tertiary); }
+
+        .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-top: 16px; margin-bottom: 16px; }
+        .result-card { background: var(--bg-success); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 12px; text-align: center; }
+        .result-card-value { font-size: 18px; font-weight: 600; color: var(--text-success); font-family: var(--font-mono); }
+        .result-card-label { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+        .result-card-sub { font-size: 10px; color: var(--text-tertiary); }
+
+        .info-box { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 16px; font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+        .info-box strong { color: var(--text-primary); }
+
+        .visual-loop { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 20px; margin: 16px 0; text-align: center; overflow-x: auto; }
+
+        .fill-bar { margin-top: 4px; }
+        .fill-bar-label { font-size: 12px; color: var(--text-tertiary); margin-bottom: 4px; display: flex; justify-content: space-between; }
+        .fill-bar-track { height: 10px; background: var(--bg-subtle); border-radius: 5px; border: 1px solid var(--border-default); overflow: hidden; }
+        .fill-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s, background 0.3s; }
+
+        .ref-table td { padding: 4px 10px; font-size: 12px; text-align: center; font-family: var(--font-mono); }
+        .ref-table th { font-size: 10px; text-transform: uppercase; padding: 6px 8px; }
+    </style>
+</head>
+<body data-tool-id="burden">
+
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button>
+        </div>
+    </header>
+
+    <div class="back-bar">
+        <a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a>
+    </div>
+
+    <div class="page-container">
+        <div class="container">
+            <div class="action-bar">
+                <button class="action-btn" onclick="copyResults()"><svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg> Kopieren</button>
+                <button class="action-btn" onclick="resetFields()"><svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg> Zurücksetzen</button>
+                <button class="action-btn" onclick="exportPagePDF('Bürdenrechner')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+            </div>
+
+            <div class="description">
+                🔌 Berechnet den maximalen Schleifenwiderstand und die maximale Kabellänge für 4–20 mA Stromschleifen. Berücksichtigt Spannungsversorgung, Transmitter-Mindestspannung, Bürde (Eingangswiderstand) und Kabelquerschnitt. HART-Kommunikation erfordert mindestens 250 Ω.
+            </div>
+
+            <!-- Ampel -->
+            <div class="status-bar status-idle" id="statusBar">
+                <div class="status-dot"></div>
+                <span id="statusText">Werte eingeben</span>
+            </div>
+
+            <!-- Eingabe: Spannungsversorgung -->
+            <table>
+                <tr><th colspan="6">Stromschleife</th></tr>
+                <tr>
+                    <td colspan="2">Versorgungsspannung</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="vSupply" value="24" step="0.1" style="max-width:100px"> V DC
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Mindestspannung Transmitter</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="vMin" value="12" step="0.1" style="max-width:100px"> V DC
+                        <span style="font-size:11px;color:var(--text-tertiary);margin-left:6px;">(typisch 11,5–15 V je nach Gerät)</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Max. Schleifenstrom</td>
+                    <td colspan="4">
+                        <select class="input-field" id="iMax" style="max-width:160px">
+                            <option value="20">20 mA (Normalbetrieb)</option>
+                            <option value="22">22 mA (NAMUR-Fehler)</option>
+                            <option value="24">24 mA (Sicherheitsreserve)</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+
+            <table>
+                <tr><th colspan="6">Verbraucher (Bürde)</th></tr>
+                <tr>
+                    <td colspan="2">Eingangswiderstand SPS/Anzeige</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="rBurden" value="250" step="1" style="max-width:120px"> Ω
+                        <span style="font-size:11px;color:var(--text-tertiary);margin-left:6px;">(HART: min. 250 Ω)</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Zusätzliche Verbraucher</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="rExtra" value="0" step="1" style="max-width:120px"> Ω
+                        <span style="font-size:11px;color:var(--text-tertiary);margin-left:6px;">(z.B. Anzeiger, Trennverstärker)</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <label><input type="checkbox" id="hartCheck" checked onchange="calc()"> HART-Kommunikation</label>
+                    </td>
+                    <td colspan="4" style="font-size:12px;color:var(--text-tertiary);">
+                        Wenn aktiv: Gesamtbürde muss ≥ 250 Ω sein
+                    </td>
+                </tr>
+            </table>
+
+            <table>
+                <tr><th colspan="6">Kabel</th></tr>
+                <tr>
+                    <td colspan="2">Kabelquerschnitt</td>
+                    <td colspan="4">
+                        <select class="input-field" id="cableSize">
+                            <option value="0.5">0,5 mm²</option>
+                            <option value="0.75">0,75 mm²</option>
+                            <option value="1.0">1,0 mm²</option>
+                            <option value="1.5" selected>1,5 mm²</option>
+                            <option value="2.5">2,5 mm²</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Tatsächliche Kabellänge</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="cableLength" value="100" step="1" style="max-width:120px"> m (einfach)
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Ergebnisse -->
+            <div class="result-grid" id="resultGrid">
+                <div class="result-card">
+                    <div class="result-card-value" id="res_rMax">—</div>
+                    <div class="result-card-label">Max. Schleifenwiderstand</div>
+                    <div class="result-card-sub">bei gegebener Versorgung</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-value" id="res_rCable">—</div>
+                    <div class="result-card-label">Kabelwiderstand (Hin+Rück)</div>
+                    <div class="result-card-sub" id="res_rCable_sub">—</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-value" id="res_rTotal">—</div>
+                    <div class="result-card-label">Gesamtwiderstand Schleife</div>
+                    <div class="result-card-sub">Bürde + Kabel + Extras</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-value" id="res_rReserve">—</div>
+                    <div class="result-card-label">Reserve</div>
+                    <div class="result-card-sub">verfügbar für weitere Geräte</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-value" id="res_maxLen">—</div>
+                    <div class="result-card-label">Max. Kabellänge (einfach)</div>
+                    <div class="result-card-sub" id="res_maxLen_sub">—</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-value" id="res_vDrop">—</div>
+                    <div class="result-card-label">Spannungsabfall Kabel</div>
+                    <div class="result-card-sub">bei 20 mA</div>
+                </div>
+            </div>
+
+            <!-- Auslastungsbalken -->
+            <div class="fill-bar">
+                <div class="fill-bar-label"><span>Schleifenauslastung</span><span id="loadPctLabel">0%</span></div>
+                <div class="fill-bar-track"><div class="fill-bar-fill" id="loadBarFill" style="width:0%;background:var(--text-success)"></div></div>
+            </div>
+
+            <!-- Visuelle Schleife -->
+            <div class="visual-loop" id="loopVisual"></div>
+
+            <hr class="section-divider">
+
+            <!-- Kabeltabelle -->
+            <table class="ref-table">
+                <tr><th colspan="4">Kabelwiderstand pro Meter (Kupfer, 20°C)</th></tr>
+                <thead><tr><th>Querschnitt</th><th>Ω/m (einfach)</th><th>Ω/m (Hin+Rück)</th><th>Max. Kabellänge *</th></tr></thead>
+                <tbody id="cableRefBody"></tbody>
+            </table>
+            <p style="font-size:11px;color:var(--text-tertiary);margin-top:4px;">* Bei 24 V, 12 V Transmitter-Min., 250 Ω Bürde, 20 mA</p>
+
+            <div class="info-box" style="margin-top:16px;">
+                <strong>Formel:</strong> R_max = (V_Versorgung − V_min_Transmitter) / I_max<br>
+                <strong>Kabellänge max:</strong> L = (R_max − R_Bürde − R_Extra) / (2 × ρ / A)<br>
+                wobei ρ(Cu) = 0,0175 Ω·mm²/m (bei 20°C), Faktor 2 für Hin- und Rückleitung.<br><br>
+                <strong>HART-Kommunikation:</strong> Für HART muss die Gesamtbürde (ohne Kabel) mindestens 250 Ω betragen. Falls die SPS-Eingangsimpedanz zu gering ist, kann ein 250 Ω Widerstand in Reihe geschaltet werden.<br><br>
+                <strong>Tipp:</strong> Bei Ex-Barrieren (Zener-Barriere oder Trennverstärker) deren Eigenwiderstand unter "Zusätzliche Verbraucher" eintragen (typisch 10–300 Ω).
+            </div>
+
+            <div class="shortcuts-hint" style="margin-top:16px;">
+                <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+                <span><kbd>Esc</kbd> Zurücksetzen</span>
+                <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bottom-header">
+        <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+    </footer>
+
+    <script src="shared.js"></script>
+    <script>
+        // Copper resistivity at 20°C: 0.0175 Ω·mm²/m
+        const RHO_CU = 0.0175;
+
+        function cableResPerMeter(crossSection) {
+            return RHO_CU / crossSection; // Ω/m for single conductor
+        }
+
+        function calc() {
+            const vSupply = parseFloat(document.getElementById('vSupply').value) || 0;
+            const vMin = parseFloat(document.getElementById('vMin').value) || 0;
+            const iMax = parseFloat(document.getElementById('iMax').value) / 1000; // to Ampere
+            const rBurden = parseFloat(document.getElementById('rBurden').value) || 0;
+            const rExtra = parseFloat(document.getElementById('rExtra').value) || 0;
+            const cableSize = parseFloat(document.getElementById('cableSize').value);
+            const cableLen = parseFloat(document.getElementById('cableLength').value) || 0;
+            const hartRequired = document.getElementById('hartCheck').checked;
+
+            if (vSupply <= 0 || iMax <= 0) return;
+
+            // Max loop resistance
+            const vAvailable = vSupply - vMin;
+            const rMax = vAvailable / iMax;
+
+            // Cable resistance (Hin + Rück = 2× length)
+            const rPerM = cableResPerMeter(cableSize);
+            const rCable = 2 * cableLen * rPerM;
+
+            // Total loop resistance
+            const rTotal = rBurden + rExtra + rCable;
+
+            // Reserve
+            const rReserve = rMax - rTotal;
+
+            // Max cable length
+            const rAvailForCable = rMax - rBurden - rExtra;
+            const maxLen = rAvailForCable > 0 ? rAvailForCable / (2 * rPerM) : 0;
+
+            // Voltage drop across cable at 20mA
+            const vDropCable = rCable * 0.020;
+
+            // Display results
+            document.getElementById('res_rMax').textContent = rMax.toFixed(1) + ' Ω';
+            document.getElementById('res_rCable').textContent = rCable.toFixed(1) + ' Ω';
+            document.getElementById('res_rCable_sub').textContent = cableLen + ' m × 2 × ' + rPerM.toFixed(4) + ' Ω/m';
+            document.getElementById('res_rTotal').textContent = rTotal.toFixed(1) + ' Ω';
+            document.getElementById('res_rReserve').textContent = rReserve.toFixed(1) + ' Ω';
+            document.getElementById('res_maxLen').textContent = Math.floor(maxLen) + ' m';
+            document.getElementById('res_maxLen_sub').textContent = 'bei ' + cableSize + ' mm² Kupfer';
+            document.getElementById('res_vDrop').textContent = vDropCable.toFixed(2) + ' V';
+
+            // Color reserve
+            const resEl = document.getElementById('res_rReserve');
+            if (rReserve > 50) resEl.style.color = 'var(--text-success)';
+            else if (rReserve > 0) resEl.style.color = 'var(--text-attention)';
+            else resEl.style.color = 'var(--text-danger)';
+
+            // Load bar
+            const loadPct = rMax > 0 ? (rTotal / rMax) * 100 : 0;
+            const clampPct = Math.min(loadPct, 100);
+            document.getElementById('loadBarFill').style.width = clampPct + '%';
+            document.getElementById('loadBarFill').style.background = loadPct > 100 ? 'var(--text-danger)' : loadPct > 85 ? 'var(--text-attention)' : 'var(--text-success)';
+            document.getElementById('loadPctLabel').textContent = loadPct.toFixed(1) + '%';
+
+            // Ampel
+            updateAmpel(rTotal, rMax, rBurden + rExtra, hartRequired);
+
+            // Visual
+            drawLoop(rBurden, rExtra, rCable, rMax, vSupply, vMin, hartRequired);
+        }
+
+        function updateAmpel(rTotal, rMax, rBurdenTotal, hartRequired) {
+            const bar = document.getElementById('statusBar');
+            const txt = document.getElementById('statusText');
+
+            const hartOk = !hartRequired || rBurdenTotal >= 250;
+            const loopOk = rTotal <= rMax;
+
+            if (loopOk && hartOk && (rMax - rTotal) > 50) {
+                bar.className = 'status-bar status-ok';
+                txt.textContent = '✓ Schleife OK — ' + (rMax - rTotal).toFixed(0) + ' Ω Reserve' + (hartRequired ? ', HART möglich' : '');
+            } else if (loopOk && hartOk) {
+                bar.className = 'status-bar status-warn';
+                txt.textContent = '⚠ Schleife knapp — nur ' + (rMax - rTotal).toFixed(0) + ' Ω Reserve';
+            } else if (!loopOk) {
+                bar.className = 'status-bar status-error';
+                txt.textContent = '✕ Schleifenwiderstand zu hoch! ' + (rTotal - rMax).toFixed(0) + ' Ω über dem Maximum. Kabel kürzen oder Querschnitt erhöhen.';
+            } else if (!hartOk) {
+                bar.className = 'status-bar status-error';
+                txt.textContent = '✕ HART nicht möglich — Gesamtbürde ' + rBurdenTotal.toFixed(0) + ' Ω < 250 Ω Minimum. Widerstand in Reihe schalten.';
+            }
+        }
+
+        function drawLoop(rBurden, rExtra, rCable, rMax, vSupply, vMin, hartReq) {
+            const wrap = document.getElementById('loopVisual');
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const bgCol = isDark ? '#2d333b' : '#f6f8fa';
+            const lineCol = isDark ? '#58a6ff' : '#0969da';
+            const textCol = isDark ? '#8b949e' : '#57606a';
+            const okCol = isDark ? '#3fb950' : '#1a7f37';
+            const warnCol = isDark ? '#f0883e' : '#bf5600';
+            const errCol = isDark ? '#f85149' : '#cf222e';
+            const rTotal = rBurden + rExtra + rCable;
+            const loopOk = rTotal <= rMax;
+
+            const W = 560, H = 160;
+            let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">';
+
+            // Power supply
+            svg += '<rect x="10" y="20" width="70" height="40" rx="5" fill="' + (loopOk ? okCol : errCol) + '" opacity="0.15" stroke="' + (loopOk ? okCol : errCol) + '" stroke-width="1.5"/>';
+            svg += '<text x="45" y="37" text-anchor="middle" font-size="9" font-weight="600" fill="' + textCol + '">Netzteil</text>';
+            svg += '<text x="45" y="50" text-anchor="middle" font-size="10" font-weight="700" fill="' + (loopOk ? okCol : errCol) + '">' + vSupply.toFixed(0) + ' V DC</text>';
+
+            // Top wire (supply +)
+            svg += '<line x1="80" y1="30" x2="480" y2="30" stroke="' + lineCol + '" stroke-width="2"/>';
+            svg += '<text x="280" y="22" text-anchor="middle" font-size="8" fill="' + textCol + '">+ Versorgung</text>';
+
+            // Transmitter
+            svg += '<rect x="480" y="15" width="65" height="45" rx="5" fill="' + lineCol + '" opacity="0.1" stroke="' + lineCol + '" stroke-width="1.5"/>';
+            svg += '<text x="512" y="33" text-anchor="middle" font-size="8" font-weight="600" fill="' + textCol + '">Transmitter</text>';
+            svg += '<text x="512" y="48" text-anchor="middle" font-size="9" font-weight="600" fill="' + lineCol + '">≥' + vMin.toFixed(0) + ' V</text>';
+
+            // Bottom wire (return)
+            svg += '<line x1="480" y1="85" x2="80" y2="85" stroke="' + lineCol + '" stroke-width="2"/>';
+            svg += '<line x1="512" y1="60" x2="512" y2="85" stroke="' + lineCol + '" stroke-width="2"/>';
+            svg += '<line x1="45" y1="60" x2="45" y2="85" stroke="' + lineCol + '" stroke-width="2"/>';
+            svg += '<line x1="45" y1="85" x2="80" y2="85" stroke="' + lineCol + '" stroke-width="2"/>';
+            svg += '<line x1="45" y1="20" x2="45" y2="30" stroke="' + lineCol + '" stroke-width="2"/>';
+            svg += '<text x="280" y="80" text-anchor="middle" font-size="8" fill="' + textCol + '">− Rückleitung</text>';
+
+            // Burden resistor on bottom wire
+            const bx = 140;
+            svg += '<rect x="' + bx + '" y="90" width="80" height="30" rx="4" fill="' + warnCol + '" opacity="0.12" stroke="' + warnCol + '" stroke-width="1"/>';
+            svg += '<text x="' + (bx + 40) + '" y="104" text-anchor="middle" font-size="8" fill="' + textCol + '">Bürde</text>';
+            svg += '<text x="' + (bx + 40) + '" y="115" text-anchor="middle" font-size="9" font-weight="600" fill="' + warnCol + '">' + rBurden.toFixed(0) + ' Ω</text>';
+
+            // Extra burden
+            if (rExtra > 0) {
+                const ex = 260;
+                svg += '<rect x="' + ex + '" y="90" width="80" height="30" rx="4" fill="' + warnCol + '" opacity="0.12" stroke="' + warnCol + '" stroke-width="1"/>';
+                svg += '<text x="' + (ex + 40) + '" y="104" text-anchor="middle" font-size="8" fill="' + textCol + '">Extras</text>';
+                svg += '<text x="' + (ex + 40) + '" y="115" text-anchor="middle" font-size="9" font-weight="600" fill="' + warnCol + '">' + rExtra.toFixed(0) + ' Ω</text>';
+            }
+
+            // Cable resistance
+            const cx = rExtra > 0 ? 380 : 260;
+            svg += '<rect x="' + cx + '" y="90" width="80" height="30" rx="4" fill="' + lineCol + '" opacity="0.1" stroke="' + lineCol + '" stroke-width="1"/>';
+            svg += '<text x="' + (cx + 40) + '" y="104" text-anchor="middle" font-size="8" fill="' + textCol + '">Kabel</text>';
+            svg += '<text x="' + (cx + 40) + '" y="115" text-anchor="middle" font-size="9" font-weight="600" fill="' + lineCol + '">' + rCable.toFixed(1) + ' Ω</text>';
+
+            // Total
+            svg += '<text x="280" y="145" text-anchor="middle" font-size="10" font-weight="600" fill="' + (loopOk ? okCol : errCol) + '">Σ = ' + rTotal.toFixed(1) + ' Ω von max. ' + rMax.toFixed(1) + ' Ω' + (hartReq ? '  |  HART: ' + (rBurden + rExtra >= 250 ? '✓' : '✕ < 250 Ω') : '') + '</text>';
+
+            // Arrow showing current direction
+            svg += '<defs><marker id="arr" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><polygon points="0 0,6 2,0 4" fill="' + lineCol + '"/></marker></defs>';
+            svg += '<line x1="440" y1="26" x2="470" y2="26" stroke="' + lineCol + '" stroke-width="1" marker-end="url(#arr)"/>';
+            svg += '<line x1="120" y1="89" x2="90" y2="89" stroke="' + lineCol + '" stroke-width="1" marker-end="url(#arr)"/>';
+
+            svg += '</svg>';
+            wrap.innerHTML = svg;
+        }
+
+        // ============ CABLE REF TABLE ============
+        function buildCableRef() {
+            const tbody = document.getElementById('cableRefBody');
+            tbody.innerHTML = '';
+            const sizes = [0.5, 0.75, 1.0, 1.5, 2.5];
+            sizes.forEach(s => {
+                const rpm = cableResPerMeter(s);
+                const rpm2 = 2 * rpm;
+                // Max length at 24V, 12V min, 250Ω burden, 20mA
+                const rMax = (24 - 12) / 0.020;
+                const maxL = (rMax - 250) / (2 * rpm);
+                tbody.innerHTML += '<tr>' +
+                    '<td>' + s.toFixed(s < 1 ? 2 : 1) + ' mm²</td>' +
+                    '<td>' + rpm.toFixed(4) + '</td>' +
+                    '<td>' + rpm2.toFixed(4) + '</td>' +
+                    '<td>' + Math.floor(maxL) + ' m</td>' +
+                    '</tr>';
+            });
+        }
+
+        // ============ EVENTS ============
+        document.querySelectorAll('#vSupply, #vMin, #iMax, #rBurden, #rExtra, #cableSize, #cableLength').forEach(el => {
+            el.addEventListener('input', calc);
+            el.addEventListener('change', calc);
+        });
+
+        onThemeChanged(calc);
+
+        // Init
+        buildCableRef();
+        calc();
+    </script>
+
+</body>
+</html>

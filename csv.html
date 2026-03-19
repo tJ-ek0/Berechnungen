@@ -3,87 +3,501 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proline CSV-Umwandler – Techniker Berechnungstools</title>
+    <title>CSV-Umwandler – Techniker Berechnungstools</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
     <style>
         .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
         .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
         .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
-        .file-input-wrap { margin-bottom: 16px; }
-        .file-input-wrap input[type="file"] { font-family: var(--font-sans); font-size: 14px; color: var(--text-primary); }
-        #output table { margin-top: 16px; }
+        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+        .action-btn:disabled { opacity: 0.4; pointer-events: none; }
+
+        .section-divider { border: none; border-top: 1px solid var(--border-default); margin: 24px 0; }
+
+        /* Drop zone */
+        .drop-zone { border: 2px dashed var(--border-default); border-radius: var(--radius-md); padding: 32px 20px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--bg-subtle); margin-bottom: 16px; }
+        .drop-zone:hover, .drop-zone.drag-over { border-color: var(--accent-fg); background: var(--bg-accent); }
+        .drop-zone-icon { font-size: 32px; margin-bottom: 8px; }
+        .drop-zone-text { font-size: 14px; color: var(--text-secondary); }
+        .drop-zone-text strong { color: var(--accent-fg); }
+        .drop-zone-hint { font-size: 12px; color: var(--text-tertiary); margin-top: 4px; }
+        .drop-zone input[type="file"] { display: none; }
+
+        /* File info */
+        .file-info { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--bg-success); border: 1px solid var(--border-default); border-radius: var(--radius-md); margin-bottom: 16px; font-size: 13px; color: var(--text-success); }
+        .file-info .file-name { font-weight: 600; font-family: var(--font-mono); }
+        .file-info .file-remove { margin-left: auto; cursor: pointer; color: var(--text-danger); font-weight: bold; font-size: 16px; }
+
+        /* Settings row */
+        .settings-row { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+        .settings-row label { font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
+        .settings-row select, .settings-row .input-field { max-width: 160px; }
+        .setting-group { display: flex; align-items: center; gap: 6px; }
+
+        /* Stats */
+        .stats-bar { display: flex; gap: 16px; flex-wrap: wrap; padding: 10px 16px; background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); margin-bottom: 16px; font-size: 13px; }
+        .stat-item { color: var(--text-secondary); }
+        .stat-item strong { color: var(--text-primary); font-family: var(--font-mono); }
+
+        /* Column toggles */
+        .col-toggles { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+        .col-toggle { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; font-size: 12px; border-radius: 20px; border: 1px solid var(--border-default); background: var(--bg-default); cursor: pointer; transition: all 0.15s; font-family: var(--font-sans); color: var(--text-secondary); }
+        .col-toggle.active { background: var(--bg-accent); border-color: var(--accent-fg); color: var(--accent-fg); font-weight: 500; }
+        .col-toggle:hover { border-color: var(--accent-fg); }
+
+        /* Preview table */
+        .preview-wrap { max-height: 400px; overflow: auto; border: 1px solid var(--border-default); border-radius: var(--radius-md); margin-bottom: 16px; }
+        .preview-wrap table { margin: 0; border-radius: 0; font-size: 13px; }
+        .preview-wrap table th { position: sticky; top: 0; z-index: 1; }
+        .preview-wrap table td, .preview-wrap table th { white-space: nowrap; padding: 6px 12px; }
+        .col-hidden { display: none; }
     </style>
 </head>
 <body data-tool-id="csv">
+
     <header>
         <div class="header-left">
-            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
             <span class="header-title">Techniker Berechnungstools</span>
         </div>
         <div class="header-right">
-            <button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button>
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln">
+                <span id="themeIcon">🌙</span>
+            </button>
         </div>
     </header>
+
     <div class="back-bar">
         <a href="index.html" class="back-link">
             <svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg>
             Zurück zur Übersicht
         </a>
     </div>
+
     <div class="page-container">
         <div class="container">
             <div class="description">
-                📄 Wandelt die CSV-Datei vom Promag in ein PDF-Format um. Laden Sie eine CSV-Datei hoch und klicken Sie auf "Konvertieren".
+                📄 CSV-Dateien laden, anzeigen und als PDF oder neue CSV exportieren. Automatische Trennzeichen-Erkennung, Encoding-Auswahl, Spaltenfilter und Dezimalformat-Umwandlung.
             </div>
-            <div class="file-input-wrap">
-                <input type="file" id="fileInput" accept=".csv">
+
+            <!-- Drop Zone -->
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-zone-icon">📁</div>
+                <div class="drop-zone-text"><strong>Datei hierher ziehen</strong> oder klicken zum Auswählen</div>
+                <div class="drop-zone-hint">Unterstützt: .csv, .txt, .tsv</div>
+                <input type="file" id="fileInput" accept=".csv,.txt,.tsv">
             </div>
-            <div class="action-bar">
-                <button class="action-btn" onclick="convertCSV()">
-                    <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0z"/></svg>
-                    Konvertieren
-                </button>
-                <button class="action-btn" id="downloadPdfBtn" style="display:none;" onclick="downloadPDF()">
-                    <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
+
+            <!-- File info -->
+            <div class="file-info" id="fileInfo" style="display:none;">
+                <span>✓</span>
+                <span class="file-name" id="fileName"></span>
+                <span id="fileSize"></span>
+                <span class="file-remove" onclick="removeFile()" title="Datei entfernen">×</span>
+            </div>
+
+            <!-- Einstellungen -->
+            <div class="settings-row" id="settingsRow" style="display:none;">
+                <div class="setting-group">
+                    <label>Encoding:</label>
+                    <select class="input-field" id="encoding" onchange="reparse()">
+                        <option value="UTF-8">UTF-8</option>
+                        <option value="ISO-8859-1">Latin-1 (ISO-8859-1)</option>
+                        <option value="windows-1252">Windows-1252</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label>Trennzeichen:</label>
+                    <select class="input-field" id="delimiter" onchange="reparse()">
+                        <option value="auto">Automatisch</option>
+                        <option value=";">Semikolon (;)</option>
+                        <option value=",">Komma (,)</option>
+                        <option value="tab">Tab</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label>Dezimalformat:</label>
+                    <select class="input-field" id="decimalAction">
+                        <option value="none">Nicht ändern</option>
+                        <option value="comma_to_dot">Komma → Punkt</option>
+                        <option value="dot_to_comma">Punkt → Komma</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label>
+                        <input type="checkbox" id="firstRowHeader" checked onchange="reparse()"> Erste Zeile = Header
+                    </label>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-bar" id="statsBar" style="display:none;">
+                <div class="stat-item">Zeilen: <strong id="statRows">0</strong></div>
+                <div class="stat-item">Spalten: <strong id="statCols">0</strong></div>
+                <div class="stat-item">Trennzeichen: <strong id="statDelim">—</strong></div>
+                <div class="stat-item">Encoding: <strong id="statEnc">—</strong></div>
+            </div>
+
+            <!-- Column toggles -->
+            <div class="col-toggles" id="colToggles" style="display:none;"></div>
+
+            <!-- Preview -->
+            <div class="preview-wrap" id="previewWrap" style="display:none;">
+                <table id="previewTable">
+                    <thead id="previewHead"></thead>
+                    <tbody id="previewBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Export buttons -->
+            <div class="action-bar" id="exportBar" style="display:none;">
+                <button class="action-btn" onclick="downloadPDF()">
+                    <svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
                     Als PDF speichern
                 </button>
+                <button class="action-btn" onclick="downloadCSV(';')">
+                    <svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
+                    CSV (Semikolon)
+                </button>
+                <button class="action-btn" onclick="downloadCSV(',')">
+                    <svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
+                    CSV (Komma)
+                </button>
+                <button class="action-btn" onclick="downloadCSV('\\t')">
+                    <svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
+                    TSV (Tab)
+                </button>
             </div>
-            <div id="output"></div>
+
+            <div class="shortcuts-hint">
+                <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+                <span><kbd>Esc</kbd> Zurücksetzen</span>
+            </div>
         </div>
     </div>
+
     <footer class="bottom-header">
         <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
     </footer>
+
     <script src="shared.js"></script>
     <script>
-        function convertCSV() {
-            const file = document.getElementById('fileInput').files[0];
-            if (!file) { alert("Bitte eine CSV-Datei hochladen!"); return; }
+        // ============ STATE ============
+        let rawBuffer = null;   // ArrayBuffer from file
+        let parsedData = [];    // 2D array of strings
+        let headers = [];       // column headers
+        let colVisible = [];    // boolean array for column visibility
+        let currentFileName = '';
+
+        // ============ DRAG & DROP ============
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            if (e.dataTransfer.files.length > 0) loadFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) loadFile(fileInput.files[0]);
+        });
+
+        // ============ FILE LOADING ============
+        function loadFile(file) {
+            currentFileName = file.name;
             const reader = new FileReader();
-            reader.onload = function(event) {
-                let csv = event.target.result.replace(/"/g, "");
-                const rows = csv.split("\n");
-                let html = '<table>';
-                rows.forEach(row => { const cells = row.split(","); html += '<tr>'; cells.forEach(cell => { html += '<td>' + cell.trim() + '</td>'; }); html += '</tr>'; });
-                html += '</table>';
-                document.getElementById('output').innerHTML = html;
-                document.getElementById('downloadPdfBtn').style.display = 'inline-flex';
+            reader.onload = function(e) {
+                rawBuffer = e.target.result;
+                // Show file info
+                document.getElementById('fileInfo').style.display = 'flex';
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('fileSize').textContent = formatBytes(file.size);
+                dropZone.style.display = 'none';
+                document.getElementById('settingsRow').style.display = 'flex';
+                reparse();
             };
-            reader.readAsText(file);
+            reader.readAsArrayBuffer(file);
         }
+
+        function removeFile() {
+            rawBuffer = null;
+            parsedData = [];
+            headers = [];
+            colVisible = [];
+            currentFileName = '';
+            fileInput.value = '';
+            document.getElementById('fileInfo').style.display = 'none';
+            dropZone.style.display = '';
+            document.getElementById('settingsRow').style.display = 'none';
+            document.getElementById('statsBar').style.display = 'none';
+            document.getElementById('colToggles').style.display = 'none';
+            document.getElementById('previewWrap').style.display = 'none';
+            document.getElementById('exportBar').style.display = 'none';
+        }
+
+        function formatBytes(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        // ============ PARSING ============
+        function reparse() {
+            if (!rawBuffer) return;
+            const enc = document.getElementById('encoding').value;
+            const decoder = new TextDecoder(enc);
+            const text = decoder.decode(rawBuffer);
+            const delimSetting = document.getElementById('delimiter').value;
+            const hasHeader = document.getElementById('firstRowHeader').checked;
+
+            // Detect delimiter
+            const delim = (delimSetting === 'auto') ? detectDelimiter(text) : (delimSetting === 'tab' ? '\t' : delimSetting);
+
+            // Parse
+            const rows = parseCSV(text, delim);
+
+            if (rows.length === 0) return;
+
+            // Normalize column count
+            const maxCols = Math.max(...rows.map(r => r.length));
+            rows.forEach(r => { while (r.length < maxCols) r.push(''); });
+
+            if (hasHeader && rows.length > 1) {
+                headers = rows[0];
+                parsedData = rows.slice(1);
+            } else {
+                headers = rows[0].map((_, i) => 'Spalte ' + (i + 1));
+                parsedData = rows;
+            }
+
+            // Init column visibility
+            colVisible = headers.map(() => true);
+
+            // Stats
+            document.getElementById('statsBar').style.display = 'flex';
+            document.getElementById('statRows').textContent = parsedData.length;
+            document.getElementById('statCols').textContent = headers.length;
+            document.getElementById('statDelim').textContent = delimName(delim);
+            document.getElementById('statEnc').textContent = enc;
+
+            buildColToggles();
+            renderPreview();
+            document.getElementById('exportBar').style.display = 'flex';
+        }
+
+        function detectDelimiter(text) {
+            const firstLines = text.split('\n').slice(0, 5).join('\n');
+            const semicolons = (firstLines.match(/;/g) || []).length;
+            const commas = (firstLines.match(/,/g) || []).length;
+            const tabs = (firstLines.match(/\t/g) || []).length;
+            if (tabs >= semicolons && tabs >= commas && tabs > 0) return '\t';
+            if (semicolons >= commas) return ';';
+            return ',';
+        }
+
+        function delimName(d) {
+            if (d === ';') return 'Semikolon';
+            if (d === ',') return 'Komma';
+            if (d === '\t') return 'Tab';
+            return d;
+        }
+
+        function parseCSV(text, delim) {
+            const rows = [];
+            let current = [];
+            let field = '';
+            let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const c = text[i];
+                if (inQuotes) {
+                    if (c === '"') {
+                        if (i + 1 < text.length && text[i + 1] === '"') {
+                            field += '"';
+                            i++;
+                        } else {
+                            inQuotes = false;
+                        }
+                    } else {
+                        field += c;
+                    }
+                } else {
+                    if (c === '"') {
+                        inQuotes = true;
+                    } else if (c === delim) {
+                        current.push(field.trim());
+                        field = '';
+                    } else if (c === '\r') {
+                        // skip
+                    } else if (c === '\n') {
+                        current.push(field.trim());
+                        if (current.some(f => f !== '')) rows.push(current);
+                        current = [];
+                        field = '';
+                    } else {
+                        field += c;
+                    }
+                }
+            }
+            // Last field
+            current.push(field.trim());
+            if (current.some(f => f !== '')) rows.push(current);
+            return rows;
+        }
+
+        // ============ COLUMN TOGGLES ============
+        function buildColToggles() {
+            const wrap = document.getElementById('colToggles');
+            wrap.style.display = 'flex';
+            wrap.innerHTML = '';
+            headers.forEach((h, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'col-toggle active';
+                btn.textContent = h || ('Spalte ' + (i + 1));
+                btn.dataset.col = i;
+                btn.onclick = function() {
+                    colVisible[i] = !colVisible[i];
+                    btn.classList.toggle('active', colVisible[i]);
+                    applyColVisibility();
+                };
+                wrap.appendChild(btn);
+            });
+        }
+
+        function applyColVisibility() {
+            const table = document.getElementById('previewTable');
+            const allRows = table.querySelectorAll('tr');
+            allRows.forEach(row => {
+                const cells = row.querySelectorAll('th, td');
+                cells.forEach((cell, i) => {
+                    cell.classList.toggle('col-hidden', !colVisible[i]);
+                });
+            });
+        }
+
+        // ============ PREVIEW ============
+        function renderPreview() {
+            const thead = document.getElementById('previewHead');
+            const tbody = document.getElementById('previewBody');
+            thead.innerHTML = '';
+            tbody.innerHTML = '';
+
+            // Header
+            let hr = '<tr>';
+            headers.forEach((h, i) => {
+                hr += '<th' + (colVisible[i] ? '' : ' class="col-hidden"') + '>' + escHtml(h || ('Spalte ' + (i + 1))) + '</th>';
+            });
+            hr += '</tr>';
+            thead.innerHTML = hr;
+
+            // Body
+            let html = '';
+            parsedData.forEach(row => {
+                html += '<tr>';
+                row.forEach((cell, i) => {
+                    html += '<td' + (colVisible[i] ? '' : ' class="col-hidden"') + '>' + escHtml(cell) + '</td>';
+                });
+                html += '</tr>';
+            });
+            tbody.innerHTML = html;
+
+            document.getElementById('previewWrap').style.display = 'block';
+        }
+
+        function escHtml(s) {
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // ============ DECIMAL CONVERSION ============
+        function convertDecimal(value) {
+            const action = document.getElementById('decimalAction').value;
+            if (action === 'none') return value;
+            if (action === 'comma_to_dot') {
+                // Only convert if it looks like a number with comma decimal
+                if (/^-?\d{1,3}(\.\d{3})*,\d+$/.test(value)) {
+                    return value.replace(/\./g, '').replace(',', '.');
+                }
+                if (/^-?\d+,\d+$/.test(value)) {
+                    return value.replace(',', '.');
+                }
+            }
+            if (action === 'dot_to_comma') {
+                if (/^-?\d{1,3}(,\d{3})*\.\d+$/.test(value)) {
+                    return value.replace(/,/g, '').replace('.', ',');
+                }
+                if (/^-?\d+\.\d+$/.test(value)) {
+                    return value.replace('.', ',');
+                }
+            }
+            return value;
+        }
+
+        function getVisibleData() {
+            const visHeaders = headers.filter((_, i) => colVisible[i]);
+            const visData = parsedData.map(row =>
+                row.filter((_, i) => colVisible[i]).map(convertDecimal)
+            );
+            return { headers: visHeaders.map(convertDecimal), data: visData };
+        }
+
+        // ============ PDF EXPORT ============
         function downloadPDF() {
             const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF();
-            const t = document.getElementById('output').getElementsByTagName('table')[0];
-            if (!t) { alert("Keine Tabelle zum Speichern gefunden!"); return; }
-            const rows = [];
-            for (let i = 0; i < t.rows.length; i++) { let r = []; for (let j = 0; j < t.rows[i].cells.length; j++) { r.push(t.rows[i].cells[j].innerText); } rows.push(r); }
-            pdf.autoTable({ head: [rows[0]], body: rows.slice(1), startY: 10, theme: 'grid', headStyles: { fillColor: '#089ce4' }, styles: { fontSize: 10 }, margin: { top: 10 } });
-            pdf.save('konvertierte_tabelle.pdf');
+            const pdf = new jsPDF({ orientation: 'landscape' });
+            const vis = getVisibleData();
+
+            pdf.setFontSize(14);
+            pdf.setTextColor(15, 27, 45);
+            pdf.text(currentFileName || 'CSV Export', 10, 15);
+
+            pdf.autoTable({
+                startY: 22,
+                head: [vis.headers],
+                body: vis.data,
+                theme: 'grid',
+                headStyles: { fillColor: [9, 105, 218], textColor: 255, fontStyle: 'bold', halign: 'center', fontSize: 8 },
+                bodyStyles: { fontSize: 7, halign: 'center' },
+                styles: { cellPadding: 2 },
+                margin: { left: 10, right: 10 }
+            });
+
+            const baseName = currentFileName.replace(/\.[^.]+$/, '') || 'export';
+            pdf.save(baseName + '.pdf');
+        }
+
+        // ============ CSV EXPORT ============
+        function downloadCSV(newDelim) {
+            const vis = getVisibleData();
+            let content = vis.headers.map(h => quoteIfNeeded(h, newDelim)).join(newDelim) + '\n';
+            vis.data.forEach(row => {
+                content += row.map(cell => quoteIfNeeded(cell, newDelim)).join(newDelim) + '\n';
+            });
+
+            const blob = new Blob(['\ufeff' + content], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const baseName = currentFileName.replace(/\.[^.]+$/, '') || 'export';
+            const ext = newDelim === '\t' ? '.tsv' : '.csv';
+            a.download = baseName + '_konvertiert' + ext;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function quoteIfNeeded(val, delim) {
+            if (val.indexOf(delim) !== -1 || val.indexOf('"') !== -1 || val.indexOf('\n') !== -1) {
+                return '"' + val.replace(/"/g, '""') + '"';
+            }
+            return val;
         }
     </script>
+
 </body>
 </html>

@@ -107,22 +107,38 @@
 
     <footer class="bottom-header">
         <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
-        <div class="footer-links"><a href="Impressum.html">Impressum</a></div>
+        <div class="footer-links">
+            <a href="Impressum.html">Impressum</a>
+            <span style="color:var(--text-tertiary);margin:0 6px;">·</span>
+            <a href="Kontakt.html">Kontakt & Vorschläge</a>
+            <span style="color:var(--text-tertiary);margin:0 6px;">·</span>
+            <a href="Statistiken.html">Statistiken</a>
+        </div>
     </footer>
 
     <script src="shared.js"></script>
     <script>
         const DEFAULT_TOOLS = [
-            { id: 'stromausgang', title: 'Stromausgangsberechnung', desc: 'Messwert aus Stromausgang berechnen (4–20 mA / 0–20 mA) mit %-Darstellung.', icon: '⚡', href: 'Stromausgang.html', tags: ['Kalibrierung', 'Strom'] },
-            { id: 'dichte', title: 'Dichteberechnung', desc: 'Dichte eines Stoffes über Mehrfachwägung und Volumen berechnen.', icon: '⚖️', href: 'Dichteberechnung.html', tags: ['Durchfluss'] },
-            { id: 'impuls', title: 'Impulswertigkeitsberechnung', desc: 'Impulswertigkeit aus Volumen- oder Massenflusswerten berechnen.', icon: '📊', href: 'Impulswertigkeit.html', tags: ['Durchfluss', 'Impuls'] },
-            { id: 'volmasse', title: 'Volumen-Masse-Umrechnung', desc: 'Volumen ↔ Masse konvertieren – unterstützt m³, l, kg, t.', icon: '🔄', href: 'VolumenMasse.html', tags: ['Umrechnung'] },
-            { id: 'fliess', title: 'Fließgeschwindigkeit', desc: 'Fließgeschwindigkeit in Rohrleitungen berechnen.', icon: '🌊', href: 'Fliessgeschwindigkeit.html', tags: ['Durchfluss'] },
-            { id: 'kalibrier', title: 'Kalibrierpunkte', desc: 'Kalibrierungstabelle mit Strom-, Messwerten und Abweichung.', icon: '🎯', href: 'Kalibrierpunkte.html', tags: ['Kalibrierung', 'Strom'] },
-            { id: 'abweichung', title: 'Messwertabweichung', desc: 'Prozentuale Abweichung zur Bewertung der Messgenauigkeit.', icon: '📏', href: 'Messwertabweichung.html', tags: ['Kalibrierung'] },
-            { id: 'ph', title: 'pH-Steilheitstest', desc: 'Steilheit einer pH-Sonde prüfen und bewerten.', icon: '🧪', href: 'PHWert.html', tags: ['Analytik'] },
-            { id: 'csv', title: 'Proline CSV-Umwandler', desc: 'CSV-Datei vom Promag ins PDF-Format umwandeln.', icon: '📄', href: 'csv.html', tags: ['CSV', 'Export'] },
-            { id: 'csvvisu', title: 'MultiRecorder CSV-Visualisierung', desc: 'Daten aus dem MultiRecorder als Graph darstellen.', icon: '📈', href: 'csvauswertung.html', tags: ['CSV', 'Visualisierung'] },
+            { id: 'stromausgang', title: 'Stromausgangsberechnung', desc: 'Signal ↔ Messwert berechnen (4–20 mA / 0–20 mA / 0–10 V) mit NAMUR NE43 Bewertung.', icon: '⚡', href: 'Stromausgang.html', tags: ['Kalibrierung', 'Signal'] },
+            { id: 'dichte', title: 'Dichteberechnung', desc: 'Dichte über Mehrfachwägung mit Statistik, Tara und Rückrechnung.', icon: '⚖️', href: 'Dichteberechnung.html', tags: ['Analytik', 'Umrechnung'] },
+            { id: 'impuls', title: 'Impulswertigkeitsberechnung', desc: 'Impulswertigkeit, Totalizer, Rückrechnung und Max. Durchfluss berechnen.', icon: '📊', href: 'Impulswertigkeit.html', tags: ['Durchfluss', 'Kalibrierung'] },
+            { id: 'volmasse', title: 'Volumen-Masse-Umrechnung', desc: 'Volumen ↔ Masse und Volumenstrom ↔ Massenstrom mit Dichte umrechnen.', icon: '🔄', href: 'VolumenMasse.html', tags: ['Umrechnung', 'Durchfluss'] },
+            { id: 'fliess', title: 'Fließgeschwindigkeit', desc: 'Fließgeschwindigkeit in Rohrleitungen mit DN-Auswahl, Ampel und Vergleichstabelle.', icon: '🌊', href: 'Fliessgeschwindigkeit.html', tags: ['Durchfluss', 'Umrechnung'] },
+            { id: 'kalibrier', title: 'Kalibrierpunkte', desc: 'Kalibriertabelle für 4–20 mA, 0–20 mA und 0–10 V mit wählbarer Einheit.', icon: '🎯', href: 'Kalibrierpunkte.html', tags: ['Kalibrierung', 'Signal'] },
+            { id: 'abweichung', title: 'Messwertabweichung', desc: 'Soll-Ist-Vergleich mit Toleranzprüfung, Statistik, Chart und PDF-Protokoll.', icon: '📏', href: 'Messwertabweichung.html', tags: ['Kalibrierung', 'Analytik'] },
+            { id: 'ph', title: 'pH Steilheit', desc: 'Steilheit und Nullpunkt einer pH-Sonde mit Nernst-Temperaturkompensation prüfen.', icon: '🧪', href: 'PHWert.html', tags: ['Analytik', 'Kalibrierung'] },
+            { id: 'csv', title: 'CSV-Umwandler', desc: 'CSV-Dateien laden, anzeigen, Spalten filtern und als PDF oder CSV exportieren.', icon: '📄', href: 'csv.html', tags: ['CSV', 'Export'] },
+            { id: 'csvvisu', title: 'CSV-Visualisierung', desc: 'MultiRecorder-Daten als interaktive Graphen mit Statistik darstellen.', icon: '📈', href: 'csvauswertung.html', tags: ['CSV', 'Visualisierung'] },
+            { id: 'tempsensor', title: 'Temperatursensor-Rechner', desc: 'Pt100/Pt1000 und Thermoelemente (Typ K, J, T, E, N) — Temperatur ↔ Widerstand/Spannung.', icon: '🌡️', href: 'Temperatursensor.html', tags: ['Analytik', 'Kalibrierung'] },
+            { id: 'einheiten', title: 'Einheiten-Universalrechner', desc: 'Druck, Temperatur, Länge, Volumen, Masse, Durchfluss und mehr umrechnen.', icon: '📐', href: 'Einheiten.html', tags: ['Umrechnung'] },
+            { id: 'tank', title: 'Tankinhalt-Rechner', desc: 'Füllvolumen aus Füllstand berechnen für Zylinder, Kugel und Konus.', icon: '🛢️', href: 'Tankinhalt.html', tags: ['Durchfluss', 'Umrechnung'] },
+            { id: 'dampf', title: 'Dampftabelle', desc: 'Sattdampf: Druck ↔ Temperatur, Enthalpie, Dichte und spez. Volumen.', icon: '♨️', href: 'Dampftabelle.html', tags: ['Analytik', 'Umrechnung'] },
+            { id: 'einbau', title: 'Einlaufstrecken-Rechner', desc: 'Gerade Ein-/Auslaufstrecken für Durchflussmesser nach Störquelle berechnen.', icon: '📏', href: 'Einbaulaengen.html', tags: ['Durchfluss', 'Kalibrierung'] },
+            { id: 'burden', title: '4-20mA Bürdenrechner', desc: 'Schleifenwiderstand, max. Kabellänge und HART-Prüfung für Stromschleifen.', icon: '🔌', href: 'Buerdenrechner.html', tags: ['Signal', 'Kalibrierung'] },
+            { id: 'blende', title: 'Blenden/DP-Durchflussrechner', desc: 'Durchfluss aus Differenzdruck an Messblenden nach ISO 5167 berechnen.', icon: '🔧', href: 'BlendeDP.html', tags: ['Durchfluss', 'Kalibrierung'] },
+            { id: 'schutzart', title: 'Schutzarten-Nachschlagewerk', desc: 'IP-Schutzarten und Explosionsschutz (Ex-Zonen, Zündschutzarten, ATEX).', icon: '🛡️', href: 'Schutzarten.html', tags: ['Nachschlagewerk'] },
+            { id: 'flansch', title: 'DN/Flansch-Tabelle', desc: 'Flanschabmessungen nach DIN EN 1092-1 für PN10, PN16, PN25, PN40.', icon: '🔩', href: 'Flansch.html', tags: ['Nachschlagewerk', 'Umrechnung'] },
+            { id: 'viskositaet', title: 'Viskositäts-Umrechner', desc: 'Dynamische und kinematische Viskosität umrechnen mit Medien-Referenztabelle.', icon: '💧', href: 'Viskositaet.html', tags: ['Umrechnung', 'Analytik'] },
         ];
 
         let toolOrder = [];
@@ -284,11 +300,6 @@
             searchQuery = e.target.value.toLowerCase().trim();
             render();
         });
-
-        // Override theme toggle to also save tool state
-        const origToggle = toggleTheme;
-        document.getElementById('themeToggle').removeEventListener('click', toggleTheme);
-        document.getElementById('themeToggle').addEventListener('click', () => { origToggle(); saveState(); });
 
         loadState();
         buildFilterBar();

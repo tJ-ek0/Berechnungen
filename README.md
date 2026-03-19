@@ -1,59 +1,103 @@
-# Berechnungstools
+# Techniker Berechnungstools
 
-Dieses Projekt besteht aus einer Sammlung von Berechnungstools, die verschiedene industrielle Berechnungen wie Fließgeschwindigkeit, Kalibrierpunkte, Stromausgang, Dichteberechnung und Profinetauslastung ermöglichen. Die Tools sind in einem einheitlichen Design gehalten und über eine einfache Navigationsleiste zugänglich.
+Sammlung von Berechnungstools für die Prozessmesstechnik — speziell für Servicetechniker im Bereich Durchfluss, Füllstand, Druck, Temperatur und Analytik. Gehostet auf GitHub Pages.
 
-## Projektübersicht
+## 20 Tools
 
-- **index.html**: Startseite des Projekts, von der aus alle Berechnungstools erreichbar sind.
-- **Stromausgang.html**: Berechnung des Messwertes basierend auf dem Stromausgang.
-- **Dichteberechnung.html**: Berechnung der Dichte basierend auf verschiedenen Messwerten.
-- **Impulswertigkeit.html**: Berechnung der Impulswertigkeit und Impulsbreite.
-- **VolumenMasse.html**: Umrechnung von Volumen in Masse oder Masse in Volumen.
-- **Fliessgeschwindigkeit.html**: Berechnung der Fließgeschwindigkeit basierend auf Durchfluss und Nennweite.
-- **Kalibrierpunkte.html**: Berechnung von Kalibrierpunkten auf Basis eines Mess- und Strombereichs.
-- **Profinetauslastung.html**: Berechnung der Profinetauslastung (Network Calculation Tool).
-- **impressum.html**: Impressum der Website.
+### Kalibrierung & Signal
+| Tool | Beschreibung |
+|------|-------------|
+| **Stromausgangsberechnung** | Signal ↔ Messwert (4–20 mA / 0–20 mA / 0–10 V) mit NAMUR NE43 Bewertung und Kalibriertabelle |
+| **Kalibrierpunkte** | Kalibriertabelle für alle Signaltypen mit wählbarer Einheit (0% bis 100%) |
+| **Messwertabweichung** | Soll-Ist-Vergleich mit Toleranzprüfung, Statistik, Balkendiagramm und PDF-Protokollexport |
+| **4-20mA Bürdenrechner** | Schleifenwiderstand, max. Kabellänge, HART-Prüfung, Schaltplan-Visualisierung |
+
+### Durchfluss
+| Tool | Beschreibung |
+|------|-------------|
+| **Impulswertigkeitsberechnung** | Impulswertigkeit, Totalizer (Schicht/Tag/Woche), Rückrechnung, Max. Durchfluss |
+| **Fließgeschwindigkeit** | DN-Standardgrößen, Ampel-Bewertung, Rückrechnungen, Vergleichstabelle aller DN |
+| **Blenden/DP-Durchflussrechner** | Durchfluss aus Differenzdruck nach ISO 5167 — K-Faktor oder Blendengeometrie |
+| **Einlaufstrecken-Rechner** | Gerade Ein-/Auslaufstrecken für 6 Messgerätetypen × 9 Störquellen mit Rohrleitungs-SVG |
+
+### Umrechnung
+| Tool | Beschreibung |
+|------|-------------|
+| **Volumen-Masse-Umrechnung** | Beide Richtungen gleichzeitig + Volumenstrom ↔ Massenstrom mit Dichte |
+| **Einheiten-Universalrechner** | 8 Kategorien: Druck, Temperatur, Länge, Fläche, Volumen, Masse, Durchfluss, Geschwindigkeit |
+| **Viskositäts-Umrechner** | Dynamisch ↔ Kinematisch, alle Einheiten, Medien-Referenztabelle mit 40 Stoffen |
+| **Tankinhalt-Rechner** | Füllvolumen aus Füllstand für stehenden/liegenden Zylinder, Kugel und Konus |
+
+### Analytik & Sensoren
+| Tool | Beschreibung |
+|------|-------------|
+| **Dichteberechnung** | Flexible Messungen, Tara, Streuungsanalyse, 3 Einheiten gleichzeitig, Rückrechnung |
+| **pH Steilheit** | Nernst-Temperaturkompensation, Steilheit in %, Nullpunkt, Kennlinien-Chart |
+| **Temperatursensor-Rechner** | Pt100/Pt1000 (Callendar-Van-Dusen) und Thermoelemente Typ K, J, T, E, N |
+| **Dampftabelle** | Sattdampf: Druck ↔ Temperatur, Enthalpie, Dichte, spez. Volumen (52 Stützpunkte) |
+
+### Nachschlagewerke
+| Tool | Beschreibung |
+|------|-------------|
+| **Schutzarten-Nachschlagewerk** | IP-Decoder, Zündschutzarten, Explosionsgruppen, Temperaturklassen, Ex-Zonen |
+| **DN/Flansch-Tabelle** | DIN EN 1092-1 Flanschabmessungen für PN10–PN40, DN10–DN600, ANSI-Vergleich |
+
+### CSV-Tools
+| Tool | Beschreibung |
+|------|-------------|
+| **CSV-Umwandler** | Drag & Drop, Auto-Trennzeichen, Encoding-Auswahl, Spaltenfilter, Dezimalformat, 4 Exportformate |
+| **CSV-Visualisierung** | MultiRecorder-Daten als interaktive Graphen mit Zoom, Statistik und PDF-Export |
+
+## Features
+
+- **Design** — GitHub-inspiriertes Design mit Dark/Light Mode
+- **Startseite** — Drag & Drop Sortierung, Favoriten, Kategoriefilter, Suchfeld
+- **Alle Tools** — Live-Berechnung bei Eingabe, Ergebnisse in Echtzeit
+- **Ampel-Bewertung** — Farbliche Statusanzeige (grün/gelb/rot) auf den meisten Tools
+- **Tastenkürzel** — Ctrl+C (Kopieren), Esc (Zurücksetzen), Ctrl+P (PDF), Ctrl+L (Teilen)
+- **Teilen** — URL-Parameter für vorausgefüllte Werte
+- **PDF-Export** — auf allen Tools verfügbar
+- **Deutsche Zahlenformatierung** — Komma als Dezimalzeichen in Ergebnisfeldern
+- **Kontaktformular** — Vorschläge und Fehlermeldungen per E-Mail
+- **Statistiken** — Lokale Nutzungsstatistiken (Seitenaufrufe, Tool-Nutzung)
+- **Responsive** — Funktioniert auf Desktop und Mobilgeräten
+- **Offline-fähig** — Alle Tools sind clientseitig, keine Server-Berechnung
+
+## Technologie
+
+- Reines HTML, CSS, JavaScript — kein Framework, kein Build-Prozess
+- Chart.js für Diagramme
+- jsPDF + autoTable für PDF-Export
+- GitHub Pages für Hosting
+- localStorage für Theme, Favoriten, Sortierung und Statistiken
 
 ## Dateien
 
-### 1. **index.html**
-Dies ist die Frontpage des Projekts. Hier kannst du Text einfügen, um eine Übersicht zu geben. Es enthält eine Navigationsleiste zu allen Berechnungstools.
-
-### 2. **Stromausgang.html**
-Ein Tool zur Berechnung des Messwertes basierend auf dem Stromausgang. Der Benutzer kann zwischen den Strombereichen 4–20 mA und 0–20 mA wählen. Der Messwert wird anhand des Stroms und des Messbereichs berechnet.
-
-### 3. **Dichteberechnung.html**
-Dieses Tool ermöglicht die Berechnung der Dichte, indem ein Gefäß gewogen und das Volumen in Masse umgerechnet wird. Der Benutzer kann mehrere Gewichtswerte eingeben, um die Dichte zu berechnen.
-
-### 4. **Impulswertigkeit.html**
-Hier wird die Impulswertigkeit basierend auf Durchflussmenge und Impulswertigkeit in ltr/Imp oder m³/Imp berechnet. Das Tool unterstützt auch die Berechnung der Impulsbreite.
-
-### 5. **VolumenMasse.html**
-Dieses Tool ermöglicht die Umrechnung zwischen Volumen und Masse. Der Benutzer gibt entweder Volumen oder Masse sowie die Dichte ein, und das Tool berechnet das entsprechende Ergebnis in m³, l, kg oder t.
-
-### 6. **Fliessgeschwindigkeit.html**
-Mit diesem Tool kann die Fließgeschwindigkeit eines Fluids basierend auf dem Durchfluss und der Nennweite des Rohres berechnet werden. Es unterstützt verschiedene Einheiten für den Durchfluss wie m³/h, l/h, kg/h und mehr.
-
-### 7. **Kalibrierpunkte.html**
-Das Tool ermöglicht die Berechnung von Kalibrierpunkten. Der Benutzer gibt den Messbereich und den Strombereich ein (0...20 mA oder 4...20 mA) sowie die Anzahl der gewünschten Kalibrierpunkte. Das Tool berechnet die Kalibrierpunkte und stellt sie in einer Tabelle dar.
-
-### 8. **Profinetauslastung.html**
-Dieses Tool berechnet die Profinetauslastung eines Netzwerks. Der Benutzer gibt die Anzahl der Geräte, die Zykluszeit, die Datenmenge pro Gerät und die Kommunikationsbeziehungen ein. Die Bandbreite und die Netzwerkauslastung werden in KBit/s und Prozent berechnet.
-
-### 9. **impressum.html**
-Enthält die rechtlich erforderlichen Informationen für das Impressum. Diese Seite kann nach den rechtlichen Anforderungen angepasst werden.
-
-## Installation
-
-1. Lade die Dateien herunter.
-2. Öffne **index.html** in einem Browser, um die Startseite der Berechnungstools zu sehen.
-3. Verwende die Navigationsleiste, um zwischen den verschiedenen Berechnungstools zu wechseln.
-
-## Anpassungen
-
-- Um Text auf der **index.html** hinzuzufügen oder zu ändern, kannst du den `div`-Abschnitt mit der Klasse `content` bearbeiten.
-- Die Seite **impressum.html** muss gegebenenfalls mit deinen eigenen rechtlichen Informationen aktualisiert werden.
-
-## Kontakt
-
-Für Fragen oder Feedback zu diesem Projekt kannst du dich an den Entwickler wenden.
+```
+index.html              — Startseite / Dashboard
+shared.js               — Gemeinsame Funktionen (Theme, Shortcuts, PDF, etc.)
+style.css               — Design-System (CSS-Variablen, Dark/Light Mode)
+Stromausgang.html       — Stromausgangsberechnung
+Dichteberechnung.html   — Dichteberechnung
+Impulswertigkeit.html   — Impulswertigkeitsberechnung
+VolumenMasse.html       — Volumen-Masse-Umrechnung
+Fliessgeschwindigkeit.html — Fließgeschwindigkeit
+Kalibrierpunkte.html    — Kalibrierpunkte
+Messwertabweichung.html — Messwertabweichung
+PHWert.html             — pH Steilheit
+csv.html                — CSV-Umwandler
+csvauswertung.html      — CSV-Visualisierung
+Temperatursensor.html   — Temperatursensor-Rechner
+Einheiten.html          — Einheiten-Universalrechner
+Tankinhalt.html         — Tankinhalt-Rechner
+Dampftabelle.html       — Dampftabelle
+Einbaulaengen.html      — Einlaufstrecken-Rechner
+Buerdenrechner.html     — 4-20mA Bürdenrechner
+BlendeDP.html           — Blenden/DP-Durchflussrechner
+Schutzarten.html        — Schutzarten-Nachschlagewerk
+Flansch.html            — DN/Flansch-Tabelle
+Viskositaet.html        — Viskositäts-Umrechner
+Kontakt.html            — Kontaktformular
+Statistiken.html        — Nutzungsstatistiken
+Impressum.html          — Impressum
+```

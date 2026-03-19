@@ -5,14 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Volumen-Masse-Umrechnung – Techniker Berechnungstools</title>
     <link rel="stylesheet" href="style.css">
-    
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
     <style>
         .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
         .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
         .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
         .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
-        
+
+        .section-divider { border: none; border-top: 1px solid var(--border-default); margin: 24px 0; }
+
+        .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-top: 12px; }
+        .result-card { background: var(--bg-success); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 10px; text-align: center; }
+        .result-card-value { font-size: 16px; font-weight: 600; color: var(--text-success); font-family: var(--font-mono); word-break: break-all; }
+        .result-card-label { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+
+        .dichte-box { background: var(--bg-accent); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 20px; }
+        .dichte-box h4 { font-size: 14px; font-weight: 600; margin-bottom: 10px; color: var(--text-primary); }
+        .dichte-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+        .dichte-row label { font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
     </style>
 </head>
 <body data-tool-id="volmasse">
@@ -60,17 +70,114 @@
             </div>
 
             <div class="description">
-                🔄 Umrechnung von Volumen in Masse und umgekehrt, basierend auf der Dichte des Materials.
+                🔄 Umrechnung von Volumen in Masse und umgekehrt, basierend auf der Dichte. Beide Richtungen gleichzeitig verfügbar, Ergebnisse in allen gängigen Einheiten. Zusätzlich: Durchfluss-Umrechnung zwischen Volumenstrom und Massenstrom.
             </div>
+
+            <!-- Dichte-Eingabe -->
+            <div class="dichte-box">
+                <h4>⚖️ Dichte</h4>
+                <div class="dichte-row">
+                    <input class="input-field" type="number" id="dichte" value="1" step="any" style="max-width:140px">
+                    <select class="input-field" id="dichte_einheit" style="max-width:120px">
+                        <option value="kgl">kg/l</option>
+                        <option value="gml">g/ml</option>
+                        <option value="kgm3">kg/m³</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Volumen → Masse -->
             <table>
-                <tr><th colspan="6">Volumen-Masse-Umrechnung</th></tr>
-                <tr><td colspan="2">Umrechnung</td><td colspan="4"><select class="input-field" id="umrechnungsart"><option value="volumenZuMasse">Volumen zu Masse</option><option value="masseZuVolumen">Masse zu Volumen</option></select></td></tr>
-                <tr><td colspan="2" id="eingabe_label">Volumen</td><td colspan="4"><input class="input-field" type="number" id="eingabe_wert" value="0"> <select class="input-field" id="eingabe_einheit"><option value="l">l</option><option value="m³">m³</option></select></td></tr>
-                <tr><td colspan="2">Dichte (kg/l)</td><td colspan="4"><input class="input-field" type="number" id="dichte" value="0"></td></tr>
-                <tr><td colspan="2" id="ausgabe_label">Masse in</td><td colspan="4"><select class="input-field" id="ausgabe_einheit"><option value="kg">kg</option><option value="t">t</option></select></td></tr>
-                <tr><td colspan="2">Ergebnis</td><td colspan="4" class="result-field"><span id="ergebnis"></span></td></tr>
+                <tr><th colspan="6">Volumen → Masse</th></tr>
+                <tr>
+                    <td colspan="2">Volumen</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="vol_input" value="0" step="any">
+                        <select class="input-field" id="vol_einheit">
+                            <option value="ml">ml</option>
+                            <option value="l" selected>l</option>
+                            <option value="m3">m³</option>
+                            <option value="gal_us">US Gallone</option>
+                        </select>
+                    </td>
+                </tr>
             </table>
-<div class="shortcuts-hint">
+            <div class="result-grid" id="masseResults" style="display:none;">
+                <div class="result-card"><div class="result-card-value" id="masse_g">—</div><div class="result-card-label">g</div></div>
+                <div class="result-card"><div class="result-card-value" id="masse_kg">—</div><div class="result-card-label">kg</div></div>
+                <div class="result-card"><div class="result-card-value" id="masse_t">—</div><div class="result-card-label">t</div></div>
+                <div class="result-card"><div class="result-card-value" id="masse_lb">—</div><div class="result-card-label">lb</div></div>
+            </div>
+
+            <hr class="section-divider">
+
+            <!-- Masse → Volumen -->
+            <table>
+                <tr><th colspan="6">Masse → Volumen</th></tr>
+                <tr>
+                    <td colspan="2">Masse</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="masse_input" value="0" step="any">
+                        <select class="input-field" id="masse_einheit">
+                            <option value="g">g</option>
+                            <option value="kg" selected>kg</option>
+                            <option value="t">t</option>
+                            <option value="lb">lb</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            <div class="result-grid" id="volResults" style="display:none;">
+                <div class="result-card"><div class="result-card-value" id="vol_ml">—</div><div class="result-card-label">ml</div></div>
+                <div class="result-card"><div class="result-card-value" id="vol_l">—</div><div class="result-card-label">l</div></div>
+                <div class="result-card"><div class="result-card-value" id="vol_m3">—</div><div class="result-card-label">m³</div></div>
+                <div class="result-card"><div class="result-card-value" id="vol_gal">—</div><div class="result-card-label">US Gallone</div></div>
+            </div>
+
+            <hr class="section-divider">
+
+            <!-- Durchfluss-Umrechnung -->
+            <table>
+                <tr><th colspan="6">Volumenstrom ↔ Massenstrom</th></tr>
+                <tr>
+                    <td colspan="2">Volumenstrom</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="flow_vol" value="0" step="any">
+                        <select class="input-field" id="flow_vol_einheit">
+                            <option value="m3h" selected>m³/h</option>
+                            <option value="lh">l/h</option>
+                            <option value="lmin">l/min</option>
+                            <option value="m3min">m³/min</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Massenstrom (errechnet)</td>
+                    <td colspan="4" class="result-field"><span id="flow_masse_result"></span></td>
+                </tr>
+            </table>
+
+            <table>
+                <tr><th colspan="6">Massenstrom → Volumenstrom</th></tr>
+                <tr>
+                    <td colspan="2">Massenstrom</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="flow_masse" value="0" step="any">
+                        <select class="input-field" id="flow_masse_einheit">
+                            <option value="kgh" selected>kg/h</option>
+                            <option value="th">t/h</option>
+                            <option value="kgmin">kg/min</option>
+                            <option value="tmin">t/min</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Volumenstrom (errechnet)</td>
+                    <td colspan="4" class="result-field"><span id="flow_vol_result"></span></td>
+                </tr>
+            </table>
+
+            <div class="shortcuts-hint">
                 <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
                 <span><kbd>Esc</kbd> Zurücksetzen</span>
                 <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
@@ -84,19 +191,207 @@
     </footer>
 
     <script src="shared.js"></script>
-
     <script>
-        function aendereUmrechnungsart(){const ua=document.getElementById('umrechnungsart').value,el=document.getElementById('eingabe_label'),al=document.getElementById('ausgabe_label'),ee=document.getElementById('eingabe_einheit'),ae=document.getElementById('ausgabe_einheit');if(ua==='volumenZuMasse'){el.innerText='Volumen';al.innerText='Masse in';ee.innerHTML='<option value="l">l</option><option value="m³">m³</option>';ae.innerHTML='<option value="kg">kg</option><option value="t">t</option>';}else{el.innerText='Masse';al.innerText='Volumen in';ee.innerHTML='<option value="kg">kg</option><option value="t">t</option>';ae.innerHTML='<option value="l">l</option><option value="m³">m³</option>';}}
-        function berechneErgebnis(){
-            const ua=document.getElementById('umrechnungsart').value,ew=parseFloat(document.getElementById('eingabe_wert').value),ee=document.getElementById('eingabe_einheit').value,ae=document.getElementById('ausgabe_einheit').value,d=parseFloat(document.getElementById('dichte').value);
-            if(!validateInput('dichte',{notZero:true}))return;
-            let erg=0;
-            if(ua==='volumenZuMasse'){let vl=ee==='m³'?ew*1000:ew;erg=vl*d;if(ae==='t')erg/=1000;}else{let mk=ee==='t'?ew*1000:ew;erg=mk/d;if(ae==='m³')erg/=1000;}
-            document.getElementById('ergebnis').innerText=erg.toFixed(2)+' '+ae;
+        // ============ DICHTE IN KG/L ============
+        function getDichteKgL() {
+            const d = parseFloat(document.getElementById('dichte').value) || 0;
+            const e = document.getElementById('dichte_einheit').value;
+            switch (e) {
+                case 'kgl': return d;
+                case 'gml': return d;       // g/ml = kg/l
+                case 'kgm3': return d / 1000;
+                default: return d;
+            }
         }
-        document.getElementById('umrechnungsart').addEventListener('change',function(){aendereUmrechnungsart();berechneErgebnis();});
-        document.querySelectorAll('#eingabe_wert,#eingabe_einheit,#dichte,#ausgabe_einheit').forEach(i=>i.addEventListener('input',berechneErgebnis));
-        aendereUmrechnungsart();
+
+        function fmt(num) {
+            if (num === 0) return '0';
+            const abs = Math.abs(num);
+            if (abs >= 1000000) return num.toLocaleString('de-DE', { maximumFractionDigits: 1 });
+            if (abs >= 100) return num.toFixed(2);
+            if (abs >= 1) return num.toFixed(3);
+            if (abs >= 0.001) return num.toFixed(4);
+            return num.toExponential(2);
+        }
+
+        // ============ VOLUMEN → MASSE ============
+        function volToLiter(val, einheit) {
+            switch (einheit) {
+                case 'ml': return val / 1000;
+                case 'l': return val;
+                case 'm3': return val * 1000;
+                case 'gal_us': return val * 3.78541;
+                default: return val;
+            }
+        }
+
+        function berechneVolZuMasse() {
+            const val = parseFloat(document.getElementById('vol_input').value) || 0;
+            const einheit = document.getElementById('vol_einheit').value;
+            const dichte = getDichteKgL();
+
+            if (val === 0 || dichte === 0) {
+                document.getElementById('masseResults').style.display = 'none';
+                return;
+            }
+
+            const liter = volToLiter(val, einheit);
+            const kg = liter * dichte;
+
+            document.getElementById('masseResults').style.display = 'grid';
+            document.getElementById('masse_g').textContent = fmt(kg * 1000);
+            document.getElementById('masse_kg').textContent = fmt(kg);
+            document.getElementById('masse_t').textContent = fmt(kg / 1000);
+            document.getElementById('masse_lb').textContent = fmt(kg * 2.20462);
+        }
+
+        // ============ MASSE → VOLUMEN ============
+        function masseToKg(val, einheit) {
+            switch (einheit) {
+                case 'g': return val / 1000;
+                case 'kg': return val;
+                case 't': return val * 1000;
+                case 'lb': return val * 0.453592;
+                default: return val;
+            }
+        }
+
+        function berechneMasseZuVol() {
+            const val = parseFloat(document.getElementById('masse_input').value) || 0;
+            const einheit = document.getElementById('masse_einheit').value;
+            const dichte = getDichteKgL();
+
+            if (val === 0 || dichte === 0) {
+                document.getElementById('volResults').style.display = 'none';
+                return;
+            }
+
+            const kg = masseToKg(val, einheit);
+            const liter = kg / dichte;
+
+            document.getElementById('volResults').style.display = 'grid';
+            document.getElementById('vol_ml').textContent = fmt(liter * 1000);
+            document.getElementById('vol_l').textContent = fmt(liter);
+            document.getElementById('vol_m3').textContent = fmt(liter / 1000);
+            document.getElementById('vol_gal').textContent = fmt(liter / 3.78541);
+        }
+
+        // ============ VOLUMENSTROM → MASSENSTROM ============
+        function flowVolToLH(val, einheit) {
+            switch (einheit) {
+                case 'm3h': return val * 1000;
+                case 'lh': return val;
+                case 'lmin': return val * 60;
+                case 'm3min': return val * 1000 * 60;
+                default: return val;
+            }
+        }
+
+        function berechneFlowVolZuMasse() {
+            const val = parseFloat(document.getElementById('flow_vol').value) || 0;
+            const einheit = document.getElementById('flow_vol_einheit').value;
+            const dichte = getDichteKgL();
+
+            if (val === 0 || dichte === 0) {
+                document.getElementById('flow_masse_result').textContent = '';
+                return;
+            }
+
+            const lh = flowVolToLH(val, einheit);
+            const kgh = lh * dichte;
+
+            // Sinnvolle Einheit
+            let text = '';
+            if (kgh >= 1000) text = fmt(kgh / 1000) + ' t/h';
+            else text = fmt(kgh) + ' kg/h';
+
+            // Auch in der Einheit die zum Input passt
+            if (einheit === 'lmin' || einheit === 'm3min') {
+                const kgmin = kgh / 60;
+                if (kgmin >= 1000) text += '  (' + fmt(kgmin / 1000) + ' t/min)';
+                else text += '  (' + fmt(kgmin) + ' kg/min)';
+            }
+
+            document.getElementById('flow_masse_result').textContent = text;
+        }
+
+        // ============ MASSENSTROM → VOLUMENSTROM ============
+        function flowMasseToKGH(val, einheit) {
+            switch (einheit) {
+                case 'kgh': return val;
+                case 'th': return val * 1000;
+                case 'kgmin': return val * 60;
+                case 'tmin': return val * 1000 * 60;
+                default: return val;
+            }
+        }
+
+        function berechneFlowMasseZuVol() {
+            const val = parseFloat(document.getElementById('flow_masse').value) || 0;
+            const einheit = document.getElementById('flow_masse_einheit').value;
+            const dichte = getDichteKgL();
+
+            if (val === 0 || dichte === 0) {
+                document.getElementById('flow_vol_result').textContent = '';
+                return;
+            }
+
+            const kgh = flowMasseToKGH(val, einheit);
+            const lh = kgh / dichte;
+
+            // Sinnvolle Einheit
+            let text = '';
+            if (lh >= 1000) text = fmt(lh / 1000) + ' m³/h';
+            else text = fmt(lh) + ' l/h';
+
+            // Auch in der Einheit die zum Input passt
+            if (einheit === 'kgmin' || einheit === 'tmin') {
+                const lmin = lh / 60;
+                if (lmin >= 1000) text += '  (' + fmt(lmin / 1000) + ' m³/min)';
+                else text += '  (' + fmt(lmin) + ' l/min)';
+            }
+
+            document.getElementById('flow_vol_result').textContent = text;
+        }
+
+        // ============ ALLES BERECHNEN ============
+        function berechneAlles() {
+            berechneVolZuMasse();
+            berechneMasseZuVol();
+            berechneFlowVolZuMasse();
+            berechneFlowMasseZuVol();
+        }
+
+        // ============ EVENT LISTENERS ============
+        // Dichte ändert alles
+        document.querySelectorAll('#dichte, #dichte_einheit').forEach(el => {
+            el.addEventListener('input', berechneAlles);
+            el.addEventListener('change', berechneAlles);
+        });
+
+        // Volumen → Masse
+        document.querySelectorAll('#vol_input, #vol_einheit').forEach(el => {
+            el.addEventListener('input', berechneVolZuMasse);
+            el.addEventListener('change', berechneVolZuMasse);
+        });
+
+        // Masse → Volumen
+        document.querySelectorAll('#masse_input, #masse_einheit').forEach(el => {
+            el.addEventListener('input', berechneMasseZuVol);
+            el.addEventListener('change', berechneMasseZuVol);
+        });
+
+        // Flow Vol → Masse
+        document.querySelectorAll('#flow_vol, #flow_vol_einheit').forEach(el => {
+            el.addEventListener('input', berechneFlowVolZuMasse);
+            el.addEventListener('change', berechneFlowVolZuMasse);
+        });
+
+        // Flow Masse → Vol
+        document.querySelectorAll('#flow_masse, #flow_masse_einheit').forEach(el => {
+            el.addEventListener('input', berechneFlowMasseZuVol);
+            el.addEventListener('change', berechneFlowMasseZuVol);
+        });
     </script>
 
 </body>

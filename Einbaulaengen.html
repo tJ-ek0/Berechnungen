@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Einlaufstrecken-Rechner – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
+        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+
+        .section-divider { border: none; border-top: 1px solid var(--border-default); margin: 24px 0; }
+
+        .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 16px; margin-bottom: 16px; }
+        .result-card { background: var(--bg-success); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 14px; text-align: center; }
+        .result-card-value { font-size: 22px; font-weight: 700; color: var(--text-success); font-family: var(--font-mono); }
+        .result-card-label { font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
+        .result-card-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; font-family: var(--font-mono); }
+
+        .info-box { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 16px; font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+        .info-box strong { color: var(--text-primary); }
+
+        .ref-table { font-size: 12px; }
+        .ref-table th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em; padding: 6px 8px; }
+        .ref-table td { padding: 6px 10px; font-size: 12px; text-align: center; }
+        .ref-table tr.highlight { background: var(--bg-accent); }
+        .ref-table .meter-col { text-align: left; font-weight: 500; color: var(--text-primary); }
+
+        .visual-pipe { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 20px; margin: 16px 0; text-align: center; overflow-x: auto; }
+        .pipe-svg { max-width: 100%; height: auto; }
+    </style>
+</head>
+<body data-tool-id="einbau">
+
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button>
+        </div>
+    </header>
+
+    <div class="back-bar">
+        <a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a>
+    </div>
+
+    <div class="page-container">
+        <div class="container">
+            <div class="action-bar">
+                <button class="action-btn" onclick="copyResults()"><svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg> Kopieren</button>
+                <button class="action-btn" onclick="resetFields()"><svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg> Zurücksetzen</button>
+                <button class="action-btn" onclick="exportPagePDF('Einlaufstrecken-Rechner')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+            </div>
+
+            <div class="description">
+                📏 Berechnet die benötigten geraden Ein- und Auslaufstrecken vor und nach Durchflussmessgeräten. Richtwerte basierend auf E+H Betriebsanleitungen und ISO 5167. Abhängig von Messgerät-Typ und Störquelle.
+            </div>
+
+            <!-- Eingabe -->
+            <table>
+                <tr><th colspan="6">Einbauparameter</th></tr>
+                <tr>
+                    <td colspan="2">Messgerät-Typ</td>
+                    <td colspan="4">
+                        <select class="input-field" id="meterType" onchange="calc()">
+                            <option value="magmeter">Magnetisch-induktiv (Promag)</option>
+                            <option value="coriolis">Coriolis (Promass)</option>
+                            <option value="vortex">Vortex (Prowirl)</option>
+                            <option value="ultrasonic">Ultraschall (Prosonic)</option>
+                            <option value="orifice">Blende / Wirkdruckgeber</option>
+                            <option value="turbine">Turbine / Flügelrad</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Störquelle vor Messgerät</td>
+                    <td colspan="4">
+                        <select class="input-field" id="disturbance" onchange="calc()">
+                            <option value="bend90">90°-Krümmer (einzeln)</option>
+                            <option value="bend90x2_same">2× 90°-Krümmer (gleiche Ebene)</option>
+                            <option value="bend90x2_diff">2× 90°-Krümmer (verschiedene Ebenen)</option>
+                            <option value="tee">T-Stück</option>
+                            <option value="reducer">Erweiterung / Verengung</option>
+                            <option value="valve_full">Absperrventil (voll offen)</option>
+                            <option value="valve_control">Regelventil / Stellventil</option>
+                            <option value="pump">Pumpe</option>
+                            <option value="none">Keine Störung (gerades Rohr)</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Nennweite (DN)</td>
+                    <td colspan="4">
+                        <select class="input-field" id="dn" onchange="calc()">
+                            <option value="15">DN15</option>
+                            <option value="25">DN25</option>
+                            <option value="32">DN32</option>
+                            <option value="40">DN40</option>
+                            <option value="50" selected>DN50</option>
+                            <option value="65">DN65</option>
+                            <option value="80">DN80</option>
+                            <option value="100">DN100</option>
+                            <option value="125">DN125</option>
+                            <option value="150">DN150</option>
+                            <option value="200">DN200</option>
+                            <option value="250">DN250</option>
+                            <option value="300">DN300</option>
+                            <option value="400">DN400</option>
+                            <option value="500">DN500</option>
+                            <option value="600">DN600</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Ergebnisse -->
+            <div class="result-grid" id="resultGrid">
+                <div class="result-card">
+                    <div class="result-card-value" id="res_upstream_dn">—</div>
+                    <div class="result-card-label">Einlaufstrecke (× DN)</div>
+                    <div class="result-card-sub" id="res_upstream_mm">—</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-value" id="res_downstream_dn">—</div>
+                    <div class="result-card-label">Auslaufstrecke (× DN)</div>
+                    <div class="result-card-sub" id="res_downstream_mm">—</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-value" id="res_total_mm">—</div>
+                    <div class="result-card-label">Gesamtlänge benötigt</div>
+                    <div class="result-card-sub" id="res_total_desc">Einlauf + Messgerät + Auslauf</div>
+                </div>
+            </div>
+
+            <!-- Visuelle Darstellung -->
+            <div class="visual-pipe" id="pipeVisual"></div>
+
+            <div class="info-box">
+                <strong>Wichtig:</strong> Die angegebenen Werte sind Richtwerte für die volle Genauigkeitsspezifikation. Bei Messgeräten mit integriertem Strömungsgleichrichter (z.B. Prowirl mit Conditioning Orifice) können die Einlaufstrecken deutlich kürzer sein. Herstellerangaben (Operating Instructions) haben immer Vorrang.<br><br>
+                <strong>⚠ Regelventile</strong> sollten grundsätzlich <strong>stromabwärts</strong> (nach dem Messgerät) installiert werden! Die Tabellenwerte gelten für den Fall, dass ein Regelventil unvermeidbar vor dem Messgerät sitzt.<br><br>
+                <strong>Coriolis-Messgeräte</strong> sind vom Strömungsprofil nahezu unabhängig. Die 5× DN bei Pumpen dienen nur zur Dämpfung von Pulsationen.<br>
+                <strong>Magnetisch-induktive Messgeräte</strong> haben moderate Anforderungen (volumetrisches Messprinzip).<br>
+                <strong>Vortex und Ultraschall</strong> sind empfindlich gegenüber Drall und gestörtem Profil — längste Einlaufstrecken.<br>
+                <strong>Blende/DP:</strong> Die Werte gelten für typische β-Verhältnisse (0,5–0,6). Bei höherem β steigen die Anforderungen nach ISO 5167 erheblich.
+            </div>
+
+            <hr class="section-divider">
+
+            <!-- Übersichtstabelle -->
+            <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:10px;">Übersicht: Einlaufstrecken (× DN) nach Störquelle</div>
+            <div style="overflow-x:auto;">
+                <table class="ref-table" id="overviewTable">
+                    <thead>
+                        <tr>
+                            <th style="text-align:left">Messgerät</th>
+                            <th>90°-Krümmer</th>
+                            <th>2×90° gleich</th>
+                            <th>2×90° versch.</th>
+                            <th>T-Stück</th>
+                            <th>Erw./Vereng.</th>
+                            <th>Ventil offen</th>
+                            <th>Regelventil</th>
+                            <th>Pumpe</th>
+                            <th>Auslauf</th>
+                        </tr>
+                    </thead>
+                    <tbody id="overviewBody"></tbody>
+                </table>
+            </div>
+
+            <div class="shortcuts-hint" style="margin-top:16px;">
+                <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+                <span><kbd>Esc</kbd> Zurücksetzen</span>
+                <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bottom-header">
+        <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+    </footer>
+
+    <script src="shared.js"></script>
+    <script>
+        // ============ DATA: upstream DN multiples per [meter][disturbance] ============
+        // Sources: E+H Operating Instructions (Promag, Promass, Prowirl, Prosonic), ISO 5167
+        // Values are conservative recommendations for full accuracy spec.
+        // Control valves should ideally ALWAYS be installed DOWNSTREAM of the meter.
+        const INLET_DATA = {
+            magmeter: {
+                name: 'Mag.-induktiv',
+                downstream: 2,
+                inlet: { bend90: 5, bend90x2_same: 5, bend90x2_diff: 10, tee: 5, reducer: 3, valve_full: 5, valve_control: 10, pump: 10, none: 0 }
+            },
+            coriolis: {
+                name: 'Coriolis',
+                downstream: 0,
+                inlet: { bend90: 0, bend90x2_same: 0, bend90x2_diff: 0, tee: 0, reducer: 0, valve_full: 0, valve_control: 0, pump: 5, none: 0 }
+            },
+            vortex: {
+                name: 'Vortex',
+                downstream: 5,
+                inlet: { bend90: 20, bend90x2_same: 25, bend90x2_diff: 40, tee: 20, reducer: 15, valve_full: 20, valve_control: 50, pump: 30, none: 0 }
+            },
+            ultrasonic: {
+                name: 'Ultraschall',
+                downstream: 5,
+                inlet: { bend90: 15, bend90x2_same: 25, bend90x2_diff: 40, tee: 20, reducer: 15, valve_full: 15, valve_control: 35, pump: 25, none: 0 }
+            },
+            orifice: {
+                name: 'Blende/DP',
+                downstream: 7,
+                inlet: { bend90: 22, bend90x2_same: 30, bend90x2_diff: 60, tee: 22, reducer: 8, valve_full: 18, valve_control: 50, pump: 40, none: 0 }
+            },
+            turbine: {
+                name: 'Turbine',
+                downstream: 5,
+                inlet: { bend90: 10, bend90x2_same: 20, bend90x2_diff: 25, tee: 15, reducer: 10, valve_full: 15, valve_control: 30, pump: 20, none: 0 }
+            }
+        };
+
+        const DISTURBANCE_NAMES = {
+            bend90: '90°-Krümmer',
+            bend90x2_same: '2×90° gleiche Ebene',
+            bend90x2_diff: '2×90° versch. Ebenen',
+            tee: 'T-Stück',
+            reducer: 'Erw./Verengung',
+            valve_full: 'Ventil (offen)',
+            valve_control: 'Regelventil',
+            pump: 'Pumpe',
+            none: 'Keine Störung'
+        };
+
+        // ============ CALCULATION ============
+        function calc() {
+            const meterType = document.getElementById('meterType').value;
+            const disturbance = document.getElementById('disturbance').value;
+            const dn = parseInt(document.getElementById('dn').value);
+
+            const meter = INLET_DATA[meterType];
+            const upstreamDN = meter.inlet[disturbance];
+            const downstreamDN = meter.downstream;
+
+            const upstreamMM = upstreamDN * dn;
+            const downstreamMM = downstreamDN * dn;
+            const totalMM = upstreamMM + downstreamMM;
+
+            document.getElementById('res_upstream_dn').textContent = upstreamDN + '× DN';
+            document.getElementById('res_upstream_mm').textContent = upstreamMM + ' mm (' + (upstreamMM / 1000).toFixed(2) + ' m)';
+            document.getElementById('res_downstream_dn').textContent = downstreamDN + '× DN';
+            document.getElementById('res_downstream_mm').textContent = downstreamMM + ' mm (' + (downstreamMM / 1000).toFixed(2) + ' m)';
+            document.getElementById('res_total_mm').textContent = (totalMM / 1000).toFixed(2) + ' m';
+            document.getElementById('res_total_desc').textContent = (upstreamMM / 1000).toFixed(2) + ' + Messgerät + ' + (downstreamMM / 1000).toFixed(2) + ' m';
+
+            drawPipe(upstreamDN, downstreamDN, dn, meterType, disturbance);
+            highlightTable(meterType);
+        }
+
+        // ============ PIPE VISUALIZATION ============
+        function drawPipe(upDN, downDN, dn, meterType, disturbance) {
+            const wrap = document.getElementById('pipeVisual');
+            const upMM = upDN * dn;
+            const downMM = downDN * dn;
+            const meterName = INLET_DATA[meterType].name;
+            const distName = DISTURBANCE_NAMES[disturbance];
+
+            // Scale: total length maps to ~500px, minimum pipe segment 30px
+            const totalDN = upDN + downDN + 5; // 5 DN for meter symbol
+            const scale = Math.min(500 / Math.max(totalDN, 10), 20);
+
+            const upW = Math.max(upDN * scale, 20);
+            const meterW = 50;
+            const downW = Math.max(downDN * scale, 20);
+            const totalW = upW + meterW + downW + 60;
+            const h = 100;
+
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const pipeColor = isDark ? '#444c56' : '#d0d7de';
+            const fillColor = isDark ? '#58a6ff' : '#0969da';
+            const textColor = isDark ? '#8b949e' : '#57606a';
+            const accentColor = isDark ? '#3fb950' : '#1a7f37';
+
+            let svg = '<svg class="pipe-svg" viewBox="0 0 ' + totalW + ' ' + h + '" xmlns="http://www.w3.org/2000/svg">';
+
+            // Störquelle icon
+            svg += '<rect x="5" y="30" width="20" height="30" rx="3" fill="' + (isDark ? '#f0883e' : '#bf5600') + '" opacity="0.3"/>';
+            svg += '<text x="15" y="50" text-anchor="middle" font-size="10" fill="' + textColor + '">⚠</text>';
+            svg += '<text x="15" y="75" text-anchor="middle" font-size="7" fill="' + textColor + '">' + distName + '</text>';
+
+            // Upstream pipe
+            const upStart = 30;
+            svg += '<rect x="' + upStart + '" y="40" width="' + upW + '" height="10" fill="' + pipeColor + '" rx="2"/>';
+            if (upDN > 0) {
+                svg += '<text x="' + (upStart + upW / 2) + '" y="36" text-anchor="middle" font-size="9" font-weight="600" fill="' + fillColor + '">' + upDN + '× DN = ' + (upMM / 1000).toFixed(2) + ' m</text>';
+                // Arrow
+                svg += '<line x1="' + upStart + '" y1="56" x2="' + (upStart + upW) + '" y2="56" stroke="' + fillColor + '" stroke-width="1" marker-end="url(#arrow)"/>';
+                svg += '<text x="' + (upStart + upW / 2) + '" y="66" text-anchor="middle" font-size="7" fill="' + textColor + '">Einlauf</text>';
+            }
+
+            // Meter
+            const meterStart = upStart + upW + 5;
+            svg += '<rect x="' + meterStart + '" y="32" width="' + meterW + '" height="26" rx="4" fill="' + accentColor + '" opacity="0.2" stroke="' + accentColor + '" stroke-width="1.5"/>';
+            svg += '<text x="' + (meterStart + meterW / 2) + '" y="48" text-anchor="middle" font-size="8" font-weight="600" fill="' + accentColor + '">' + meterName + '</text>';
+
+            // Downstream pipe
+            const downStart = meterStart + meterW + 5;
+            svg += '<rect x="' + downStart + '" y="40" width="' + downW + '" height="10" fill="' + pipeColor + '" rx="2"/>';
+            if (downDN > 0) {
+                svg += '<text x="' + (downStart + downW / 2) + '" y="36" text-anchor="middle" font-size="9" font-weight="600" fill="' + fillColor + '">' + downDN + '× DN = ' + (downMM / 1000).toFixed(2) + ' m</text>';
+                svg += '<line x1="' + downStart + '" y1="56" x2="' + (downStart + downW) + '" y2="56" stroke="' + fillColor + '" stroke-width="1" marker-end="url(#arrow)"/>';
+                svg += '<text x="' + (downStart + downW / 2) + '" y="66" text-anchor="middle" font-size="7" fill="' + textColor + '">Auslauf</text>';
+            }
+
+            // Flow direction
+            svg += '<text x="' + (totalW / 2) + '" y="90" text-anchor="middle" font-size="8" fill="' + textColor + '">→ Fließrichtung →    |    DN' + document.getElementById('dn').value + ' (' + document.getElementById('dn').value + ' mm)</text>';
+
+            // Arrow marker
+            svg += '<defs><marker id="arrow" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><polygon points="0 0, 6 2, 0 4" fill="' + fillColor + '"/></marker></defs>';
+
+            svg += '</svg>';
+            wrap.innerHTML = svg;
+        }
+
+        // ============ OVERVIEW TABLE ============
+        function buildOverviewTable() {
+            const tbody = document.getElementById('overviewBody');
+            tbody.innerHTML = '';
+            const distKeys = ['bend90', 'bend90x2_same', 'bend90x2_diff', 'tee', 'reducer', 'valve_full', 'valve_control', 'pump'];
+
+            Object.entries(INLET_DATA).forEach(([key, meter]) => {
+                let html = '<tr data-meter="' + key + '">';
+                html += '<td class="meter-col">' + meter.name + '</td>';
+                distKeys.forEach(d => {
+                    const v = meter.inlet[d];
+                    html += '<td>' + v + '</td>';
+                });
+                html += '<td>' + meter.downstream + '</td>';
+                html += '</tr>';
+                tbody.innerHTML += html;
+            });
+        }
+
+        function highlightTable(meterType) {
+            document.querySelectorAll('#overviewBody tr').forEach(tr => {
+                tr.classList.toggle('highlight', tr.dataset.meter === meterType);
+            });
+        }
+
+        // ============ EVENTS ============
+        document.querySelectorAll('#meterType, #disturbance, #dn').forEach(el => {
+            el.addEventListener('change', calc);
+        });
+
+        // Re-draw on theme change
+        onThemeChanged(calc);
+
+        // Init
+        buildOverviewTable();
+        calc();
+    </script>
+
+</body>
+</html>

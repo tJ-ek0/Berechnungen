@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DN/Flansch-Tabelle – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
+        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+
+        .section-divider { border: none; border-top: 1px solid var(--border-default); margin: 24px 0; }
+
+        .info-box { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 16px; font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+        .info-box strong { color: var(--text-primary); }
+
+        .lookup-box { background: var(--bg-accent); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 20px; }
+        .lookup-box h4 { font-size: 14px; font-weight: 600; margin-bottom: 10px; color: var(--text-primary); }
+        .lookup-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+
+        .decode-result { background: var(--bg-success); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 16px; margin-top: 16px; margin-bottom: 16px; }
+        .decode-title { font-size: 18px; font-weight: 700; color: var(--accent-fg); font-family: var(--font-mono); margin-bottom: 10px; }
+        .decode-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+        .decode-item { text-align: center; }
+        .decode-item-val { font-size: 16px; font-weight: 600; color: var(--text-primary); font-family: var(--font-mono); }
+        .decode-item-label { font-size: 11px; color: var(--text-tertiary); }
+
+        .ref-table { font-size: 12px; margin-bottom: 16px; }
+        .ref-table th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em; padding: 6px 8px; white-space: nowrap; }
+        .ref-table td { padding: 5px 8px; font-family: var(--font-mono); font-size: 11px; text-align: center; }
+        .ref-table tr.highlight { background: var(--bg-accent); }
+        #tableBody tr:hover { background: var(--bg-subtle); cursor: pointer; }
+        .ref-table .dn-col { font-weight: 600; color: var(--accent-fg); }
+
+        .pn-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+        .pn-tab { padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.15s; font-family: var(--font-sans); box-shadow: none; }
+        .pn-tab:hover { border-color: var(--accent-fg); color: var(--accent-fg); transform: none; box-shadow: none; filter: none; }
+        .pn-tab.active { background: var(--accent-emphasis); color: var(--text-on-emphasis); border-color: var(--accent-emphasis); }
+
+        .overflow-wrap { overflow-x: auto; }
+    </style>
+</head>
+<body data-tool-id="flansch">
+
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button>
+        </div>
+    </header>
+
+    <div class="back-bar">
+        <a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a>
+    </div>
+
+    <div class="page-container">
+        <div class="container">
+            <div class="action-bar">
+                <button class="action-btn" onclick="copyResults()"><svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg> Kopieren</button>
+                <button class="action-btn" onclick="exportPagePDF('DN-Flansch-Tabelle')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+            </div>
+
+            <div class="description">
+                🔩 Flanschabmessungen nach DIN EN 1092-1 für die Druckstufen PN10, PN16, PN25 und PN40. Schnelle Suche per DN und Druckstufe mit allen Maßen auf einen Blick.
+            </div>
+
+            <!-- Schnellsuche -->
+            <div class="lookup-box">
+                <h4>🔍 Schnellsuche</h4>
+                <div class="lookup-row">
+                    <select class="input-field" id="lookupDN" onchange="lookup()" style="max-width:120px">
+                    </select>
+                    <select class="input-field" id="lookupPN" onchange="lookup()" style="max-width:120px">
+                        <option value="PN10">PN10</option>
+                        <option value="PN16" selected>PN16</option>
+                        <option value="PN25">PN25</option>
+                        <option value="PN40">PN40</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Suchergebnis -->
+            <div class="decode-result" id="lookupResult" style="display:none;">
+                <div class="decode-title" id="lookupTitle">—</div>
+                <div class="decode-grid">
+                    <div class="decode-item"><div class="decode-item-val" id="lu_D">—</div><div class="decode-item-label">Außen-Ø (D)</div></div>
+                    <div class="decode-item"><div class="decode-item-val" id="lu_k">—</div><div class="decode-item-label">Lochkreis-Ø (k)</div></div>
+                    <div class="decode-item"><div class="decode-item-val" id="lu_d4">—</div><div class="decode-item-label">Bohr.-Ø (d₄)</div></div>
+                    <div class="decode-item"><div class="decode-item-val" id="lu_n">—</div><div class="decode-item-label">Anz. Schrauben</div></div>
+                    <div class="decode-item"><div class="decode-item-val" id="lu_bolt">—</div><div class="decode-item-label">Schraubengröße</div></div>
+                    <div class="decode-item"><div class="decode-item-val" id="lu_b">—</div><div class="decode-item-label">Flanschdicke (b)</div></div>
+                    <div class="decode-item"><div class="decode-item-val" id="lu_di">—</div><div class="decode-item-label">Innen-Ø (d₁)</div></div>
+                    <div class="decode-item"><div class="decode-item-val" id="lu_dh">—</div><div class="decode-item-label">Dichtl.-Ø (d₃)</div></div>
+                </div>
+            </div>
+
+            <hr class="section-divider">
+
+            <!-- PN Tabs -->
+            <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:10px;">Komplette Tabelle</div>
+            <div class="pn-tabs" id="pnTabs">
+                <button class="pn-tab" data-pn="PN10" onclick="showPN('PN10')">PN10</button>
+                <button class="pn-tab active" data-pn="PN16" onclick="showPN('PN16')">PN16</button>
+                <button class="pn-tab" data-pn="PN25" onclick="showPN('PN25')">PN25</button>
+                <button class="pn-tab" data-pn="PN40" onclick="showPN('PN40')">PN40</button>
+            </div>
+
+            <div class="overflow-wrap">
+                <table class="ref-table" id="flanschTable">
+                    <thead>
+                        <tr>
+                            <th>DN</th>
+                            <th>Rohr-Ø</th>
+                            <th>Außen-Ø D</th>
+                            <th>Lochkreis k</th>
+                            <th>Bohr.-Ø d₄</th>
+                            <th>Schrauben n</th>
+                            <th>Schraube</th>
+                            <th>Dicke b</th>
+                            <th>Innen d₁</th>
+                            <th>Dichtl. d₃</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <hr class="section-divider">
+
+            <!-- ANSI/ASME Kurzreferenz -->
+            <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:10px;">ANSI/ASME Druckstufen-Vergleich</div>
+            <table class="ref-table">
+                <thead>
+                    <tr><th>DIN (PN)</th><th>ANSI Class</th><th>Max. Druck (bar, 20°C)</th><th>Anmerkung</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="dn-col">PN10</td><td>Class 150 (teilw.)</td><td>10</td><td>—</td></tr>
+                    <tr><td class="dn-col">PN16</td><td>Class 150</td><td>16</td><td>Häufigste Druckstufe in Europa</td></tr>
+                    <tr><td class="dn-col">PN25</td><td>Class 150–300</td><td>25</td><td>—</td></tr>
+                    <tr><td class="dn-col">PN40</td><td>Class 300</td><td>40</td><td>Hochdruck-Anwendungen</td></tr>
+                    <tr><td class="dn-col">PN63</td><td>Class 600</td><td>63</td><td>—</td></tr>
+                    <tr><td class="dn-col">PN100</td><td>Class 600</td><td>100</td><td>—</td></tr>
+                    <tr><td class="dn-col">PN160</td><td>Class 900</td><td>160</td><td>—</td></tr>
+                    <tr><td class="dn-col">PN250</td><td>Class 1500</td><td>250</td><td>—</td></tr>
+                    <tr><td class="dn-col">PN400</td><td>Class 2500</td><td>400</td><td>—</td></tr>
+                </tbody>
+            </table>
+
+            <div class="info-box">
+                <strong>Hinweis:</strong> Alle Maße in mm nach DIN EN 1092-1 (Stahlflansche). Die Innenmaße (d₁) beziehen sich auf die Vorschweißflansch-Ausführung (Form B1). Die tatsächlichen Maße können je nach Flanschtyp (Vorschweißflansch, Losflansch, Blindflansch) leicht abweichen. ANSI/ASME-Flansche nach ASME B16.5 haben andere Maße!<br><br>
+                <strong>Dichtleiste (d₃):</strong> Auch "Erhöhung" oder "raised face" — der erhabene Bereich auf dem die Dichtung aufliegt.
+            </div>
+
+            <div class="shortcuts-hint" style="margin-top:16px;">
+                <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+                <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bottom-header">
+        <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+    </footer>
+
+    <script src="shared.js"></script>
+    <script>
+        // ============ FLANGE DATA (DIN EN 1092-1) ============
+        // [DN, Rohr-Ø, { PN10: [D, k, d4, n, bolt, b, d1, d3], PN16: [...], PN25: [...], PN40: [...] }]
+        const FLANGE_DATA = [
+            { dn: 10, pipe: 17.2, PN10: [90,60,14,4,'M12',16,18,35], PN16: [90,60,14,4,'M12',16,18,35], PN25: [90,60,14,4,'M12',16,18,35], PN40: [90,60,14,4,'M12',16,18,35] },
+            { dn: 15, pipe: 21.3, PN10: [95,65,14,4,'M12',16,22,40], PN16: [95,65,14,4,'M12',16,22,40], PN25: [95,65,14,4,'M12',16,22,40], PN40: [95,65,14,4,'M12',16,22,40] },
+            { dn: 20, pipe: 26.9, PN10: [105,75,14,4,'M12',18,28,51], PN16: [105,75,14,4,'M12',18,28,51], PN25: [105,75,14,4,'M12',18,28,51], PN40: [105,75,14,4,'M12',18,28,51] },
+            { dn: 25, pipe: 33.7, PN10: [115,85,14,4,'M12',18,34,58], PN16: [115,85,14,4,'M12',18,34,58], PN25: [115,85,14,4,'M12',18,34,58], PN40: [115,85,14,4,'M12',18,34,58] },
+            { dn: 32, pipe: 42.4, PN10: [140,100,18,4,'M16',18,43,68], PN16: [140,100,18,4,'M16',18,43,68], PN25: [140,100,18,4,'M16',18,43,68], PN40: [140,100,18,4,'M16',18,43,68] },
+            { dn: 40, pipe: 48.3, PN10: [150,110,18,4,'M16',18,49,78], PN16: [150,110,18,4,'M16',18,49,78], PN25: [150,110,18,4,'M16',18,49,78], PN40: [150,110,18,4,'M16',20,49,78] },
+            { dn: 50, pipe: 60.3, PN10: [165,125,18,4,'M16',20,61,90], PN16: [165,125,18,4,'M16',20,61,90], PN25: [165,125,18,4,'M16',22,61,90], PN40: [165,125,18,4,'M16',22,61,90] },
+            { dn: 65, pipe: 76.1, PN10: [185,145,18,4,'M16',20,77,110], PN16: [185,145,18,8,'M16',20,77,110], PN25: [185,145,18,8,'M16',22,77,110], PN40: [185,145,18,8,'M16',22,77,110] },
+            { dn: 80, pipe: 88.9, PN10: [200,160,18,8,'M16',20,90,128], PN16: [200,160,18,8,'M16',20,90,128], PN25: [200,160,18,8,'M16',24,90,128], PN40: [200,160,18,8,'M16',24,90,128] },
+            { dn: 100, pipe: 114.3, PN10: [220,180,18,8,'M16',22,115,148], PN16: [220,180,18,8,'M16',22,115,148], PN25: [235,190,22,8,'M20',24,115,162], PN40: [235,190,22,8,'M20',24,115,162] },
+            { dn: 125, pipe: 139.7, PN10: [250,210,18,8,'M16',22,141,178], PN16: [250,210,18,8,'M16',22,141,178], PN25: [270,220,26,8,'M24',26,141,188], PN40: [270,220,26,8,'M24',26,141,188] },
+            { dn: 150, pipe: 168.3, PN10: [285,240,22,8,'M20',22,169,212], PN16: [285,240,22,8,'M20',24,169,212], PN25: [300,250,26,8,'M24',28,169,218], PN40: [300,250,26,8,'M24',28,169,218] },
+            { dn: 200, pipe: 219.1, PN10: [340,295,22,8,'M20',24,220,268], PN16: [340,295,22,12,'M20',26,220,268], PN25: [360,310,26,12,'M24',30,220,278], PN40: [360,310,26,12,'M24',32,220,278] },
+            { dn: 250, pipe: 273.0, PN10: [395,350,22,12,'M20',26,274,320], PN16: [405,355,26,12,'M24',28,274,330], PN25: [425,370,30,12,'M27',32,274,340], PN40: [425,370,30,12,'M27',34,274,340] },
+            { dn: 300, pipe: 323.9, PN10: [445,400,22,12,'M20',26,326,370], PN16: [460,410,26,12,'M24',28,326,384], PN25: [485,430,30,16,'M27',34,326,398], PN40: [485,430,30,16,'M27',36,326,398] },
+            { dn: 350, pipe: 355.6, PN10: [505,460,22,16,'M20',26,357,430], PN16: [520,470,26,16,'M24',30,357,438], PN25: [555,490,33,16,'M30',38,357,458], PN40: [555,490,33,16,'M30',40,357,458] },
+            { dn: 400, pipe: 406.4, PN10: [565,515,26,16,'M24',26,408,482], PN16: [580,525,30,16,'M27',32,408,490], PN25: [620,550,36,16,'M33',40,408,516], PN40: [620,550,36,16,'M33',42,408,516] },
+            { dn: 450, pipe: 457.0, PN10: [615,565,26,20,'M24',28,458,532], PN16: [640,585,30,20,'M27',34,458,548], PN25: [670,600,36,20,'M33',44,458,566], PN40: [670,600,36,20,'M33',46,458,566] },
+            { dn: 500, pipe: 508.0, PN10: [670,620,26,20,'M24',28,509,585], PN16: [715,650,33,20,'M30',36,509,610], PN25: [730,660,36,20,'M33',46,509,618], PN40: [730,660,36,20,'M33',48,509,618] },
+            { dn: 600, pipe: 610.0, PN10: [780,725,30,20,'M27',30,611,685], PN16: [840,770,36,20,'M33',40,611,720], PN25: [845,770,39,20,'M36',52,611,726], PN40: [845,770,39,20,'M36',54,611,726] },
+        ];
+
+        let activePN = 'PN16';
+        let activeDN = 50;
+
+        // ============ POPULATE DN DROPDOWN ============
+        function buildDNSelect() {
+            const sel = document.getElementById('lookupDN');
+            FLANGE_DATA.forEach(f => {
+                const opt = document.createElement('option');
+                opt.value = f.dn;
+                opt.textContent = 'DN' + f.dn + ' (' + f.pipe + ' mm)';
+                if (f.dn === activeDN) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        }
+
+        // ============ LOOKUP ============
+        function lookup() {
+            const dn = parseInt(document.getElementById('lookupDN').value);
+            const pn = document.getElementById('lookupPN').value;
+            const res = document.getElementById('lookupResult');
+
+            if (isNaN(dn)) { res.style.display = 'none'; return; }
+
+            activeDN = dn;
+
+            // Sync PN tab with lookup PN
+            if (pn !== activePN) {
+                activePN = pn;
+                document.querySelectorAll('.pn-tab').forEach(t => t.classList.toggle('active', t.dataset.pn === pn));
+                buildTable();
+            }
+
+            const row = FLANGE_DATA.find(f => f.dn === dn);
+            if (!row || !row[pn]) { res.style.display = 'none'; return; }
+
+            const d = row[pn]; // [D, k, d4, n, bolt, b, d1, d3]
+            res.style.display = 'block';
+            document.getElementById('lookupTitle').textContent = 'DN' + dn + ' ' + pn + ' (Rohr-Ø ' + row.pipe + ' mm)';
+            document.getElementById('lu_D').textContent = d[0] + ' mm';
+            document.getElementById('lu_k').textContent = d[1] + ' mm';
+            document.getElementById('lu_d4').textContent = d[2] + ' mm';
+            document.getElementById('lu_n').textContent = d[3] + '×';
+            document.getElementById('lu_bolt').textContent = d[4];
+            document.getElementById('lu_b').textContent = d[5] + ' mm';
+            document.getElementById('lu_di').textContent = d[6] + ' mm';
+            document.getElementById('lu_dh').textContent = d[7] + ' mm';
+
+            // Highlight in table
+            highlightDN(dn);
+        }
+
+        // ============ TABLE ============
+        function showPN(pn) {
+            activePN = pn;
+            document.querySelectorAll('.pn-tab').forEach(t => t.classList.toggle('active', t.dataset.pn === pn));
+
+            // Sync lookup dropdown
+            document.getElementById('lookupPN').value = pn;
+
+            buildTable();
+
+            // Re-run lookup if a DN is selected
+            const dn = parseInt(document.getElementById('lookupDN').value);
+            if (!isNaN(dn)) lookup();
+        }
+
+        function buildTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            FLANGE_DATA.forEach(row => {
+                const d = row[activePN];
+                if (!d) return;
+                const tr = document.createElement('tr');
+                tr.dataset.dn = row.dn;
+                tr.className = (row.dn === activeDN) ? 'highlight' : '';
+                tr.innerHTML =
+                    '<td class="dn-col">DN' + row.dn + '</td>' +
+                    '<td>' + row.pipe + '</td>' +
+                    '<td>' + d[0] + '</td>' +
+                    '<td>' + d[1] + '</td>' +
+                    '<td>' + d[2] + '</td>' +
+                    '<td>' + d[3] + '×</td>' +
+                    '<td>' + d[4] + '</td>' +
+                    '<td>' + d[5] + '</td>' +
+                    '<td>' + d[6] + '</td>' +
+                    '<td>' + d[7] + '</td>';
+
+                // Click on table row to select that DN
+                tr.style.cursor = 'pointer';
+                tr.addEventListener('click', function() {
+                    activeDN = row.dn;
+                    document.getElementById('lookupDN').value = row.dn;
+                    lookup();
+                });
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        function highlightDN(dn) {
+            document.querySelectorAll('#tableBody tr').forEach(tr => {
+                tr.classList.toggle('highlight', parseInt(tr.dataset.dn) === dn);
+            });
+        }
+
+        // Init
+        buildDNSelect();
+        buildTable();
+        lookup(); // Show DN50 PN16 on load
+    </script>
+
+</body>
+</html>

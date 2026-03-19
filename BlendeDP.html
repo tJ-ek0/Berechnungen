@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blenden/DP-Durchflussrechner – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
+        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+
+        .section-divider { border: none; border-top: 1px solid var(--border-default); margin: 24px 0; }
+
+        .status-bar { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-default); margin-bottom: 20px; font-size: 14px; font-weight: 500; transition: all 0.3s; }
+        .status-bar.status-ok { background: var(--bg-success); color: var(--text-success); border-color: var(--text-success); }
+        .status-bar.status-warn { background: var(--bg-attention); color: var(--text-attention); border-color: var(--text-attention); }
+        .status-bar.status-error { background: var(--bg-danger); color: var(--text-danger); border-color: var(--text-danger); }
+        .status-bar.status-idle { background: var(--bg-subtle); color: var(--text-tertiary); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .status-ok .status-dot { background: var(--text-success); }
+        .status-warn .status-dot { background: var(--text-attention); }
+        .status-error .status-dot { background: var(--text-danger); }
+        .status-idle .status-dot { background: var(--text-tertiary); }
+
+        .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-top: 16px; margin-bottom: 16px; }
+        .result-card { background: var(--bg-success); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 12px; text-align: center; }
+        .result-card-value { font-size: 18px; font-weight: 600; color: var(--text-success); font-family: var(--font-mono); }
+        .result-card-label { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+        .result-card-sub { font-size: 10px; color: var(--text-tertiary); }
+
+        .info-box { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 16px; font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+        .info-box strong { color: var(--text-primary); }
+
+        .ref-table td { padding: 5px 10px; font-size: 12px; text-align: center; font-family: var(--font-mono); }
+        .ref-table th { font-size: 10px; text-transform: uppercase; padding: 6px 8px; }
+    </style>
+</head>
+<body data-tool-id="blende">
+
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button>
+        </div>
+    </header>
+
+    <div class="back-bar">
+        <a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a>
+    </div>
+
+    <div class="page-container">
+        <div class="container">
+            <div class="action-bar">
+                <button class="action-btn" onclick="copyResults()"><svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg> Kopieren</button>
+                <button class="action-btn" onclick="resetFields()"><svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg> Zurücksetzen</button>
+                <button class="action-btn" onclick="exportPagePDF('Blenden-Durchflussrechner')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+            </div>
+
+            <div class="description">
+                🔧 Berechnet den Volumendurchfluss aus dem Differenzdruck an einer Messblende (nach ISO 5167) oder umgekehrt. Unterstützt die Berechnung über bekannten K-Faktor oder über Blendengeometrie.
+            </div>
+
+            <!-- Ampel -->
+            <div class="status-bar status-idle" id="statusBar">
+                <div class="status-dot"></div>
+                <span id="statusText">Werte eingeben</span>
+            </div>
+
+            <!-- Berechnungsmodus -->
+            <table>
+                <tr><th colspan="6">Berechnungsmodus</th></tr>
+                <tr>
+                    <td colspan="2">Richtung</td>
+                    <td colspan="4">
+                        <select class="input-field" id="calcDir" onchange="toggleDir()">
+                            <option value="dp2q">Differenzdruck → Durchfluss</option>
+                            <option value="q2dp">Durchfluss → Differenzdruck</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Methode</td>
+                    <td colspan="4">
+                        <select class="input-field" id="calcMethod" onchange="toggleMethod()">
+                            <option value="kfactor">Bekannter K-Faktor (vom Hersteller)</option>
+                            <option value="geometry">Blendengeometrie berechnen</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- K-Faktor Methode -->
+            <div id="sec_kfactor">
+                <table>
+                    <tr><th colspan="6">K-Faktor Methode</th></tr>
+                    <tr>
+                        <td colspan="2">K-Faktor</td>
+                        <td colspan="4">
+                            <input class="input-field" type="number" id="kFactor" value="100" step="any" style="max-width:160px">
+                            <select class="input-field" id="kUnit" style="max-width:200px">
+                                <option value="m3h_mbar">m³/h bei √mbar</option>
+                                <option value="m3h_bar">m³/h bei √bar</option>
+                                <option value="lmin_mbar">l/min bei √mbar</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" style="font-size:11px;color:var(--text-tertiary);padding:2px 16px;">
+                            K-Faktor = Q_max / √ΔP_max (steht auf dem Typenschild oder im Datenblatt)
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Geometrie Methode -->
+            <div id="sec_geometry" style="display:none;">
+                <table>
+                    <tr><th colspan="6">Blendengeometrie (ISO 5167)</th></tr>
+                    <tr>
+                        <td colspan="2">Rohrdurchmesser (D)</td>
+                        <td colspan="4"><input class="input-field" type="number" id="pipeD" value="100" step="0.1" style="max-width:120px"> mm</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">Blendendurchmesser (d)</td>
+                        <td colspan="4"><input class="input-field" type="number" id="orificeD" value="60" step="0.1" style="max-width:120px"> mm</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">Durchflusskoeffizient (C)</td>
+                        <td colspan="4">
+                            <input class="input-field" type="number" id="cCoeff" value="0.61" step="0.001" style="max-width:120px">
+                            <span style="font-size:11px;color:var(--text-tertiary);margin-left:6px;">typisch 0,59–0,65</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">Dichte des Mediums</td>
+                        <td colspan="4">
+                            <input class="input-field" type="number" id="density" value="998" step="0.1" style="max-width:120px"> kg/m³
+                            <span style="font-size:11px;color:var(--text-tertiary);margin-left:6px;">(Wasser ≈ 998, Luft ≈ 1,2)</span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- DP Eingabe -->
+            <table id="dpInputTable">
+                <tr><th colspan="6">Differenzdruck</th></tr>
+                <tr>
+                    <td colspan="2">Differenzdruck (ΔP)</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="dpValue" value="500" step="any" style="max-width:140px">
+                        <select class="input-field" id="dpUnit" style="max-width:100px">
+                            <option value="mbar" selected>mbar</option>
+                            <option value="bar">bar</option>
+                            <option value="Pa">Pa</option>
+                            <option value="kPa">kPa</option>
+                            <option value="psi">psi</option>
+                            <option value="mmWS">mmWS</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Flow Eingabe (für Rückrechnung) -->
+            <table id="flowInputTable" style="display:none;">
+                <tr><th colspan="6">Durchfluss</th></tr>
+                <tr>
+                    <td colspan="2">Durchfluss (Q)</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="flowValue" value="50" step="any" style="max-width:140px">
+                        <select class="input-field" id="flowUnit" style="max-width:100px">
+                            <option value="m3h" selected>m³/h</option>
+                            <option value="lmin">l/min</option>
+                            <option value="ls">l/s</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- DP-Messbereich (für beide Richtungen) -->
+            <table>
+                <tr><th colspan="6">Messbereich DP-Sensor (optional)</th></tr>
+                <tr>
+                    <td colspan="2">Max. ΔP des Sensors</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="dpMax" value="1000" step="any" style="max-width:140px">
+                        <span style="font-size:12px;color:var(--text-tertiary);margin-left:4px;">mbar</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Durchfluss bei max. ΔP</td>
+                    <td colspan="4" class="result-field"><span id="qAtMaxDP"></span></td>
+                </tr>
+            </table>
+
+            <!-- Ergebnisse -->
+            <div class="result-grid" id="resultGrid" style="display:none;">
+                <div class="result-card">
+                    <div class="result-card-value" id="res_q">—</div>
+                    <div class="result-card-label" id="res_q_label">Durchfluss</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-value" id="res_dp">—</div>
+                    <div class="result-card-label" id="res_dp_label">Differenzdruck</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-value" id="res_beta">—</div>
+                    <div class="result-card-label">Beta-Verhältnis (d/D)</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-value" id="res_pct">—</div>
+                    <div class="result-card-label">ΔP in % vom Messbereich</div>
+                </div>
+            </div>
+
+            <hr class="section-divider">
+
+            <!-- Skalierungstabelle -->
+            <table>
+                <tr><th colspan="6">Wurzelbeziehung: ΔP ↔ Durchfluss</th></tr>
+            </table>
+            <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:8px;">Q = K × √ΔP → bei doppeltem Durchfluss vervierfacht sich der Differenzdruck</div>
+            <table class="ref-table" id="scaleTable">
+                <thead>
+                    <tr>
+                        <th>% vom max. Durchfluss</th>
+                        <th>Durchfluss</th>
+                        <th>% vom max. ΔP</th>
+                        <th>ΔP</th>
+                    </tr>
+                </thead>
+                <tbody id="scaleBody"></tbody>
+            </table>
+
+            <div class="info-box" style="margin-top:16px;">
+                <strong>Grundformel (ISO 5167):</strong><br>
+                Q = C × ε × (π/4) × d² × √(2 × ΔP / ρ) × 1/√(1 − β⁴)<br><br>
+                <strong>Vereinfacht mit K-Faktor:</strong> Q = K × √ΔP<br><br>
+                <strong>Wobei:</strong> C = Durchflusskoeffizient, ε = Expansionszahl (≈1 für Flüssigkeiten), d = Blendenbohrungs-Ø, D = Rohr-Innen-Ø, β = d/D, ρ = Dichte, ΔP = Differenzdruck.<br><br>
+                <strong>Empfehlung:</strong> β sollte zwischen 0,2 und 0,75 liegen. Außerhalb dieses Bereichs steigt der Messfehler erheblich.<br><br>
+                <strong>Praxis-Tipp:</strong> DP-Durchflussmesser haben aufgrund der Wurzelbeziehung eine begrenzte Rangeability (typisch 1:3 bis 1:5). Unterhalb von 25% ΔP (= 50% Durchfluss) nimmt die Genauigkeit stark ab.
+            </div>
+
+            <div class="shortcuts-hint" style="margin-top:16px;">
+                <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+                <span><kbd>Esc</kbd> Zurücksetzen</span>
+                <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bottom-header">
+        <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+    </footer>
+
+    <script src="shared.js"></script>
+    <script>
+        // ============ UNIT CONVERSIONS ============
+        function dpToMbar(val, unit) {
+            switch (unit) {
+                case 'mbar': return val;
+                case 'bar': return val * 1000;
+                case 'Pa': return val / 100;
+                case 'kPa': return val * 10;
+                case 'psi': return val * 68.9476;
+                case 'mmWS': return val * 0.0980665;
+                default: return val;
+            }
+        }
+
+        function mbarToDP(mbar, unit) {
+            switch (unit) {
+                case 'mbar': return mbar;
+                case 'bar': return mbar / 1000;
+                case 'Pa': return mbar * 100;
+                case 'kPa': return mbar / 10;
+                case 'psi': return mbar / 68.9476;
+                case 'mmWS': return mbar / 0.0980665;
+                default: return mbar;
+            }
+        }
+
+        function flowToM3h(val, unit) {
+            switch (unit) {
+                case 'm3h': return val;
+                case 'lmin': return val * 0.06;
+                case 'ls': return val * 3.6;
+                default: return val;
+            }
+        }
+
+        function m3hToFlow(m3h, unit) {
+            switch (unit) {
+                case 'm3h': return m3h;
+                case 'lmin': return m3h / 0.06;
+                case 'ls': return m3h / 3.6;
+                default: return m3h;
+            }
+        }
+
+        function fmt(n) {
+            if (n === 0) return '0';
+            const a = Math.abs(n);
+            if (a >= 10000) return n.toLocaleString('de-DE', { maximumFractionDigits: 1 });
+            if (a >= 100) return n.toFixed(1);
+            if (a >= 1) return n.toFixed(2);
+            if (a >= 0.01) return n.toFixed(3);
+            return n.toFixed(4);
+        }
+
+        // ============ TOGGLE UI ============
+        function toggleDir() {
+            const dir = document.getElementById('calcDir').value;
+            document.getElementById('dpInputTable').style.display = dir === 'dp2q' ? '' : 'none';
+            document.getElementById('flowInputTable').style.display = dir === 'q2dp' ? '' : 'none';
+            calc();
+        }
+
+        function toggleMethod() {
+            const method = document.getElementById('calcMethod').value;
+            document.getElementById('sec_kfactor').style.display = method === 'kfactor' ? '' : 'none';
+            document.getElementById('sec_geometry').style.display = method === 'geometry' ? '' : 'none';
+            calc();
+        }
+
+        // ============ K-FACTOR FROM GEOMETRY ============
+        // Q [m³/s] = C × (π/4) × d² × √(2×ΔP_Pa / ρ) / √(1-β⁴)
+        // K [m³/h per √mbar] = Q_m3s × 3600 / √(ΔP_mbar)
+        // Since ΔP_Pa = ΔP_mbar × 100:
+        // K = C × (π/4) × d² × √(2×100/ρ) / √(1-β⁴) × 3600
+
+        function calcKFromGeometry() {
+            const D = parseFloat(document.getElementById('pipeD').value) / 1000; // m
+            const d = parseFloat(document.getElementById('orificeD').value) / 1000; // m
+            const C = parseFloat(document.getElementById('cCoeff').value);
+            const rho = parseFloat(document.getElementById('density').value);
+            if (!D || !d || !C || !rho || D <= 0 || d <= 0 || d >= D) return null;
+
+            const beta = d / D;
+            const A = (Math.PI / 4) * d * d;
+            const factor = C * A * Math.sqrt(200 / rho) / Math.sqrt(1 - Math.pow(beta, 4));
+            const K = factor * 3600; // m³/h per √mbar
+            return { K, beta };
+        }
+
+        // ============ MAIN CALC ============
+        function calc() {
+            const dir = document.getElementById('calcDir').value;
+            const method = document.getElementById('calcMethod').value;
+
+            let K_m3h_mbar; // K in m³/h per √mbar
+            let beta = null;
+
+            if (method === 'kfactor') {
+                let kVal = parseFloat(document.getElementById('kFactor').value);
+                const kUnit = document.getElementById('kUnit').value;
+                if (isNaN(kVal) || kVal <= 0) return hideResults();
+
+                // Convert K to m³/h per √mbar
+                switch (kUnit) {
+                    case 'm3h_mbar': K_m3h_mbar = kVal; break;
+                    case 'm3h_bar': K_m3h_mbar = kVal / Math.sqrt(1000); break; // √bar → √mbar
+                    case 'lmin_mbar': K_m3h_mbar = kVal * 0.06; break; // l/min → m³/h
+                }
+            } else {
+                const geoResult = calcKFromGeometry();
+                if (!geoResult) return hideResults();
+                K_m3h_mbar = geoResult.K;
+                beta = geoResult.beta;
+            }
+
+            let q_m3h, dp_mbar;
+
+            if (dir === 'dp2q') {
+                const dpVal = parseFloat(document.getElementById('dpValue').value);
+                const dpUnit = document.getElementById('dpUnit').value;
+                if (isNaN(dpVal) || dpVal < 0) return hideResults();
+                dp_mbar = dpToMbar(dpVal, dpUnit);
+                q_m3h = K_m3h_mbar * Math.sqrt(dp_mbar);
+            } else {
+                const flowVal = parseFloat(document.getElementById('flowValue').value);
+                const flowUnit = document.getElementById('flowUnit').value;
+                if (isNaN(flowVal) || flowVal < 0) return hideResults();
+                q_m3h = flowToM3h(flowVal, flowUnit);
+                dp_mbar = K_m3h_mbar > 0 ? Math.pow(q_m3h / K_m3h_mbar, 2) : 0;
+            }
+
+            // DP max and percentage
+            const dpMax = parseFloat(document.getElementById('dpMax').value) || 0;
+            const dpPct = dpMax > 0 ? (dp_mbar / dpMax) * 100 : 0;
+            const qAtMax = K_m3h_mbar * Math.sqrt(dpMax);
+
+            // Display
+            document.getElementById('resultGrid').style.display = 'grid';
+
+            const flowUnit = document.getElementById('flowUnit').value;
+            const dpUnit = document.getElementById('dpUnit').value;
+
+            if (dir === 'dp2q') {
+                document.getElementById('res_q').textContent = fmt(q_m3h) + ' m³/h';
+                document.getElementById('res_q_label').textContent = 'Durchfluss (berechnet)';
+                document.getElementById('res_dp').textContent = fmt(dp_mbar) + ' mbar';
+                document.getElementById('res_dp_label').textContent = 'Differenzdruck (Eingabe)';
+            } else {
+                document.getElementById('res_q').textContent = fmt(q_m3h) + ' m³/h';
+                document.getElementById('res_q_label').textContent = 'Durchfluss (Eingabe)';
+                document.getElementById('res_dp').textContent = fmt(dp_mbar) + ' mbar';
+                document.getElementById('res_dp_label').textContent = 'Differenzdruck (berechnet)';
+            }
+
+            if (beta !== null) {
+                document.getElementById('res_beta').textContent = beta.toFixed(3);
+            } else {
+                document.getElementById('res_beta').textContent = '—';
+            }
+
+            document.getElementById('res_pct').textContent = dpMax > 0 ? fmt(dpPct) + '%' : '—';
+            document.getElementById('qAtMaxDP').textContent = dpMax > 0 ? fmt(qAtMax) + ' m³/h' : '—';
+
+            // Color pct
+            const pctEl = document.getElementById('res_pct');
+            if (dpPct > 100) pctEl.style.color = 'var(--text-danger)';
+            else if (dpPct > 80) pctEl.style.color = 'var(--text-attention)';
+            else pctEl.style.color = 'var(--text-success)';
+
+            // Ampel
+            updateAmpel(beta, dpPct, dp_mbar);
+
+            // Scale table
+            buildScaleTable(K_m3h_mbar, dpMax, qAtMax);
+        }
+
+        function hideResults() {
+            document.getElementById('resultGrid').style.display = 'none';
+            document.getElementById('statusBar').className = 'status-bar status-idle';
+            document.getElementById('statusText').textContent = 'Werte eingeben';
+        }
+
+        function updateAmpel(beta, dpPct, dp_mbar) {
+            const bar = document.getElementById('statusBar');
+            const txt = document.getElementById('statusText');
+            const warnings = [];
+
+            if (beta !== null) {
+                if (beta < 0.2) warnings.push('β zu klein (' + beta.toFixed(3) + ' < 0,2)');
+                else if (beta > 0.75) warnings.push('β zu groß (' + beta.toFixed(3) + ' > 0,75)');
+            }
+            if (dpPct > 100) warnings.push('ΔP überschreitet Messbereich (' + dpPct.toFixed(0) + '%)');
+            if (dpPct > 0 && dpPct < 4) warnings.push('ΔP unter 4% — sehr ungenaue Messung');
+
+            if (warnings.length === 0) {
+                bar.className = 'status-bar status-ok';
+                txt.textContent = '✓ Berechnung OK';
+                if (dpPct > 0) txt.textContent += ' — ' + dpPct.toFixed(1) + '% des Messbereichs';
+            } else if (dpPct > 100 || (beta !== null && (beta < 0.15 || beta > 0.8))) {
+                bar.className = 'status-bar status-error';
+                txt.textContent = '✕ ' + warnings.join(' | ');
+            } else {
+                bar.className = 'status-bar status-warn';
+                txt.textContent = '⚠ ' + warnings.join(' | ');
+            }
+        }
+
+        // ============ SCALE TABLE ============
+        function buildScaleTable(K, dpMax, qMax) {
+            const tbody = document.getElementById('scaleBody');
+            tbody.innerHTML = '';
+            if (!K || K <= 0 || !dpMax || dpMax <= 0) return;
+
+            const pcts = [10, 20, 25, 30, 40, 50, 60, 70, 75, 80, 90, 100];
+            pcts.forEach(pct => {
+                const qPct = pct;
+                const q = qMax * (pct / 100);
+                const dpPct = (pct / 100) * (pct / 100) * 100; // square relationship
+                const dp = dpMax * dpPct / 100;
+                tbody.innerHTML += '<tr>' +
+                    '<td>' + qPct + '%</td>' +
+                    '<td>' + fmt(q) + ' m³/h</td>' +
+                    '<td>' + fmt(dpPct) + '%</td>' +
+                    '<td>' + fmt(dp) + ' mbar</td>' +
+                    '</tr>';
+            });
+        }
+
+        // ============ EVENTS ============
+        document.querySelectorAll('#kFactor, #kUnit, #pipeD, #orificeD, #cCoeff, #density, #dpValue, #dpUnit, #flowValue, #flowUnit, #dpMax').forEach(el => {
+            el.addEventListener('input', calc);
+            el.addEventListener('change', calc);
+        });
+
+        // Init
+        toggleDir();
+        toggleMethod();
+        calc();
+    </script>
+
+</body>
+</html>

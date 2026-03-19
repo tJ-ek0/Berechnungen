@@ -3,6 +3,8 @@
    ============================================ */
 
 // ============ THEME ============
+let _onThemeChanged = null;
+
 function initTheme() {
     try {
         const saved = localStorage.getItem('techtools_state');
@@ -20,6 +22,11 @@ function toggleTheme() {
     document.documentElement.setAttribute('data-theme', next);
     updateThemeIcon();
     saveGlobalState({ theme: next });
+    if (_onThemeChanged) _onThemeChanged();
+}
+
+function onThemeChanged(callback) {
+    _onThemeChanged = callback;
 }
 
 function updateThemeIcon() {
@@ -49,6 +56,28 @@ function trackToolUsage(toolId) {
         count: (state.lastUsed[toolId]?.count || 0) + 1
     };
     saveGlobalState({ lastUsed: state.lastUsed });
+}
+
+// ============ VISIT & CALCULATION TRACKING ============
+function trackPageVisit() {
+    const state = getGlobalState();
+    if (!state.stats) state.stats = {};
+    if (!state.stats.visits) state.stats.visits = {};
+    const page = window.location.pathname.split('/').pop() || 'index.html';
+    const today = new Date().toISOString().slice(0, 10);
+    if (!state.stats.visits[page]) state.stats.visits[page] = {};
+    state.stats.visits[page][today] = (state.stats.visits[page][today] || 0) + 1;
+    state.stats.totalVisits = (state.stats.totalVisits || 0) + 1;
+    saveGlobalState({ stats: state.stats });
+}
+
+function trackCalculation(toolId) {
+    const state = getGlobalState();
+    if (!state.stats) state.stats = {};
+    if (!state.stats.calculations) state.stats.calculations = {};
+    state.stats.calculations[toolId] = (state.stats.calculations[toolId] || 0) + 1;
+    state.stats.totalCalculations = (state.stats.totalCalculations || 0) + 1;
+    saveGlobalState({ stats: state.stats });
 }
 
 // ============ COPY RESULTS ============
@@ -314,9 +343,11 @@ document.addEventListener('DOMContentLoaded', () => {
     initGermanFormat();
     document.getElementById('themeToggle')?.addEventListener('click', toggleTheme);
     loadFromShareLink();
+    trackPageVisit();
 
     const toolId = document.body.dataset.toolId;
     if (toolId) {
+        trackToolUsage(toolId);
         loadUnitPresets(toolId);
         document.querySelectorAll('select').forEach(s => {
             s.addEventListener('change', () => saveUnitPresets(toolId));

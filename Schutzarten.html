@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schutzarten-Nachschlagewerk – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
+        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+
+        .section-divider { border: none; border-top: 1px solid var(--border-default); margin: 24px 0; }
+
+        .tab-bar { display: flex; gap: 0; border-bottom: 2px solid var(--border-default); margin-bottom: 20px; }
+        .tab-btn { padding: 10px 20px; font-size: 14px; font-weight: 500; border: none; background: none; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; font-family: var(--font-sans); transition: all 0.15s; box-shadow: none; }
+        .tab-btn:hover { color: var(--text-primary); background: none; transform: none; box-shadow: none; filter: none; }
+        .tab-btn.active { color: var(--accent-fg); border-bottom-color: var(--accent-fg); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .info-box { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 16px; font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+        .info-box strong { color: var(--text-primary); }
+
+        .lookup-box { background: var(--bg-accent); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 20px; }
+        .lookup-box h4 { font-size: 14px; font-weight: 600; margin-bottom: 10px; color: var(--text-primary); }
+        .lookup-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+
+        .decode-result { background: var(--bg-success); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 16px; margin-top: 16px; margin-bottom: 16px; }
+        .decode-title { font-size: 20px; font-weight: 700; color: var(--accent-fg); font-family: var(--font-mono); margin-bottom: 10px; }
+        .decode-row { display: flex; gap: 12px; margin-bottom: 6px; font-size: 13px; }
+        .decode-label { font-weight: 600; color: var(--text-primary); min-width: 120px; }
+        .decode-value { color: var(--text-secondary); }
+
+        .ref-table { font-size: 12px; margin-bottom: 16px; }
+        .ref-table th { font-size: 10px; text-transform: uppercase; letter-spacing: 0.03em; padding: 8px 10px; }
+        .ref-table td { padding: 6px 10px; font-size: 12px; vertical-align: top; }
+        .ref-table .code-col { font-family: var(--font-mono); font-weight: 600; color: var(--accent-fg); text-align: center; white-space: nowrap; }
+        .ref-table tr.highlight { background: var(--bg-accent); }
+
+        .search-bar { position: relative; margin-bottom: 16px; }
+        .search-bar input { width: 100%; padding: 10px 14px 10px 38px; border: 1px solid var(--border-default); border-radius: var(--radius-md); font-family: var(--font-sans); font-size: 14px; color: var(--text-primary); background: var(--bg-default); outline: none; }
+        .search-bar input:focus { border-color: var(--accent-fg); box-shadow: 0 0 0 3px rgba(9,105,218,0.15); }
+        .search-bar input::placeholder { color: var(--text-tertiary); }
+        .search-bar svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; fill: var(--text-tertiary); pointer-events: none; }
+
+        .ex-marking { font-family: var(--font-mono); font-size: 16px; font-weight: 700; color: var(--accent-fg); background: var(--bg-accent); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 10px 16px; display: inline-block; margin: 8px 0; }
+    </style>
+</head>
+<body data-tool-id="schutzart">
+
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button>
+        </div>
+    </header>
+
+    <div class="back-bar">
+        <a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a>
+    </div>
+
+    <div class="page-container">
+        <div class="container">
+            <div class="action-bar">
+                <button class="action-btn" onclick="copyResults()"><svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg> Kopieren</button>
+                <button class="action-btn" onclick="exportPagePDF('Schutzarten')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+            </div>
+
+            <div class="description">
+                🛡️ Nachschlagewerk für IP-Schutzarten (DIN EN 60529) und Explosionsschutz-Kennzeichnungen (IEC 60079 / ATEX). IP-Code eingeben zum Dekodieren oder in den Tabellen nachschlagen.
+            </div>
+
+            <div class="tab-bar">
+                <button class="tab-btn active" onclick="switchTab('ip')">IP-Schutzarten</button>
+                <button class="tab-btn" onclick="switchTab('ex')">Explosionsschutz (Ex)</button>
+                <button class="tab-btn" onclick="switchTab('zones')">Ex-Zonen</button>
+            </div>
+
+            <!-- ============ IP TAB ============ -->
+            <div class="tab-content active" id="tab_ip">
+                <!-- IP Decoder -->
+                <div class="lookup-box">
+                    <h4>🔍 IP-Code dekodieren</h4>
+                    <div class="lookup-row">
+                        <span style="font-size:16px;font-weight:700;font-family:var(--font-mono);">IP</span>
+                        <select class="input-field" id="ip1" onchange="decodeIP()" style="max-width:80px">
+                            <option value="X">X</option>
+                            <option value="0">0</option><option value="1">1</option><option value="2">2</option>
+                            <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                            <option value="6" selected>6</option>
+                        </select>
+                        <select class="input-field" id="ip2" onchange="decodeIP()" style="max-width:80px">
+                            <option value="X">X</option>
+                            <option value="0">0</option><option value="1">1</option><option value="2">2</option>
+                            <option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                            <option value="6">6</option><option value="7" selected>7</option><option value="8">8</option>
+                            <option value="9K">9K</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="decode-result" id="ipResult">
+                    <div class="decode-title" id="ipCode">IP67</div>
+                    <div class="decode-row"><span class="decode-label">Berührungsschutz:</span><span class="decode-value" id="ipTouch">—</span></div>
+                    <div class="decode-row"><span class="decode-label">Fremdkörper:</span><span class="decode-value" id="ipDust">—</span></div>
+                    <div class="decode-row"><span class="decode-label">Wasserschutz:</span><span class="decode-value" id="ipWater">—</span></div>
+                    <div class="decode-row"><span class="decode-label">Einsatzgebiet:</span><span class="decode-value" id="ipUse">—</span></div>
+                </div>
+
+                <hr class="section-divider">
+
+                <!-- 1. Kennziffer -->
+                <table class="ref-table">
+                    <tr><th colspan="4">1. Kennziffer — Schutz gegen Berührung und Fremdkörper</th></tr>
+                    <thead><tr><th>Code</th><th>Berührungsschutz</th><th>Fremdkörperschutz</th><th>Beispiel</th></tr></thead>
+                    <tbody>
+                        <tr><td class="code-col">0</td><td>Kein Schutz</td><td>Kein Schutz</td><td>Offene Bauweise</td></tr>
+                        <tr><td class="code-col">1</td><td>Handrücken (&gt;50 mm)</td><td>Große Fremdkörper (&gt;50 mm)</td><td>Schutz gegen Handberührung</td></tr>
+                        <tr><td class="code-col">2</td><td>Finger (&gt;12,5 mm)</td><td>Mittlere Fremdkörper (&gt;12,5 mm)</td><td>Schaltschränke</td></tr>
+                        <tr><td class="code-col">3</td><td>Werkzeuge (&gt;2,5 mm)</td><td>Kleine Fremdkörper (&gt;2,5 mm)</td><td>Klemmen, Drähte</td></tr>
+                        <tr><td class="code-col">4</td><td>Drähte (&gt;1 mm)</td><td>Feine Fremdkörper (&gt;1 mm)</td><td>Schrauben, Insekten</td></tr>
+                        <tr><td class="code-col">5</td><td>Vollständig (Draht)</td><td>Staubgeschützt (begrenzt)</td><td>Staub dringt nicht in schädlicher Menge ein</td></tr>
+                        <tr><td class="code-col">6</td><td>Vollständig (Draht)</td><td>Staubdicht (vollständig)</td><td>Kein Staubeintritt</td></tr>
+                    </tbody>
+                </table>
+
+                <!-- 2. Kennziffer -->
+                <table class="ref-table">
+                    <tr><th colspan="3">2. Kennziffer — Schutz gegen Wasser</th></tr>
+                    <thead><tr><th>Code</th><th>Schutz</th><th>Prüfung</th></tr></thead>
+                    <tbody>
+                        <tr><td class="code-col">0</td><td>Kein Schutz</td><td>—</td></tr>
+                        <tr><td class="code-col">1</td><td>Tropfwasser (senkrecht)</td><td>10 min, 1 mm/min</td></tr>
+                        <tr><td class="code-col">2</td><td>Tropfwasser (15° geneigt)</td><td>2,5 min pro Neigungsposition</td></tr>
+                        <tr><td class="code-col">3</td><td>Sprühwasser (bis 60° Neigung)</td><td>5 min, 0,7 l/min</td></tr>
+                        <tr><td class="code-col">4</td><td>Spritzwasser (aus allen Richtungen)</td><td>5 min, 10 l/min</td></tr>
+                        <tr><td class="code-col">5</td><td>Strahlwasser (Düse 6,3 mm)</td><td>3 min, 12,5 l/min</td></tr>
+                        <tr><td class="code-col">6</td><td>Starkes Strahlwasser (Düse 12,5 mm)</td><td>3 min, 100 l/min</td></tr>
+                        <tr><td class="code-col">7</td><td>Zeitweiliges Untertauchen</td><td>30 min, 1 m Tiefe</td></tr>
+                        <tr><td class="code-col">8</td><td>Dauerndes Untertauchen</td><td>Herstellerangabe, &gt;1 m Tiefe</td></tr>
+                        <tr><td class="code-col">9K</td><td>Hochdruck-/Dampfstrahl</td><td>80°C, 80–100 bar, Nahbereich</td></tr>
+                    </tbody>
+                </table>
+
+                <!-- Häufige IP-Codes -->
+                <table class="ref-table">
+                    <tr><th colspan="3">Häufige IP-Schutzarten in der Prozessmesstechnik</th></tr>
+                    <thead><tr><th>Code</th><th>Bedeutung</th><th>Typische Anwendung</th></tr></thead>
+                    <tbody>
+                        <tr><td class="code-col">IP20</td><td>Fingerschutz, kein Wasserschutz</td><td>Schaltschränke (Innenraum)</td></tr>
+                        <tr><td class="code-col">IP54</td><td>Staubgeschützt, spritzwassergeschützt</td><td>Outdoor-Schaltschränke</td></tr>
+                        <tr><td class="code-col">IP65</td><td>Staubdicht, strahlwassergeschützt</td><td>Standard Feldgeräte</td></tr>
+                        <tr><td class="code-col">IP66</td><td>Staubdicht, starkes Strahlwasser</td><td>Reinigung mit Schlauch</td></tr>
+                        <tr><td class="code-col">IP67</td><td>Staubdicht, untertauchbar (1 m, 30 min)</td><td>E+H Standard Feldgeräte</td></tr>
+                        <tr><td class="code-col">IP68</td><td>Staubdicht, Dauerbetrieb unter Wasser</td><td>Tauchsonden, Unterwasser</td></tr>
+                        <tr><td class="code-col">IP69K</td><td>Staubdicht, Hochdruckreinigung</td><td>Lebensmittel-/Pharmaindustrie</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ============ EX TAB ============ -->
+            <div class="tab-content" id="tab_ex">
+
+                <div class="info-box">
+                    <strong>Aufbau einer Ex-Kennzeichnung (Beispiel):</strong><br>
+                    <div class="ex-marking">II 1 G Ex ia IIC T4 Ga</div>
+                    <div style="margin-top:8px;">
+                        <strong>II</strong> = Gerätegruppe | <strong>1</strong> = Gerätekategorie | <strong>G</strong> = Gas |
+                        <strong>Ex</strong> = Explosionsschutz | <strong>ia</strong> = Zündschutzart |
+                        <strong>IIC</strong> = Explosionsgruppe | <strong>T4</strong> = Temperaturklasse | <strong>Ga</strong> = Schutzniveau
+                    </div>
+                </div>
+
+                <!-- Zündschutzarten -->
+                <table class="ref-table">
+                    <tr><th colspan="4">Zündschutzarten (IEC 60079)</th></tr>
+                    <thead><tr><th>Kürzel</th><th>Bezeichnung</th><th>Prinzip</th><th>Einsatz</th></tr></thead>
+                    <tbody>
+                        <tr><td class="code-col">Ex d</td><td>Druckfeste Kapselung</td><td>Explosion wird im Gehäuse eingeschlossen, Flamme kann nicht austreten</td><td>Motoren, Leuchten, Klemmen</td></tr>
+                        <tr><td class="code-col">Ex e</td><td>Erhöhte Sicherheit</td><td>Keine Funken/Lichtbögen im Normalbetrieb, erhöhte Isolation</td><td>Klemmkästen, Motoren</td></tr>
+                        <tr><td class="code-col">Ex i (ia/ib)</td><td>Eigensicherheit</td><td>Energie im Stromkreis zu gering für Zündung</td><td>Feldgeräte, Sensoren, 4-20 mA</td></tr>
+                        <tr><td class="code-col">Ex p</td><td>Überdruckkapselung</td><td>Gehäuse unter Überdruck mit Schutzgas</td><td>Schaltschränke, Analysengeräte</td></tr>
+                        <tr><td class="code-col">Ex m</td><td>Vergusskapselung</td><td>Zündfähige Teile in Vergussmasse eingegossen</td><td>Sensoren, kleine Geräte</td></tr>
+                        <tr><td class="code-col">Ex n</td><td>Schutzart "n"</td><td>Im Normalbetrieb keine Zündung (nur Zone 2)</td><td>Geräte für Zone 2</td></tr>
+                        <tr><td class="code-col">Ex o</td><td>Ölkapselung</td><td>Zündquelle in Öl eingetaucht</td><td>Transformatoren</td></tr>
+                        <tr><td class="code-col">Ex q</td><td>Sandkapselung</td><td>Quarzsandfüllung verhindert Zündung</td><td>Sicherungen, Kondensatoren</td></tr>
+                        <tr><td class="code-col">Ex t</td><td>Schutz durch Gehäuse</td><td>Staubexplosionsschutz</td><td>Staubige Umgebungen (Zone 20–22)</td></tr>
+                    </tbody>
+                </table>
+
+                <!-- Explosionsgruppen -->
+                <table class="ref-table">
+                    <tr><th colspan="3">Explosionsgruppen (Gas)</th></tr>
+                    <thead><tr><th>Gruppe</th><th>Typische Gase</th><th>Zündenergie</th></tr></thead>
+                    <tbody>
+                        <tr><td class="code-col">IIA</td><td>Propan, Butan, Benzin, Aceton, Ammoniak</td><td>Niedrigste Anforderung</td></tr>
+                        <tr><td class="code-col">IIB</td><td>Ethylen, Stadtgas, Schwefelwasserstoff</td><td>Mittlere Anforderung</td></tr>
+                        <tr><td class="code-col">IIC</td><td>Wasserstoff, Acetylen, Schwefelkohlenstoff</td><td>Höchste Anforderung (sicherste Geräte)</td></tr>
+                    </tbody>
+                </table>
+
+                <!-- Temperaturklassen -->
+                <table class="ref-table">
+                    <tr><th colspan="3">Temperaturklassen</th></tr>
+                    <thead><tr><th>Klasse</th><th>Max. Oberflächentemperatur</th><th>Zündtemperatur des Gases</th></tr></thead>
+                    <tbody>
+                        <tr><td class="code-col">T1</td><td>450°C</td><td>&gt; 450°C</td></tr>
+                        <tr><td class="code-col">T2</td><td>300°C</td><td>&gt; 300°C</td></tr>
+                        <tr><td class="code-col">T3</td><td>200°C</td><td>&gt; 200°C</td></tr>
+                        <tr><td class="code-col">T4</td><td>135°C</td><td>&gt; 135°C</td></tr>
+                        <tr><td class="code-col">T5</td><td>100°C</td><td>&gt; 100°C</td></tr>
+                        <tr><td class="code-col">T6</td><td>85°C</td><td>&gt; 85°C</td></tr>
+                    </tbody>
+                </table>
+
+                <!-- Gerätegruppen -->
+                <table class="ref-table">
+                    <tr><th colspan="3">Gerätegruppen und -kategorien (ATEX)</th></tr>
+                    <thead><tr><th>Gruppe</th><th>Kategorie</th><th>Einsatzgebiet</th></tr></thead>
+                    <tbody>
+                        <tr><td class="code-col">I</td><td>M1, M2</td><td>Bergbau (schlagwettergefährdet)</td></tr>
+                        <tr><td class="code-col">II 1G</td><td>Kategorie 1, Gas</td><td>Zone 0 — ständig explosionsfähig</td></tr>
+                        <tr><td class="code-col">II 2G</td><td>Kategorie 2, Gas</td><td>Zone 1 — gelegentlich explosionsfähig</td></tr>
+                        <tr><td class="code-col">II 3G</td><td>Kategorie 3, Gas</td><td>Zone 2 — selten/kurzzeitig explosionsfähig</td></tr>
+                        <tr><td class="code-col">II 1D</td><td>Kategorie 1, Staub</td><td>Zone 20 — ständig Staubwolke</td></tr>
+                        <tr><td class="code-col">II 2D</td><td>Kategorie 2, Staub</td><td>Zone 21 — gelegentlich Staubwolke</td></tr>
+                        <tr><td class="code-col">II 3D</td><td>Kategorie 3, Staub</td><td>Zone 22 — selten Staubwolke</td></tr>
+                    </tbody>
+                </table>
+
+                <!-- EPL Schutzniveau -->
+                <table class="ref-table">
+                    <tr><th colspan="3">Equipment Protection Level (EPL / Schutzniveau)</th></tr>
+                    <thead><tr><th>EPL</th><th>Schutz</th><th>Zulässig in Zone</th></tr></thead>
+                    <tbody>
+                        <tr><td class="code-col">Ga / Da</td><td>Sehr hohes Schutzniveau</td><td>Zone 0 / Zone 20</td></tr>
+                        <tr><td class="code-col">Gb / Db</td><td>Hohes Schutzniveau</td><td>Zone 1 / Zone 21</td></tr>
+                        <tr><td class="code-col">Gc / Dc</td><td>Normales Schutzniveau</td><td>Zone 2 / Zone 22</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ============ ZONES TAB ============ -->
+            <div class="tab-content" id="tab_zones">
+
+                <div class="info-box">
+                    <strong>Zoneneinteilung:</strong> Der Betreiber legt die Ex-Zonen fest (Zoneneinteilungsplan). Die Zone bestimmt, welche Gerätekategorie und welche Zündschutzarten eingesetzt werden dürfen.
+                </div>
+
+                <!-- Gas-Zonen -->
+                <table class="ref-table">
+                    <tr><th colspan="4">Ex-Zonen Gas/Dampf (IEC 60079-10-1)</th></tr>
+                    <thead><tr><th>Zone</th><th>Definition</th><th>Häufigkeit</th><th>Zulässige Zündschutzarten</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td class="code-col">Zone 0</td>
+                            <td>Bereich, in dem eine explosionsfähige Atmosphäre ständig oder über lange Zeiträume vorhanden ist</td>
+                            <td>&gt; 1000 h/Jahr</td>
+                            <td>Ex ia, Ex ma (nur Kategorie 1G)</td>
+                        </tr>
+                        <tr>
+                            <td class="code-col">Zone 1</td>
+                            <td>Bereich, in dem gelegentlich eine explosionsfähige Atmosphäre auftreten kann</td>
+                            <td>10–1000 h/Jahr</td>
+                            <td>Alle aus Zone 0, zusätzlich: Ex d, Ex e, Ex ib, Ex mb, Ex p, Ex o, Ex q</td>
+                        </tr>
+                        <tr>
+                            <td class="code-col">Zone 2</td>
+                            <td>Bereich, in dem eine explosionsfähige Atmosphäre nur selten und kurzzeitig auftritt</td>
+                            <td>&lt; 10 h/Jahr</td>
+                            <td>Alle aus Zone 0+1, zusätzlich: Ex n, Ex ic, Ex mc</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Staub-Zonen -->
+                <table class="ref-table">
+                    <tr><th colspan="4">Ex-Zonen Staub (IEC 60079-10-2)</th></tr>
+                    <thead><tr><th>Zone</th><th>Definition</th><th>Häufigkeit</th><th>Zulässige Zündschutzarten</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td class="code-col">Zone 20</td>
+                            <td>Bereich, in dem eine explosionsfähige Staubwolke ständig vorhanden ist</td>
+                            <td>&gt; 1000 h/Jahr</td>
+                            <td>Ex ta (Kategorie 1D)</td>
+                        </tr>
+                        <tr>
+                            <td class="code-col">Zone 21</td>
+                            <td>Bereich, in dem gelegentlich eine explosionsfähige Staubwolke auftreten kann</td>
+                            <td>10–1000 h/Jahr</td>
+                            <td>Ex ta, Ex tb, Ex mb, Ex ib (Kategorie 2D)</td>
+                        </tr>
+                        <tr>
+                            <td class="code-col">Zone 22</td>
+                            <td>Bereich, in dem eine explosionsfähige Staubwolke selten und kurzzeitig auftritt</td>
+                            <td>&lt; 10 h/Jahr</td>
+                            <td>Alle aus Zone 20+21, zusätzlich: Ex tc, Ex mc, Ex ic (Kategorie 3D)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="info-box">
+                    <strong>Faustregel für Endress+Hauser Feldgeräte:</strong><br>
+                    Die meisten E+H Geräte sind als <strong>Ex ia IIC T4 Ga</strong> zertifiziert — das ist die höchste Schutzklasse für Feldgeräte und darf in allen Gas-Zonen (0, 1, 2) eingesetzt werden. Für Zone 1 und 2 sind auch Ex d und Ex e gängig.<br><br>
+                    <strong>Eigensicherheit (Ex i)</strong> ist die bevorzugte Zündschutzart für 4–20 mA Messkreise, da die Energie durch Zenerbarrieren oder Trennverstärker begrenzt wird. Der Bürdenrechner auf dieser Seite berücksichtigt den Spannungsabfall der Ex-Barriere.
+                </div>
+            </div>
+
+            <div class="shortcuts-hint" style="margin-top:16px;">
+                <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+                <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bottom-header">
+        <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+    </footer>
+
+    <script src="shared.js"></script>
+    <script>
+        // ============ TABS ============
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('tab_' + tab).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // ============ IP DECODER ============
+        const IP1_DATA = {
+            'X': { touch: 'Nicht geprüft', dust: 'Nicht geprüft', use: '—' },
+            '0': { touch: 'Kein Schutz', dust: 'Kein Schutz', use: 'Offene Bauweise' },
+            '1': { touch: 'Schutz gegen Handrücken (>50 mm)', dust: 'Schutz gegen große Fremdkörper (>50 mm)', use: 'Grundschutz' },
+            '2': { touch: 'Schutz gegen Finger (>12,5 mm)', dust: 'Schutz gegen mittlere Fremdkörper (>12,5 mm)', use: 'Schaltschränke innen' },
+            '3': { touch: 'Schutz gegen Werkzeuge (>2,5 mm)', dust: 'Schutz gegen kleine Fremdkörper (>2,5 mm)', use: 'Industrieumgebung' },
+            '4': { touch: 'Schutz gegen Drähte (>1 mm)', dust: 'Schutz gegen feine Fremdkörper (>1 mm)', use: 'Feinschutz' },
+            '5': { touch: 'Vollständiger Berührungsschutz', dust: 'Staubgeschützt (begrenzt eindringend)', use: 'Staubige Umgebungen' },
+            '6': { touch: 'Vollständiger Berührungsschutz', dust: 'Staubdicht (kein Eintritt)', use: 'Höchster Staubschutz' },
+        };
+
+        const IP2_DATA = {
+            'X': { water: 'Nicht geprüft', use: '—' },
+            '0': { water: 'Kein Wasserschutz', use: 'Nur Innenraum (trocken)' },
+            '1': { water: 'Schutz gegen Tropfwasser (senkrecht)', use: 'Innenraum' },
+            '2': { water: 'Schutz gegen Tropfwasser (15° geneigt)', use: 'Innenraum' },
+            '3': { water: 'Schutz gegen Sprühwasser (bis 60°)', use: 'Geschützter Außenbereich' },
+            '4': { water: 'Schutz gegen Spritzwasser (alle Richtungen)', use: 'Außenbereich' },
+            '5': { water: 'Schutz gegen Strahlwasser (Düse 6,3 mm)', use: 'Außen / Reinigung mit Schlauch' },
+            '6': { water: 'Schutz gegen starkes Strahlwasser (12,5 mm Düse)', use: 'Hochdruckreinigung' },
+            '7': { water: 'Schutz gegen zeitweiliges Untertauchen (1 m, 30 min)', use: 'Überflutungsgefahr' },
+            '8': { water: 'Schutz gegen dauerndes Untertauchen', use: 'Dauerhaft unter Wasser' },
+            '9K': { water: 'Schutz gegen Hochdruck-/Dampfstrahl (80°C, 80–100 bar)', use: 'Lebensmittel-/Pharma-CIP/SIP' },
+        };
+
+        function decodeIP() {
+            const v1 = document.getElementById('ip1').value;
+            const v2 = document.getElementById('ip2').value;
+            const d1 = IP1_DATA[v1];
+            const d2 = IP2_DATA[v2];
+
+            document.getElementById('ipCode').textContent = 'IP' + v1 + v2;
+            document.getElementById('ipTouch').textContent = d1.touch;
+            document.getElementById('ipDust').textContent = d1.dust;
+            document.getElementById('ipWater').textContent = d2.water;
+            document.getElementById('ipUse').textContent = d1.use + ' / ' + d2.use;
+        }
+
+        // Init
+        decodeIP();
+    </script>
+
+</body>
+</html>
