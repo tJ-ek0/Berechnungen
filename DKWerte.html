@@ -3486,44 +3486,49 @@
 ['6-Dodecin','24','C12H22','2,2']
     ];
 
-    let filter='all',sort=[0,'asc'],query='';
+    let filter='all',sort=[0,'asc'],query='',searchTimer;
 
-    function parseDK(s){
-        if(!s)return NaN;
-        s=String(s).replace(/,/g,'.');
-        if(s.includes('-')){const p=s.split('-').map(Number);return(p[0]+p[1])/2;}
-        return parseFloat(s);
-    }
-    function dkClass(s){const n=parseDK(s);if(isNaN(n))return'mid';return n<2?'low':n<=10?'mid':'high';}
-    function barW(s){const n=parseDK(s);if(isNaN(n)||n<=0)return 0;return Math.min(80,Math.max(2,Math.log(n+1)*18));}
+    // Pre-compute derived values once at startup to avoid repeated parsing on every render
+    const dkNums=(()=>{
+        return DK.map(r=>{
+            if(!r[3])return NaN;
+            const s=String(r[3]).replace(/,/g,'.');
+            if(s.includes('-')){const p=s.split('-').map(Number);return(p[0]+p[1])/2;}
+            return parseFloat(s);
+        });
+    })();
+    const dkLow=DK.map(r=>[String(r[0]).toLowerCase(),String(r[2]).toLowerCase()]);
+    const dkCls=dkNums.map(n=>isNaN(n)?'mid':n<2?'low':n<=10?'mid':'high');
+    const dkBar=dkNums.map(n=>(isNaN(n)||n<=0)?0:Math.min(80,Math.max(2,Math.log(n+1)*18)));
 
     function render(){
         const tb=document.getElementById('tbody');
-        let f=DK.filter(r=>{
-            const dk=parseDK(r[3]);
-            if(filter==='low'&&dk>=2)return false;
-            if(filter==='mid'&&(dk<2||dk>10))return false;
-            if(filter==='high'&&dk<=10)return false;
-            if(query){const q=query.toLowerCase();return r[0].toLowerCase().includes(q)||r[2].toLowerCase().includes(q);}
-            return true;
-        });
+        const q=query.toLowerCase();
+        const idx=[];
+        for(let i=0;i<DK.length;i++){
+            const dk=dkNums[i];
+            if(filter==='low'&&dk>=2)continue;
+            if(filter==='mid'&&(dk<2||dk>10))continue;
+            if(filter==='high'&&dk<=10)continue;
+            if(q&&!dkLow[i][0].includes(q)&&!dkLow[i][1].includes(q))continue;
+            idx.push(i);
+        }
         const[col,dir]=sort;
-        f.sort((a,b)=>{
+        idx.sort((a,b)=>{
             let va,vb;
-            if(col===1){va=parseFloat(a[1])||0;vb=parseFloat(b[1])||0;}
-            else if(col===3){va=parseDK(a[3]);vb=parseDK(b[3]);if(isNaN(va))va=0;if(isNaN(vb))vb=0;}
-            else{va=String(a[col]).toLowerCase();vb=String(b[col]).toLowerCase();return dir==='asc'?va.localeCompare(vb,'de'):vb.localeCompare(va,'de');}
+            if(col===1){va=parseFloat(DK[a][1])||0;vb=parseFloat(DK[b][1])||0;}
+            else if(col===3){va=isNaN(dkNums[a])?0:dkNums[a];vb=isNaN(dkNums[b])?0:dkNums[b];}
+            else{va=dkLow[a][col===0?0:1];vb=dkLow[b][col===0?0:1];return dir==='asc'?va.localeCompare(vb,'de'):vb.localeCompare(va,'de');}
             return dir==='asc'?va-vb:vb-va;
         });
-        // Virtual rendering for performance: only render visible rows
         const MAX=500;
-        const shown=f.slice(0,MAX);
-        tb.innerHTML=shown.map(r=>{
-            const cls=dkClass(r[3]),w=barW(r[3]);
-            return '<tr><td>'+r[0]+'</td><td>'+(r[1]||'—')+'</td><td>'+(r[2]||'—')+'</td><td><span class="dk-bar dk-'+cls+'" style="width:'+w+'px"></span>'+r[3]+'</td></tr>';
+        const shown=idx.slice(0,MAX);
+        tb.innerHTML=shown.map(i=>{
+            const r=DK[i];
+            return '<tr><td>'+r[0]+'</td><td>'+(r[1]||'—')+'</td><td>'+(r[2]||'—')+'</td><td><span class="dk-bar dk-'+dkCls[i]+'" style="width:'+dkBar[i]+'px"></span>'+r[3]+'</td></tr>';
         }).join('');
-        if(f.length>MAX) tb.innerHTML+='<tr><td colspan="4" class="virt-info">Zeige '+MAX+' von '+f.length+' Ergebnissen — Suche eingrenzen für vollständige Anzeige</td></tr>';
-        document.getElementById('countBadge').textContent=f.length+' von '+DK.length+' Einträge';
+        if(idx.length>MAX)tb.innerHTML+='<tr><td colspan="4" class="virt-info">Zeige '+MAX+' von '+idx.length+' Ergebnissen — Suche eingrenzen für vollständige Anzeige</td></tr>';
+        document.getElementById('countBadge').textContent=idx.length+' von '+DK.length+' Einträge';
     }
 
     function setFilter(f){
@@ -3542,7 +3547,11 @@
         render();
     }
 
-    document.getElementById('searchInput').addEventListener('input',e=>{query=e.target.value;render();});
+    document.getElementById('searchInput').addEventListener('input',e=>{
+        query=e.target.value;
+        clearTimeout(searchTimer);
+        searchTimer=setTimeout(render,150);
+    });
     render();
     if(typeof trackCalculation==='function')trackCalculation('dkwerte');
     </script>
