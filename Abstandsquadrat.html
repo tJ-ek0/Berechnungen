@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abstandsquadratgesetz – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .action-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+        .action-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-size:13px;font-weight:500;border-radius:var(--radius-md);border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;transition:all .2s;box-shadow:none;font-family:var(--font-sans)}
+        .action-btn:hover{background:var(--bg-subtle);color:var(--text-primary);border-color:var(--border-muted);transform:none;box-shadow:none;filter:none}
+        .action-btn svg{width:14px;height:14px;fill:currentColor}
+        .status-bar{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:var(--radius-md);border:1px solid var(--border-default);margin-bottom:20px;font-size:14px;font-weight:500;transition:all .3s}
+        .status-bar.status-ok{background:var(--bg-success);color:var(--text-success);border-color:var(--text-success)}
+        .status-bar.status-warn{background:var(--bg-attention);color:var(--text-attention);border-color:var(--text-attention)}
+        .status-bar.status-error{background:var(--bg-danger);color:var(--text-danger);border-color:var(--text-danger)}
+        .status-bar.status-idle{background:var(--bg-subtle);color:var(--text-tertiary)}
+        .status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+        .status-ok .status-dot{background:var(--text-success)}
+        .status-warn .status-dot{background:var(--text-attention)}
+        .status-error .status-dot{background:var(--text-danger)}
+        .status-idle .status-dot{background:var(--text-tertiary)}
+        .result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:16px 0}
+        .result-card{background:var(--bg-success);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:12px;text-align:center}
+        .result-card-value{font-size:18px;font-weight:600;color:var(--text-success);font-family:var(--font-mono)}
+        .result-card-label{font-size:11px;color:var(--text-tertiary);margin-top:2px}
+        .result-card-sub{font-size:10px;color:var(--text-tertiary)}
+        .info-box{background:var(--bg-subtle);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--text-secondary);line-height:1.6}
+        .info-box strong{color:var(--text-primary)}
+        .section-divider{border:none;border-top:1px solid var(--border-default);margin:24px 0}
+        .visual-box{background:var(--bg-subtle);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:20px;margin:16px 0;text-align:center;overflow-x:auto}
+        .zone-table td{padding:4px 10px;font-size:12px;font-family:var(--font-mono)}
+        .zone-table th{font-size:10px;text-transform:uppercase;padding:6px 8px;background:var(--bg-subtle)}
+        .mode-tabs{display:flex;gap:0;margin-bottom:20px;border:1px solid var(--border-default);border-radius:var(--radius-md);overflow:hidden}
+        .mode-tab{flex:1;padding:8px 16px;font-size:13px;font-weight:500;background:var(--bg-default);color:var(--text-secondary);border:none;cursor:pointer;font-family:var(--font-sans);transition:all .15s}
+        .mode-tab.active{background:var(--accent-fg);color:#fff}
+        .mode-tab:hover:not(.active){background:var(--bg-subtle)}
+    </style>
+</head>
+<body data-tool-id="abstandsquadrat">
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right"><button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button></div>
+    </header>
+    <div class="back-bar"><a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a></div>
+
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="copyResults()"><svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg> Kopieren</button>
+            <button class="action-btn" onclick="resetFields()"><svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg> Zurücksetzen</button>
+            <button class="action-btn" onclick="exportPagePDF('Abstandsquadratgesetz')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+        </div>
+
+        <div class="description">☢️ Abstandsquadratgesetz: Dosisleistung nimmt mit dem Quadrat des Abstands ab. Berechne Dosisleistung bei neuem Abstand oder den Mindestabstand für ein Dosislimit.</div>
+
+        <div class="status-bar status-idle" id="statusBar">
+            <div class="status-dot"></div>
+            <span id="statusText">Werte eingeben</span>
+        </div>
+
+        <div class="mode-tabs">
+            <button class="mode-tab active" id="tabA" onclick="setMode('A')">Modus A — Dosisleistung bei Abstand</button>
+            <button class="mode-tab" id="tabB" onclick="setMode('B')">Modus B — Mindestabstand für Limit</button>
+        </div>
+
+        <table>
+            <tr><th colspan="4">Bekannte Messung</th></tr>
+            <tr>
+                <td colspan="2">Dosisleistung Ḣ₁</td>
+                <td colspan="2">
+                    <input class="input-field" type="number" id="h1" value="1000" min="0" step="any" style="max-width:120px">
+                    <select class="input-field" id="h1unit" style="max-width:100px">
+                        <option value="1">µSv/h</option>
+                        <option value="1000">mSv/h</option>
+                        <option value="1000000">Sv/h</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Abstand r₁</td>
+                <td colspan="2">
+                    <input class="input-field" type="number" id="r1" value="1" min="0.001" step="any" style="max-width:120px"> m
+                </td>
+            </tr>
+        </table>
+
+        <table id="modeATable">
+            <tr><th colspan="4">Modus A — Neuer Abstand</th></tr>
+            <tr>
+                <td colspan="2">Neuer Abstand r₂</td>
+                <td colspan="2"><input class="input-field" type="number" id="r2" value="3" min="0.001" step="any" style="max-width:120px"> m</td>
+            </tr>
+        </table>
+
+        <table id="modeBTable" style="display:none">
+            <tr><th colspan="4">Modus B — Dosislimit</th></tr>
+            <tr>
+                <td colspan="2">Dosislimit Ḣ_ziel</td>
+                <td colspan="2">
+                    <input class="input-field" type="number" id="hlimit" value="25" min="0" step="any" style="max-width:120px">
+                    <select class="input-field" id="hlimitunit" style="max-width:100px">
+                        <option value="1">µSv/h</option>
+                        <option value="1000">mSv/h</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+
+        <div class="result-grid" id="resultGrid" style="display:none">
+            <div class="result-card" id="cardMain">
+                <div class="result-card-value" id="resMain">—</div>
+                <div class="result-card-label" id="resMainLabel">—</div>
+                <div class="result-card-sub" id="resMainSub">—</div>
+            </div>
+            <div class="result-card">
+                <div class="result-card-value" id="resFaktor">—</div>
+                <div class="result-card-label">Abschwächungsfaktor</div>
+                <div class="result-card-sub">(r₂/r₁)²</div>
+            </div>
+            <div class="result-card">
+                <div class="result-card-value" id="resSperr">—</div>
+                <div class="result-card-label">Sperrbereich ab</div>
+                <div class="result-card-sub">&gt; 3 mSv/h</div>
+            </div>
+            <div class="result-card">
+                <div class="result-card-value" id="resKontroll">—</div>
+                <div class="result-card-label">Kontrollbereich ab</div>
+                <div class="result-card-sub">&gt; 300 µSv/h</div>
+            </div>
+            <div class="result-card">
+                <div class="result-card-value" id="resUeber">—</div>
+                <div class="result-card-label">Überwachungsbereich ab</div>
+                <div class="result-card-sub">&gt; 10 µSv/h</div>
+            </div>
+        </div>
+
+        <div class="visual-box" id="visualBox" style="display:none">
+            <svg id="vizSvg" viewBox="0 0 560 120" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;"></svg>
+        </div>
+
+        <hr class="section-divider">
+
+        <table class="zone-table">
+            <thead><tr><th>Bereich (StrlSchV)</th><th>Dosisleistungsgrenze</th><th>Jahresdosis</th><th>Maßnahmen</th></tr></thead>
+            <tbody>
+                <tr><td>Sperrbereich</td><td>&gt; 3 mSv/h</td><td>—</td><td>Zutritt verboten (Ausnahmen schriftlich)</td></tr>
+                <tr><td>Kontrollbereich</td><td>&gt; 300 µSv/h</td><td>&gt; 6 mSv/a</td><td>Nur unterwiesene Personen, Dosimeter</td></tr>
+                <tr><td>Überwachungsbereich</td><td>&gt; 10 µSv/h</td><td>&gt; 1 mSv/a</td><td>Unterwiesene Personen, Kennzeichnung</td></tr>
+                <tr><td>Normalbereich</td><td>≤ 10 µSv/h</td><td>≤ 1 mSv/a</td><td>Keine besonderen Maßnahmen</td></tr>
+            </tbody>
+        </table>
+
+        <div class="info-box" style="margin-top:16px">
+            <strong>Formel:</strong> Ḣ₂ = Ḣ₁ × (r₁ / r₂)²<br>
+            <strong>Mindestabstand:</strong> r₂ = r₁ × √(Ḣ₁ / Ḣ_ziel)<br>
+            Gilt nur für <strong>Punktquellen</strong> ohne Abschirmung (freies Feld). Bei Großflächenquellen oder Abschirmung abweichend. Kein Streuanteil berücksichtigt.
+        </div>
+
+        <div class="shortcuts-hint">
+            <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+            <span><kbd>Esc</kbd> Zurücksetzen</span>
+            <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+        </div>
+    </div></div>
+
+    <footer class="bottom-header"><p>Keine Gewähr für die Genauigkeit oder Vollständigkeit. Nutzung auf eigenes Risiko.</p></footer>
+
+    <script src="shared.js"></script>
+    <script>
+        let mode = 'A';
+
+        function setMode(m) {
+            mode = m;
+            document.getElementById('tabA').classList.toggle('active', m === 'A');
+            document.getElementById('tabB').classList.toggle('active', m === 'B');
+            document.getElementById('modeATable').style.display = m === 'A' ? '' : 'none';
+            document.getElementById('modeBTable').style.display = m === 'B' ? '' : 'none';
+            calc();
+        }
+
+        // Distance at which dose rate equals limit [µSv/h] given h1_usvh at r1_m
+        function calcDist(h1_usvh, r1_m, limit_usvh) {
+            if (limit_usvh <= 0) return Infinity;
+            return r1_m * Math.sqrt(h1_usvh / limit_usvh);
+        }
+
+        function fmtDist(m) {
+            if (!isFinite(m) || m <= 0) return '—';
+            if (m < 0.01) return (m * 100).toFixed(1) + ' cm';
+            if (m >= 1000) return (m / 1000).toFixed(2) + ' km';
+            if (m >= 10) return m.toFixed(1) + ' m';
+            return m.toFixed(2) + ' m';
+        }
+
+        function fmtDoseRate(usvh) {
+            if (usvh >= 1000000) return (usvh / 1000000).toFixed(3) + ' Sv/h';
+            if (usvh >= 1000) return (usvh / 1000).toFixed(3) + ' mSv/h';
+            return usvh.toFixed(2) + ' µSv/h';
+        }
+
+        function zoneClass(usvh) {
+            if (usvh > 3000) return 'error';
+            if (usvh > 300) return 'warn';
+            if (usvh > 10) return 'warn';
+            return 'ok';
+        }
+
+        function calc() {
+            const h1raw = parseFloat(document.getElementById('h1').value);
+            const h1unit = parseFloat(document.getElementById('h1unit').value);
+            const r1 = parseFloat(document.getElementById('r1').value);
+
+            if (isNaN(h1raw) || h1raw <= 0 || isNaN(r1) || r1 <= 0) {
+                document.getElementById('resultGrid').style.display = 'none';
+                document.getElementById('visualBox').style.display = 'none';
+                setStatus('idle', 'Werte eingeben');
+                return;
+            }
+
+            const h1 = h1raw * h1unit; // in µSv/h
+
+            // Zone boundaries
+            const rSperr = calcDist(h1, r1, 3000);
+            const rKontroll = calcDist(h1, r1, 300);
+            const rUeber = calcDist(h1, r1, 10);
+
+            let mainVal, mainLabel, mainSub, faktor;
+
+            if (mode === 'A') {
+                const r2 = parseFloat(document.getElementById('r2').value);
+                if (isNaN(r2) || r2 <= 0) {
+                    document.getElementById('resultGrid').style.display = 'none';
+                    return;
+                }
+                const h2 = h1 * (r1 / r2) ** 2;
+                faktor = (r2 / r1) ** 2;
+                mainVal = fmtDoseRate(h2);
+                mainLabel = 'Dosisleistung bei ' + r2.toFixed(2) + ' m';
+                mainSub = 'Ḣ₂ = Ḣ₁ × (r₁/r₂)²';
+
+                const zone = zoneClass(h2);
+                setStatus(zone === 'ok' ? 'ok' : zone === 'warn' ? 'warn' : 'error',
+                    zone === 'ok' ? '✓ Normalbereich — keine besonderen Schutzmaßnahmen erforderlich'
+                    : zone === 'error' ? '⚠ Sperrbereich! Zutritt verboten.'
+                    : h2 > 300 ? '⚠ Kontrollbereich — Dosimeter und Unterweisung erforderlich'
+                    : '⚠ Überwachungsbereich — Kennzeichnung erforderlich');
+
+                drawViz(h1, r1, h2, r2, rSperr, rKontroll, rUeber);
+            } else {
+                const hlimitraw = parseFloat(document.getElementById('hlimit').value);
+                const hlimitunit = parseFloat(document.getElementById('hlimitunit').value);
+                if (isNaN(hlimitraw) || hlimitraw <= 0) {
+                    document.getElementById('resultGrid').style.display = 'none';
+                    return;
+                }
+                const hlimit = hlimitraw * hlimitunit;
+                if (hlimit >= h1) {
+                    setStatus('ok', '✓ Dosislimit wird am Quellort bereits eingehalten.');
+                    document.getElementById('resultGrid').style.display = 'none';
+                    return;
+                }
+                const rMin = calcDist(h1, r1, hlimit);
+                faktor = hlimit > 0 ? h1 / hlimit : 0;
+                mainVal = fmtDist(rMin);
+                mainLabel = 'Mindestabstand';
+                mainSub = 'für ' + fmtDoseRate(hlimit) + ' Limit';
+                setStatus('ok', '✓ Mindestabstand berechnet: ' + fmtDist(rMin));
+                drawViz(h1, r1, hlimit, rMin, rSperr, rKontroll, rUeber);
+            }
+
+            document.getElementById('resMain').textContent = mainVal;
+            document.getElementById('resMainLabel').textContent = mainLabel;
+            document.getElementById('resMainSub').textContent = mainSub;
+            document.getElementById('resFaktor').textContent = faktor.toFixed(2) + '×';
+            document.getElementById('resSperr').textContent = fmtDist(rSperr);
+            document.getElementById('resKontroll').textContent = fmtDist(rKontroll);
+            document.getElementById('resUeber').textContent = fmtDist(rUeber);
+            document.getElementById('resultGrid').style.display = 'grid';
+            document.getElementById('visualBox').style.display = '';
+        }
+
+        function setStatus(type, msg) {
+            const bar = document.getElementById('statusBar');
+            bar.className = 'status-bar status-' + type;
+            document.getElementById('statusText').textContent = msg;
+        }
+
+        function drawViz(h1, r1, h2, r2, rSperr, rKontroll, rUeber) {
+            const svg = document.getElementById('vizSvg');
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const tc = isDark ? '#8b949e' : '#57606a';
+            const sc = isDark ? '#f85149' : '#cf222e';
+            const wc = isDark ? '#f0883e' : '#bf5600';
+            const gc = isDark ? '#3fb950' : '#1a7f37';
+            const lc = isDark ? '#58a6ff' : '#0969da';
+
+            const W = 560, H = 100;
+            // Scale: fit max of r2, rKontroll, or 5×r1
+            const maxR = Math.max(r2 * 1.2, isFinite(rUeber) ? rUeber * 1.05 : 0, r1 * 5);
+            const scale = (W - 80) / maxR;
+            const srcX = 40;
+            const y = 50;
+
+            let s = '';
+
+            // Zone bands (draw from outside in)
+            const drawZone = (rOuter, rInner, col) => {
+                const x1 = srcX + Math.min(rInner, maxR) * scale;
+                const x2 = srcX + Math.min(rOuter, maxR) * scale;
+                if (x2 > x1) s += `<rect x="${x1}" y="${y - 30}" width="${x2 - x1}" height="60" fill="${col}" opacity="0.15"/>`;
+            };
+            drawZone(maxR, isFinite(rUeber) ? rUeber : maxR, gc);
+            drawZone(isFinite(rUeber) ? rUeber : maxR, isFinite(rKontroll) ? rKontroll : maxR, '#f59e0b');
+            drawZone(isFinite(rKontroll) ? rKontroll : maxR, isFinite(rSperr) ? rSperr : maxR, wc);
+            if (isFinite(rSperr)) drawZone(rSperr, 0, sc);
+
+            // Axis
+            s += `<line x1="${srcX}" y1="${y}" x2="${W - 20}" y2="${y}" stroke="${tc}" stroke-width="1"/>`;
+
+            // Source marker
+            s += `<circle cx="${srcX}" cy="${y}" r="8" fill="${sc}" opacity="0.8"/>`;
+            s += `<text x="${srcX}" y="${y + 20}" text-anchor="middle" font-size="9" fill="${sc}">☢</text>`;
+
+            // r1 marker
+            const x1p = srcX + r1 * scale;
+            if (x1p < W - 20) {
+                s += `<line x1="${x1p}" y1="${y - 20}" x2="${x1p}" y2="${y + 20}" stroke="${lc}" stroke-width="1.5" stroke-dasharray="3,2"/>`;
+                s += `<text x="${x1p}" y="${y - 24}" text-anchor="middle" font-size="9" fill="${lc}">r₁=${r1.toFixed(1)}m</text>`;
+            }
+
+            // r2 / target marker
+            const x2p = srcX + Math.min(r2, maxR) * scale;
+            s += `<line x1="${x2p}" y1="${y - 20}" x2="${x2p}" y2="${y + 20}" stroke="${gc}" stroke-width="2"/>`;
+            s += `<text x="${x2p}" y="${y - 24}" text-anchor="middle" font-size="9" font-weight="600" fill="${gc}">r₂=${r2.toFixed(2)}m</text>`;
+            s += `<text x="${x2p}" y="${y + 32}" text-anchor="middle" font-size="9" fill="${gc}">${fmtDoseRate(h2)}</text>`;
+
+            // Zone labels
+            if (isFinite(rSperr) && rSperr < maxR) {
+                const xsp = srcX + rSperr * scale;
+                s += `<text x="${xsp}" y="${y - 36}" text-anchor="middle" font-size="8" fill="${sc}">Sperrb.</text>`;
+                s += `<line x1="${xsp}" y1="${y - 30}" x2="${xsp}" y2="${y + 30}" stroke="${sc}" stroke-width="1" stroke-dasharray="2,2"/>`;
+            }
+
+            svg.innerHTML = s;
+            svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+        }
+
+        function resetFields() {
+            document.getElementById('h1').value = '1000';
+            document.getElementById('h1unit').selectedIndex = 0;
+            document.getElementById('r1').value = '1';
+            document.getElementById('r2').value = '3';
+            document.getElementById('hlimit').value = '25';
+            document.getElementById('hlimitunit').selectedIndex = 0;
+            calc();
+        }
+
+        document.querySelectorAll('#h1, #h1unit, #r1, #r2, #hlimit, #hlimitunit').forEach(el => {
+            el.addEventListener('input', calc);
+            el.addEventListener('change', calc);
+        });
+
+        onThemeChanged(calc);
+        calc();
+    </script>
+</body>
+</html>

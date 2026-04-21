@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aufenthaltszeit-Rechner – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .action-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+        .action-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-size:13px;font-weight:500;border-radius:var(--radius-md);border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;transition:all .2s;box-shadow:none;font-family:var(--font-sans)}
+        .action-btn:hover{background:var(--bg-subtle);color:var(--text-primary);border-color:var(--border-muted);transform:none;box-shadow:none;filter:none}
+        .action-btn svg{width:14px;height:14px;fill:currentColor}
+        .status-bar{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:var(--radius-md);border:1px solid var(--border-default);margin-bottom:20px;font-size:14px;font-weight:500;transition:all .3s}
+        .status-bar.status-ok{background:var(--bg-success);color:var(--text-success);border-color:var(--text-success)}
+        .status-bar.status-warn{background:var(--bg-attention);color:var(--text-attention);border-color:var(--text-attention)}
+        .status-bar.status-error{background:var(--bg-danger);color:var(--text-danger);border-color:var(--text-danger)}
+        .status-bar.status-idle{background:var(--bg-subtle);color:var(--text-tertiary)}
+        .status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+        .status-ok .status-dot{background:var(--text-success)}
+        .status-warn .status-dot{background:var(--text-attention)}
+        .status-error .status-dot{background:var(--text-danger)}
+        .status-idle .status-dot{background:var(--text-tertiary)}
+        .result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:16px 0}
+        .result-card{background:var(--bg-success);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:12px;text-align:center}
+        .result-card-value{font-size:18px;font-weight:600;color:var(--text-success);font-family:var(--font-mono)}
+        .result-card-label{font-size:11px;color:var(--text-tertiary);margin-top:2px}
+        .result-card-sub{font-size:10px;color:var(--text-tertiary)}
+        .info-box{background:var(--bg-subtle);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--text-secondary);line-height:1.6}
+        .info-box strong{color:var(--text-primary)}
+        .section-divider{border:none;border-top:1px solid var(--border-default);margin:24px 0}
+        .budget-bar{margin:16px 0}
+        .budget-bar-label{font-size:12px;color:var(--text-tertiary);margin-bottom:4px;display:flex;justify-content:space-between}
+        .budget-bar-track{height:14px;background:var(--bg-subtle);border-radius:7px;border:1px solid var(--border-default);overflow:hidden}
+        .budget-bar-fill{height:100%;border-radius:6px;transition:width .3s,background .3s}
+        .limit-presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+        .limit-btn{padding:5px 12px;font-size:12px;font-weight:500;border:1px solid var(--border-default);border-radius:var(--radius-md);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;font-family:var(--font-sans)}
+        .limit-btn.active{background:var(--accent-fg);color:#fff;border-color:var(--accent-fg)}
+        .limit-btn:hover:not(.active){background:var(--bg-subtle)}
+    </style>
+</head>
+<body data-tool-id="aufenthaltszeit">
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right"><button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button></div>
+    </header>
+    <div class="back-bar"><a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a></div>
+
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="copyResults()"><svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg> Kopieren</button>
+            <button class="action-btn" onclick="resetFields()"><svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg> Zurücksetzen</button>
+            <button class="action-btn" onclick="exportPagePDF('Aufenthaltszeit')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+        </div>
+
+        <div class="description">⏱️ Aufenthaltszeit-Rechner: Maximale Verweildauer aus gemessener Dosisleistung und Jahresdosisgrenzwert berechnen. Grenzwerte nach StrlSchV 2018.</div>
+
+        <div class="status-bar status-idle" id="statusBar">
+            <div class="status-dot"></div>
+            <span id="statusText">Werte eingeben</span>
+        </div>
+
+        <table>
+            <tr><th colspan="4">Ortsdosisleistung</th></tr>
+            <tr>
+                <td colspan="2">Gemessene Dosisleistung Ḣ</td>
+                <td colspan="2">
+                    <input class="input-field" type="number" id="hdot" value="100" min="0" step="any" style="max-width:120px">
+                    <select class="input-field" id="hdotunit" style="max-width:100px">
+                        <option value="1">µSv/h</option>
+                        <option value="1000">mSv/h</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+
+        <table>
+            <tr><th colspan="4">Dosisvorgabe (StrlSchV 2018)</th></tr>
+            <tr>
+                <td colspan="4" style="padding:8px 10px">
+                    <div class="limit-presets">
+                        <button class="limit-btn" onclick="setPreset(1000, 'Bevölkerung (1 mSv/a)')" data-val="1000">1 mSv/a (Bevölkerung)</button>
+                        <button class="limit-btn active" onclick="setPreset(6000, 'Kat. B (6 mSv/a)')" data-val="6000">6 mSv/a (Kat. B)</button>
+                        <button class="limit-btn" onclick="setPreset(20000, 'Kat. A (20 mSv/a)')" data-val="20000">20 mSv/a (Kat. A)</button>
+                        <button class="limit-btn" onclick="setPreset(0, 'Eigener Wert')" data-val="0">Eigener Wert</button>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Jahresdosisgrenzwert H_limit</td>
+                <td colspan="2">
+                    <input class="input-field" type="number" id="hlimit" value="6000" min="0" step="any" style="max-width:120px"> µSv/a
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Bereits erhaltene Dosis (dieses Jahr)</td>
+                <td colspan="2">
+                    <input class="input-field" type="number" id="hbereits" value="0" min="0" step="any" style="max-width:120px"> µSv
+                    <span style="font-size:11px;color:var(--text-tertiary);margin-left:6px">(verbleibendes Budget wird berechnet)</span>
+                </td>
+            </tr>
+        </table>
+
+        <div class="result-grid" id="resultGrid" style="display:none">
+            <div class="result-card">
+                <div class="result-card-value" id="resTmax">—</div>
+                <div class="result-card-label">Max. Aufenthaltszeit (gesamt/Jahr)</div>
+                <div class="result-card-sub" id="resTmaxSub">—</div>
+            </div>
+            <div class="result-card">
+                <div class="result-card-value" id="resTwoche">—</div>
+                <div class="result-card-label">Davon pro Woche</div>
+                <div class="result-card-sub">bei 50 Wochen/Jahr</div>
+            </div>
+            <div class="result-card">
+                <div class="result-card-value" id="resTtag">—</div>
+                <div class="result-card-label">Davon pro Arbeitstag</div>
+                <div class="result-card-sub">bei 250 Tagen/Jahr</div>
+            </div>
+            <div class="result-card">
+                <div class="result-card-value" id="resBudget">—</div>
+                <div class="result-card-label">Verbleibendes Budget</div>
+                <div class="result-card-sub" id="resBudgetSub">—</div>
+            </div>
+        </div>
+
+        <div class="budget-bar" id="budgetBar" style="display:none">
+            <div class="budget-bar-label"><span>Jahresbudget verbraucht</span><span id="budgetPctLabel">0 %</span></div>
+            <div class="budget-bar-track"><div class="budget-bar-fill" id="budgetBarFill" style="width:0%"></div></div>
+        </div>
+
+        <hr class="section-divider">
+
+        <table id="limitRefTable">
+            <thead><tr><th>Personengruppe (StrlSchV 2018)</th><th>Grenzwert</th><th>Max. Aufenthalt bei Ḣ = <span id="refHdot">—</span></th></tr></thead>
+            <tbody id="limitRefBody"></tbody>
+        </table>
+
+        <div class="info-box" style="margin-top:16px">
+            <strong>Formel:</strong> t_max = H_Budget / Ḣ<br>
+            <strong>Budget:</strong> H_Budget = H_Limit − H_bereits_erhalten<br>
+            Grenzwerte nach <strong>Strahlenschutzverordnung (StrlSchV) 2018</strong>:<br>
+            Kat. A: &gt; 6 mSv/a | Kat. B: 1–6 mSv/a | Bevölkerung: ≤ 1 mSv/a.<br>
+            Beachte: Dies ist eine Näherungsrechnung für konstante Dosisleistung. In der Praxis variiert die Dosisleistung — Strahlenschutzbeauftragten konsultieren.
+        </div>
+
+        <div class="shortcuts-hint">
+            <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+            <span><kbd>Esc</kbd> Zurücksetzen</span>
+            <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+        </div>
+    </div></div>
+
+    <footer class="bottom-header"><p>Keine Gewähr für die Genauigkeit oder Vollständigkeit. Nutzung auf eigenes Risiko.</p></footer>
+
+    <script src="shared.js"></script>
+    <script>
+        const LIMITS = [
+            { name: 'Bevölkerung', val: 1000,  desc: '≤ 1 mSv/a (§80 StrlSchV)' },
+            { name: 'Kat. B beruflich', val: 6000,  desc: '1–6 mSv/a (§74 Abs. 3 StrlSchV)' },
+            { name: 'Kat. A beruflich', val: 20000, desc: '> 6 mSv/a, max. 20 mSv/a (§74 StrlSchV)' },
+        ];
+
+        function setPreset(val, label) {
+            document.querySelectorAll('.limit-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            if (val > 0) document.getElementById('hlimit').value = val;
+            calc();
+        }
+
+        function fmtTime(hours) {
+            if (!isFinite(hours) || hours <= 0) return '—';
+            if (hours < 1/60) return (hours * 3600).toFixed(0) + ' Sek.';
+            if (hours < 1) return (hours * 60).toFixed(0) + ' Min.';
+            if (hours < 24) return hours.toFixed(2) + ' Std.';
+            const d = hours / 24;
+            if (d < 365) return d.toFixed(1) + ' Tage';
+            return (d / 365.25).toFixed(2) + ' Jahre';
+        }
+
+        function calc() {
+            const hdotraw = parseFloat(document.getElementById('hdot').value);
+            const hdotunit = parseFloat(document.getElementById('hdotunit').value);
+            const hlimit = parseFloat(document.getElementById('hlimit').value);
+            const hbereits = parseFloat(document.getElementById('hbereits').value) || 0;
+
+            if (isNaN(hdotraw) || hdotraw <= 0 || isNaN(hlimit) || hlimit <= 0) {
+                document.getElementById('resultGrid').style.display = 'none';
+                document.getElementById('budgetBar').style.display = 'none';
+                setStatus('idle', 'Werte eingeben');
+                return;
+            }
+
+            const hdot = hdotraw * hdotunit; // µSv/h
+            const hbudget = Math.max(0, hlimit - hbereits); // µSv remaining
+
+            if (hbudget <= 0) {
+                setStatus('error', '✕ Jahresbudget vollständig aufgebraucht! Kein weiterer Aufenthalt zulässig.');
+                document.getElementById('resultGrid').style.display = 'none';
+                return;
+            }
+
+            const tmaxH = hbudget / hdot; // hours
+            const tmaxWoche = tmaxH / 50;
+            const tmaxTag = tmaxH / 250;
+
+            document.getElementById('resTmax').textContent = fmtTime(tmaxH);
+            document.getElementById('resTmaxSub').textContent = 'Restbudget: ' + hbudget.toLocaleString('de-DE') + ' µSv';
+            document.getElementById('resTwoche').textContent = fmtTime(tmaxWoche);
+            document.getElementById('resTtag').textContent = fmtTime(tmaxTag);
+            document.getElementById('resBudget').textContent = hbudget.toLocaleString('de-DE') + ' µSv';
+            document.getElementById('resBudgetSub').textContent = 'von ' + hlimit.toLocaleString('de-DE') + ' µSv/a';
+            document.getElementById('resultGrid').style.display = 'grid';
+            document.getElementById('budgetBar').style.display = '';
+
+            const pct = Math.min(100, (hbereits / hlimit) * 100);
+            const fill = document.getElementById('budgetBarFill');
+            fill.style.width = pct + '%';
+            fill.style.background = pct > 80 ? 'var(--text-danger)' : pct > 50 ? 'var(--text-attention)' : 'var(--text-success)';
+            document.getElementById('budgetPctLabel').textContent = pct.toFixed(1) + ' %';
+
+            const statusTxt = `→ Noch ${fmtTime(tmaxH)} erlaubt (${fmtTime(tmaxWoche)}/Woche, ${fmtTime(tmaxTag)}/Tag)`;
+            setStatus(tmaxTag < 1 ? 'warn' : 'ok', statusTxt);
+
+            // Reference table
+            const hdotStr = hdot >= 1000 ? (hdot/1000).toFixed(3) + ' mSv/h' : hdot.toFixed(2) + ' µSv/h';
+            document.getElementById('refHdot').textContent = hdotStr;
+            document.getElementById('limitRefBody').innerHTML = LIMITS.map(l => {
+                const t = l.val / hdot;
+                const tw = t / 50;
+                return `<tr>
+                    <td style="padding:5px 10px;font-size:12px">${l.name}<br><span style="font-size:10px;color:var(--text-tertiary)">${l.desc}</span></td>
+                    <td style="padding:5px 10px;font-size:12px;font-family:var(--font-mono)">${l.val.toLocaleString('de-DE')} µSv/a</td>
+                    <td style="padding:5px 10px;font-size:12px;font-family:var(--font-mono)">${fmtTime(t)}/a &nbsp;|&nbsp; ${fmtTime(tw)}/Woche</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function setStatus(type, msg) {
+            const bar = document.getElementById('statusBar');
+            bar.className = 'status-bar status-' + type;
+            document.getElementById('statusText').textContent = msg;
+        }
+
+        function resetFields() {
+            document.getElementById('hdot').value = '100';
+            document.getElementById('hdotunit').selectedIndex = 0;
+            document.getElementById('hlimit').value = '6000';
+            document.getElementById('hbereits').value = '0';
+            document.querySelectorAll('.limit-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('.limit-btn[data-val="6000"]').classList.add('active');
+            calc();
+        }
+
+        document.querySelectorAll('#hdot,#hdotunit,#hlimit,#hbereits').forEach(el => {
+            el.addEventListener('input', calc);
+            el.addEventListener('change', calc);
+        });
+
+        calc();
+    </script>
+</body>
+</html>

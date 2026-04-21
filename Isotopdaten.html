@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Isotopdaten Strahlenschutz – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .action-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+        .action-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-size:13px;font-weight:500;border-radius:var(--radius-md);border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;transition:all .2s;box-shadow:none;font-family:var(--font-sans)}
+        .action-btn:hover{background:var(--bg-subtle);color:var(--text-primary);border-color:var(--border-muted);transform:none;box-shadow:none;filter:none}
+        .action-btn svg{width:14px;height:14px;fill:currentColor}
+        .info-box{background:var(--bg-subtle);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--text-secondary);line-height:1.6}
+        .info-box strong{color:var(--text-primary)}
+        .search-box{display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
+        .search-input{flex:1;min-width:200px;padding:10px 14px;border:1px solid var(--border-default);border-radius:var(--radius-md);font-size:14px;background:var(--bg-default);color:var(--text-primary);font-family:var(--font-sans)}
+        .search-input:focus{outline:none;border-color:var(--accent-fg);box-shadow:0 0 0 3px var(--bg-accent)}
+        .iso-card{border:1px solid var(--border-default);border-radius:var(--radius-md);padding:18px;background:var(--bg-default);margin-bottom:12px;transition:box-shadow .15s}
+        .iso-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.08)}
+        .iso-card.focus-card{border-color:var(--accent-fg);border-width:2px}
+        .iso-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+        .iso-symbol{font-size:28px;font-weight:800;font-family:var(--font-mono);color:var(--accent-fg);min-width:80px}
+        .iso-name{font-size:16px;font-weight:600;color:var(--text-primary)}
+        .iso-art{font-size:12px;color:var(--text-secondary);margin-top:2px}
+        .iso-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;margin-left:8px}
+        .badge-focus{background:var(--bg-accent);color:var(--accent-fg);border:1px solid var(--accent-fg)}
+        .iso-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+        .iso-stat{background:var(--bg-subtle);border-radius:var(--radius-md);padding:8px 12px}
+        .iso-stat-label{font-size:10px;text-transform:uppercase;letter-spacing:.03em;color:var(--text-tertiary);margin-bottom:2px}
+        .iso-stat-val{font-size:14px;font-weight:600;font-family:var(--font-mono);color:var(--text-primary)}
+        .iso-stat-unit{font-size:10px;color:var(--text-tertiary)}
+        .hvl-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+        .hvl-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:var(--radius-md);border:1px solid var(--border-default);font-size:12px;background:var(--bg-subtle);font-family:var(--font-mono)}
+        .hvl-chip strong{color:var(--text-primary)}
+        .uses-box{margin-top:10px;font-size:12px;color:var(--text-secondary)}
+        .uses-box strong{color:var(--text-primary)}
+        .no-results{text-align:center;color:var(--text-tertiary);padding:40px;font-size:14px}
+    </style>
+</head>
+<body data-tool-id="isotopdaten">
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right"><button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button></div>
+    </header>
+    <div class="back-bar"><a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a></div>
+
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="copyResults()"><svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg> Kopieren</button>
+            <button class="action-btn" onclick="exportPagePDF('Isotopdaten')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+        </div>
+
+        <div class="description">📋 Strahlenschutz-Kenngrößen für Industriestrahlenquellen nach Frankfurter Tabelle / ICRP 107: Halbwertszeit, Zerfallsart, Gammaenergie, Γ-Konstante und Halbwertschichten.</div>
+
+        <div class="info-box">
+            <strong>Γ-Konstante (Gammastrahlungskonstante):</strong> Ḣ [µSv/h] = Γ [µSv·m²/(MBq·h)] × A [MBq] / r² [m²]<br>
+            <strong>HVL:</strong> Halbwertschicht — Materialdicke, bei der die Dosisleistung auf 50 % sinkt. Beton-Dichte 2,3 g/cm³.<br>
+            <strong>Fokus:</strong> Cs-137 und Co-60 — häufigste Quellen in Industrie und Ausbildung (z.B. Fachkunde 2.2).
+        </div>
+
+        <div class="search-box">
+            <input class="search-input" type="text" id="searchInput" placeholder="🔍 Nuklid suchen (z.B. Cäsium, Co-60, Iridium …)">
+        </div>
+
+        <div id="cardContainer"></div>
+        <div class="no-results" id="noResults" style="display:none">Kein Nuklid gefunden.</div>
+
+        <div class="shortcuts-hint" style="margin-top:16px">
+            <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+            <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+        </div>
+    </div></div>
+
+    <footer class="bottom-header"><p>Keine Gewähr für die Genauigkeit oder Vollständigkeit. Nutzung auf eigenes Risiko.</p></footer>
+
+    <script src="shared.js"></script>
+    <script>
+        const NUKLIDE = [
+            {
+                id: 'Cs-137', name: 'Cäsium-137', symbol: '¹³⁷Cs',
+                focus: true,
+                T: '30,17 a', T_d: 30.17 * 365.25,
+                art: 'β⁻, γ (via Ba-137m)',
+                energie: '0,662 MeV',
+                gamma: 0.0772,
+                hvl: { Blei: 6.5, Beton: 48, Eisen: 17, Wasser: 73 },
+                uses: 'Füllstandmessung, Dichtemessung, Schichtdickenmessung, Abstandsmessgeräte, Well-Logging. Häufigste industrielle Gammastrahlungsquelle in Deutschland.',
+                hinweis: 'Tochterkern Ba-137m (T½ = 2,55 min) emittiert die 662-keV-Gammastrahlung.',
+            },
+            {
+                id: 'Co-60', name: 'Kobalt-60', symbol: '⁶⁰Co',
+                focus: true,
+                T: '5,271 a', T_d: 5.271 * 365.25,
+                art: 'β⁻, γγ',
+                energie: '1,173 MeV + 1,332 MeV',
+                gamma: 0.309,
+                hvl: { Blei: 12.5, Beton: 60, Eisen: 21, Wasser: 115 },
+                uses: 'Industrielle Radiographie (Dickwandiges Material), Bestrahlungsanlagen, Krebstherapie (Cobalt-Bomben), Forschung. Stärkste handelsübliche Industriequelle.',
+                hinweis: 'Zwei Gammaquanten gleichzeitig (Kaskade). Hohe Durchdringungsfähigkeit — starke Abschirmung erforderlich.',
+            },
+            {
+                id: 'Ir-192', name: 'Iridium-192', symbol: '¹⁹²Ir',
+                focus: false,
+                T: '73,83 d', T_d: 73.83,
+                art: 'β⁻, γ (komplex)',
+                energie: 'Ø 0,37 MeV (0,206–0,612 MeV)',
+                gamma: 0.113,
+                hvl: { Blei: 4.8, Beton: 43, Eisen: 12, Wasser: 65 },
+                uses: 'Häufigste Quelle für industrielle Radiographie (ZfP/NDT), Rohrleitungen, Schweißnahtprüfung. Muss alle ~3 Monate gewechselt werden.',
+                hinweis: 'Strahlt ein komplexes Gamma-Spektrum ab. Regelmäßiger Quellwechsel durch kurze Halbwertszeit nötig.',
+            },
+            {
+                id: 'Se-75', name: 'Selen-75', symbol: '⁷⁵Se',
+                focus: false,
+                T: '119,78 d', T_d: 119.78,
+                art: 'EC, γ',
+                energie: 'Ø 0,21 MeV (0,066–0,401 MeV)',
+                gamma: 0.0506,
+                hvl: { Blei: 2.0, Beton: 32, Eisen: 8, Wasser: 50 },
+                uses: 'Radiographie dünnwandiger Rohre und kleiner Durchmesser (≤ 50 mm). Geringere Strahlenbelastung als Ir-192 bei kleinen Wandstärken.',
+                hinweis: 'Elektroneneinfang (EC) — keine Beta-Strahlung. Besonders geeignet für Petro-/Chemieanlagen.',
+            },
+            {
+                id: 'Yb-169', name: 'Ytterbium-169', symbol: '¹⁶⁹Yb',
+                focus: false,
+                T: '32,01 d', T_d: 32.01,
+                art: 'EC, γ',
+                energie: 'Ø 0,17 MeV (0,063–0,308 MeV)',
+                gamma: 0.0567,
+                hvl: { Blei: 2.2, Beton: 30, Eisen: 7, Wasser: 45 },
+                uses: 'Radiographie sehr dünnwandiger Materialien (Aluminium, Titan), Leichtbaukonstruktionen. Kurze Halbwertszeit begrenzt die Einsatzdauer.',
+                hinweis: 'Geringe Energie → sehr dünne Abschirmung ausreichend. Kurze HWZ erfordert häufigen Quellwechsel.',
+            },
+            {
+                id: 'Am-241', name: 'Americium-241', symbol: '²⁴¹Am',
+                focus: false,
+                T: '432,2 a', T_d: 432.2 * 365.25,
+                art: 'α, γ (sehr schwach)',
+                energie: '0,0595 MeV (+ 5,486 MeV α)',
+                gamma: 0.00358,
+                hvl: { Blei: 0.2, Beton: 14, Eisen: 2, Wasser: 15 },
+                uses: 'Ionisationsrauchmelder, Füllstand-Grenzstandschalter, Laborquellen, Kalibriernormale. Sehr geringe Gamma-Emission — Alpha-Strahler im Vordergrund.',
+                hinweis: 'Gamma-Anteil sehr gering, jedoch Alpha-Strahlung bei Kontamination gefährlich. Sehr lange HWZ → praktisch gleichbleibende Aktivität.',
+            },
+            {
+                id: 'Ra-226', name: 'Radium-226', symbol: '²²⁶Ra',
+                focus: false,
+                T: '1600 a', T_d: 1600 * 365.25,
+                art: 'α, γ + Folgenuklide',
+                energie: '0,186 MeV + Folgeprodukte bis 2,45 MeV',
+                gamma: 0.195,
+                hvl: { Blei: 12.0, Beton: 58, Eisen: 20, Wasser: 110 },
+                uses: 'Historische Quellen (Messgeräte vor 1960, Leuchtziffernblätter, Blitzableiter). Heute verboten — nur Altquellen. Freigabewert: 10 Bq/g.',
+                hinweis: 'In Gleichgewicht mit Folgenuklidkette (Rn-222 etc.) — Γ-Wert gilt für abgedichtete Quellen. Gasdichte Kapselung vorgeschrieben wegen Rn-222.',
+            },
+            {
+                id: 'Tm-170', name: 'Thulium-170', symbol: '¹⁷⁰Tm',
+                focus: false,
+                T: '128,6 d', T_d: 128.6,
+                art: 'β⁻, γ (sehr schwach)',
+                energie: '0,0844 MeV',
+                gamma: 0.00355,
+                hvl: { Blei: 0.3, Beton: 15, Eisen: 3, Wasser: 20 },
+                uses: 'Portable Miniaturröntgengeräte für Feldprüfungen, Schichtdicken-Messung dünner Materialien. Geringe Gamma-Emission — praktisch Beta-Strahler.',
+                hinweis: 'Geringer Gamma-Anteil. Beta-Strahlung bei Kontakt gefährlich. Leichte Abschirmung (wenige mm Blei) reicht für Gamma-Anteil.',
+            },
+        ];
+
+        let query = '';
+
+        function render() {
+            const q = query.toLowerCase();
+            const container = document.getElementById('cardContainer');
+            const filtered = q
+                ? NUKLIDE.filter(n => n.id.toLowerCase().includes(q) || n.name.toLowerCase().includes(q) || n.uses.toLowerCase().includes(q))
+                : NUKLIDE;
+
+            document.getElementById('noResults').style.display = filtered.length === 0 ? '' : 'none';
+
+            container.innerHTML = filtered.map(n => `
+                <div class="iso-card ${n.focus ? 'focus-card' : ''}">
+                    <div class="iso-header">
+                        <div class="iso-symbol">☢ ${n.id}</div>
+                        <div>
+                            <div class="iso-name">${n.name} ${n.focus ? '<span class="iso-badge badge-focus">★ Fokus</span>' : ''}</div>
+                            <div class="iso-art">${n.art} &nbsp;·&nbsp; E_γ = ${n.energie}</div>
+                        </div>
+                    </div>
+                    <div class="iso-grid">
+                        <div class="iso-stat">
+                            <div class="iso-stat-label">Halbwertszeit T½</div>
+                            <div class="iso-stat-val">${n.T}</div>
+                        </div>
+                        <div class="iso-stat">
+                            <div class="iso-stat-label">Γ-Konstante</div>
+                            <div class="iso-stat-val">${n.gamma}</div>
+                            <div class="iso-stat-unit">µSv·m²/(MBq·h)</div>
+                        </div>
+                        <div class="iso-stat">
+                            <div class="iso-stat-label">HVL Blei</div>
+                            <div class="iso-stat-val">${n.hvl.Blei}</div>
+                            <div class="iso-stat-unit">mm</div>
+                        </div>
+                        <div class="iso-stat">
+                            <div class="iso-stat-label">HVL Beton</div>
+                            <div class="iso-stat-val">${n.hvl.Beton}</div>
+                            <div class="iso-stat-unit">mm</div>
+                        </div>
+                        <div class="iso-stat">
+                            <div class="iso-stat-label">HVL Eisen</div>
+                            <div class="iso-stat-val">${n.hvl.Eisen}</div>
+                            <div class="iso-stat-unit">mm</div>
+                        </div>
+                        <div class="iso-stat">
+                            <div class="iso-stat-label">HVL Wasser</div>
+                            <div class="iso-stat-val">${n.hvl.Wasser}</div>
+                            <div class="iso-stat-unit">mm</div>
+                        </div>
+                    </div>
+                    <div class="uses-box"><strong>Industrielle Verwendung:</strong> ${n.uses}</div>
+                    ${n.hinweis ? `<div class="uses-box" style="margin-top:4px;color:var(--text-tertiary)"><strong>Hinweis:</strong> ${n.hinweis}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('searchInput').addEventListener('input', e => {
+            query = e.target.value;
+            render();
+        });
+
+        render();
+        if (typeof trackCalculation === 'function') trackCalculation('isotopdaten');
+    </script>
+</body>
+</html>
