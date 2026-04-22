@@ -57,6 +57,17 @@
         .favorites-section { margin-bottom: 20px; }
         .favorites-section.hidden { display: none; }
         .no-results { text-align: center; padding: 40px 20px; color: var(--text-tertiary); font-size: 14px; display: none; }
+
+        /* View toggle */
+        .view-toggle { display: flex; gap: 2px; background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 2px; }
+        .view-btn { display: flex; align-items: center; justify-content: center; padding: 5px 8px; border-radius: calc(var(--radius-md) - 2px); border: none; background: transparent; cursor: pointer; color: var(--text-tertiary); transition: all 0.15s; }
+        .view-btn:hover { color: var(--text-primary); }
+        .view-btn.active { background: var(--bg-default); color: var(--text-primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .view-btn svg { width: 15px; height: 15px; fill: currentColor; }
+
+        /* Grouped view */
+        .group-section { margin-bottom: 28px; }
+        .group-section .section-label { margin-bottom: 10px; }
         .footer-links { margin-top: 8px; }
         .footer-links a { color: var(--text-link); text-decoration: none; font-size: 12px; }
         .footer-links a:hover { text-decoration: underline; }
@@ -90,7 +101,17 @@
     <div class="page-container">
         <div class="page-header">
             <h2>Berechnungstools</h2>
-            <span class="tool-count" id="toolCount"></span>
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span class="tool-count" id="toolCount"></span>
+                <div class="view-toggle">
+                    <button class="view-btn active" id="viewBtnFlat" onclick="setView('flat')" title="Listenansicht">
+                        <svg viewBox="0 0 16 16"><path d="M2 3.75A.75.75 0 0 1 2.75 3h10.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 3.75Zm0 4A.75.75 0 0 1 2.75 7h10.5a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 7.75Zm0 4a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H2.75a.75.75 0 0 1-.75-.75Z"/></svg>
+                    </button>
+                    <button class="view-btn" id="viewBtnGroup" onclick="setView('grouped')" title="Gruppenansicht">
+                        <svg viewBox="0 0 16 16"><path d="M1 2.75A.75.75 0 0 1 1.75 2h3.5a.75.75 0 0 1 0 1.5h-3.5A.75.75 0 0 1 1 2.75Zm0 5A.75.75 0 0 1 1.75 7h3.5a.75.75 0 0 1 0 1.5h-3.5A.75.75 0 0 1 1 7.75Zm0 5a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 0 1.5h-3.5a.75.75 0 0 1-.75-.75ZM8.25 2h5.5a.75.75 0 0 1 0 1.5h-5.5a.75.75 0 0 1 0-1.5Zm0 5h5.5a.75.75 0 0 1 0 1.5h-5.5a.75.75 0 0 1 0-1.5Zm0 5h5.5a.75.75 0 0 1 0 1.5h-5.5a.75.75 0 0 1 0-1.5Z"/></svg>
+                    </button>
+                </div>
+            </div>
         </div>
 
         <div class="search-bar">
@@ -111,10 +132,12 @@
             <div class="tool-grid" id="favoritesGrid"></div>
         </div>
 
-        <div>
+        <div id="flatView">
             <div class="section-label" id="allToolsLabel">Alle Tools</div>
             <div class="tool-grid" id="toolsGrid"></div>
         </div>
+
+        <div id="groupedView" style="display:none"></div>
 
         <div class="no-results" id="noResults">Kein Tool gefunden.</div>
     </div>
@@ -178,6 +201,7 @@
         let draggedId = null;
         let activeFilter = 'all';
         let searchQuery = '';
+        let viewMode = 'flat';
 
         // All unique categories
         const ALL_CATEGORIES = [...new Set(DEFAULT_TOOLS.flatMap(t => t.tags))].sort();
@@ -189,6 +213,11 @@
                     const state = JSON.parse(saved);
                     if (state.order) toolOrder = state.order;
                     if (state.favorites) favorites = new Set(state.favorites);
+                    if (state.viewMode) {
+                        viewMode = state.viewMode;
+                        document.getElementById('viewBtnFlat').classList.toggle('active', viewMode === 'flat');
+                        document.getElementById('viewBtnGroup').classList.toggle('active', viewMode === 'grouped');
+                    }
                 }
             } catch(e) {}
             const existing = new Set(toolOrder);
@@ -249,11 +278,16 @@
         }
 
         function render() {
+            if (viewMode === 'grouped') { renderGrouped(); return; }
+
             const favGrid = document.getElementById('favoritesGrid');
             const toolsGrid = document.getElementById('toolsGrid');
             const favSection = document.getElementById('favoritesSection');
             const allLabel = document.getElementById('allToolsLabel');
             const noResults = document.getElementById('noResults');
+
+            document.getElementById('flatView').style.display = '';
+            document.getElementById('groupedView').style.display = 'none';
 
             favGrid.innerHTML = '';
             toolsGrid.innerHTML = '';
@@ -289,6 +323,62 @@
 
             document.getElementById('toolCount').textContent = DEFAULT_TOOLS.length + ' Tools';
             noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+
+        function renderGrouped() {
+            document.getElementById('flatView').style.display = 'none';
+            const gv = document.getElementById('groupedView');
+            gv.style.display = '';
+            gv.innerHTML = '';
+
+            // Favorites at top
+            const favSection = document.getElementById('favoritesSection');
+            const favTools = toolOrder.filter(id => favorites.has(id) && matchesFilter(getToolById(id)));
+            const favGrid = document.getElementById('favoritesGrid');
+            favGrid.innerHTML = '';
+            if (favTools.length > 0) {
+                favSection.classList.remove('hidden');
+                favTools.forEach(id => { const t = getToolById(id); if (t) favGrid.appendChild(createCard(t)); });
+            } else {
+                favSection.classList.add('hidden');
+            }
+
+            // Group non-favorites by first tag
+            const nonFavIds = toolOrder.filter(id => !favorites.has(id));
+            const groups = {};
+            nonFavIds.forEach(id => {
+                const tool = getToolById(id);
+                if (!tool || !matchesFilter(tool)) return;
+                const cat = tool.tags[0];
+                if (!groups[cat]) groups[cat] = [];
+                groups[cat].push(tool);
+            });
+
+            let totalVisible = favTools.length;
+            Object.keys(groups).sort().forEach(cat => {
+                const tools = groups[cat];
+                if (tools.length === 0) return;
+                totalVisible += tools.length;
+                const sec = document.createElement('div');
+                sec.className = 'group-section';
+                sec.innerHTML = '<div class="section-label">' + cat + ' <span style="color:var(--text-tertiary);font-weight:400;text-transform:none;letter-spacing:0">(' + tools.length + ')</span></div>';
+                const grid = document.createElement('div');
+                grid.className = 'tool-grid';
+                tools.forEach(tool => grid.appendChild(createCard(tool)));
+                sec.appendChild(grid);
+                gv.appendChild(sec);
+            });
+
+            document.getElementById('toolCount').textContent = DEFAULT_TOOLS.length + ' Tools';
+            document.getElementById('noResults').style.display = totalVisible === 0 ? 'block' : 'none';
+        }
+
+        function setView(mode) {
+            viewMode = mode;
+            document.getElementById('viewBtnFlat').classList.toggle('active', mode === 'flat');
+            document.getElementById('viewBtnGroup').classList.toggle('active', mode === 'grouped');
+            saveGlobalState({ viewMode: mode });
+            render();
         }
 
         function toggleFavorite(id) {
