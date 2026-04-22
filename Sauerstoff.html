@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sauerstoff – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
+        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+
+        .status-bar { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-default); margin-bottom: 20px; font-size: 14px; font-weight: 500; transition: all 0.3s; }
+        .status-bar.status-ok { background: var(--bg-success); color: var(--text-success); border-color: var(--text-success); }
+        .status-bar.status-warn { background: var(--bg-attention); color: var(--text-attention); border-color: var(--text-attention); }
+        .status-bar.status-error { background: var(--bg-danger); color: var(--text-danger); border-color: var(--text-danger); }
+        .status-bar.status-idle { background: var(--bg-subtle); color: var(--text-tertiary); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .status-ok .status-dot { background: var(--text-success); }
+        .status-warn .status-dot { background: var(--text-attention); }
+        .status-error .status-dot { background: var(--text-danger); }
+        .status-idle .status-dot { background: var(--text-tertiary); }
+
+        .result-row { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 14px 18px; margin-top: 12px; font-family: var(--font-mono); font-size: 15px; color: var(--accent-fg); font-weight: 600; }
+        .section-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin: 24px 0 8px; }
+
+        .sat-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+        .sat-table th { background: var(--bg-subtle); font-weight: 600; color: var(--text-secondary); padding: 7px 10px; text-align: center; border-bottom: 2px solid var(--border-default); }
+        .sat-table td { padding: 5px 10px; border-bottom: 1px solid var(--border-default); text-align: center; font-family: var(--font-mono); font-size: 12px; color: var(--text-primary); }
+        .sat-table tr:last-child td { border-bottom: none; }
+        .sat-table tr:hover td { background: var(--bg-subtle); }
+        .sat-table td:first-child { font-weight: 600; color: var(--text-secondary); }
+        .sat-table td.highlight { background: var(--bg-success); color: var(--text-success); font-weight: 700; }
+    </style>
+</head>
+<body data-tool-id="sauerstoff">
+
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button>
+        </div>
+    </header>
+
+    <div class="back-bar">
+        <a href="index.html" class="back-link">
+            <svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg>
+            Zurück zur Übersicht
+        </a>
+    </div>
+
+    <div class="page-container">
+        <div class="container">
+            <div class="action-bar">
+                <button class="action-btn" onclick="copyResults()">
+                    <svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>
+                    Kopieren
+                </button>
+                <button class="action-btn" onclick="exportPagePDF('Sauerstoff')">
+                    <svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
+                    PDF
+                </button>
+            </div>
+
+            <div class="description">
+                🫧 Sauerstoffsättigung berechnen: % Sättigung ↔ mg/l, Temperatur- und Druckkorrektion, Salzgehaltskorrektion und Membransonden-Check.
+            </div>
+
+            <!-- 1. Sättigungskonzentration + Umrechnung -->
+            <div class="section-title">Sättigung & Messwertumrechnung</div>
+            <table>
+                <tr><th colspan="6">O₂-Sättigungskonzentration (Süßwasser, nach Benson & Krause)</th></tr>
+                <tr>
+                    <td colspan="2">Temperatur</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="temp" value="20" step="0.1" min="0" max="40" style="max-width:100px"> °C
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Luftdruck</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="pressure" value="1.01325" step="0.001" style="max-width:120px"> bar
+                        <button class="action-btn" style="margin-left:8px;" onclick="document.getElementById('pressure').value='1.01325';calcSat()">Standard</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Salzgehalt</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="salinity" value="0" step="0.1" min="0" max="40" style="max-width:100px"> ‰
+                        <span style="font-size:12px;color:var(--text-tertiary);margin-left:6px;">0=Süßwasser · 35=Meerwasser</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">C<sub>sat</sub> (berechnet)</td>
+                    <td colspan="4" id="csat_display" style="font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--accent-fg);">—</td>
+                </tr>
+                <tr><th colspan="6">Messwert umrechnen</th></tr>
+                <tr>
+                    <td colspan="2">Messwert % Sättigung</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="sat_pct" value="" step="0.1" placeholder="%" style="max-width:120px"> %
+                        <span style="font-size:12px;color:var(--text-tertiary);margin-left:6px;">→ <strong id="sat_to_mgl">—</strong></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Messwert mg/l</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="sat_mgl" value="" step="0.01" placeholder="mg/l" style="max-width:120px"> mg/l
+                        <span style="font-size:12px;color:var(--text-tertiary);margin-left:6px;">→ <strong id="mgl_to_sat">—</strong></span>
+                    </td>
+                </tr>
+            </table>
+            <div class="result-row" id="sat_result">Temperatur eingeben um zu starten</div>
+
+            <!-- 2. Membransonden-Check -->
+            <div class="section-title">Membransonden-Check (amperometrisch)</div>
+
+            <div class="status-bar status-idle" id="memStatusBar">
+                <div class="status-dot"></div>
+                <span id="memStatusText">Kalibrierwerte eingeben um die Bewertung zu starten</span>
+            </div>
+
+            <table>
+                <tr><th colspan="6">Zwei-Punkt-Kalibrierung (0% und 100% Sättigung)</th></tr>
+                <tr>
+                    <td colspan="2">Signal bei 0 % (Nullpunkt)</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="mem_zero" value="" step="0.001" placeholder="nA oder mV" style="max-width:130px">
+                        <span style="font-size:12px;color:var(--text-tertiary);margin-left:6px;">(Nullstrom / N₂-Spülung)</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Signal bei 100 % (Steigung)</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="mem_span" value="" step="0.001" placeholder="nA oder mV" style="max-width:130px">
+                        <span style="font-size:12px;color:var(--text-tertiary);margin-left:6px;">(Luftsättigung)</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Referenzsteigung (Neusonde)</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="mem_ref_span" value="" step="0.001" placeholder="optional" style="max-width:130px">
+                        <span style="font-size:12px;color:var(--text-tertiary);margin-left:6px;">(aus Inbetriebnahme)</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Steigung relativ</td>
+                    <td colspan="4" id="mem_slope_cell" style="font-family:var(--font-mono);font-size:14px;color:var(--accent-fg);">—</td>
+                </tr>
+            </table>
+
+            <!-- 3. Sättigungstabelle -->
+            <div class="section-title">Sättigungstabelle O₂ in mg/l (Süßwasser, 1,01325 bar)</div>
+            <table class="sat-table" id="satTable">
+                <tr>
+                    <th>T (°C)</th>
+                    <th>C<sub>sat</sub> (mg/l)</th>
+                    <th>T (°C)</th>
+                    <th>C<sub>sat</sub> (mg/l)</th>
+                </tr>
+                <tbody id="satTableBody"></tbody>
+            </table>
+
+            <div class="shortcuts-hint">
+                <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+                <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bottom-header">
+        <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+    </footer>
+
+    <script src="shared.js"></script>
+    <script>
+        // Sättigungskonzentration nach Benson & Krause (1980), mg/l
+        function cSatFresh(T) {
+            return 14.62 - 0.3898 * T + 0.006969 * T * T - 0.00005896 * T * T * T;
+        }
+
+        // Salzgehaltskorrektion
+        function cSatSal(T, S) {
+            return cSatFresh(T) * (1 - 0.000934 * S);
+        }
+
+        // Druckkorrektion
+        function cSatP(cSat0, P) {
+            return cSat0 * (P / 1.01325);
+        }
+
+        function calcSat() {
+            const T = parseFloat(document.getElementById('temp').value);
+            const P = parseFloat(document.getElementById('pressure').value);
+            const S = parseFloat(document.getElementById('salinity').value) || 0;
+
+            if (isNaN(T) || isNaN(P)) {
+                document.getElementById('csat_display').textContent = '—';
+                document.getElementById('sat_result').textContent = 'Temperatur eingeben um zu starten';
+                return;
+            }
+
+            const cSat0 = cSatFresh(T);
+            const cSatCorr = cSatP(cSatSal(T, S), P);
+
+            document.getElementById('csat_display').textContent =
+                cSatCorr.toFixed(3) + ' mg/l' +
+                (S > 0 ? '  (inkl. Salzgehaltskorrektion)' : '') +
+                (Math.abs(P - 1.01325) > 0.001 ? '  (inkl. Druckkorrektion)' : '');
+
+            const pctVal = parseFloat(document.getElementById('sat_pct').value);
+            const mglVal = parseFloat(document.getElementById('sat_mgl').value);
+
+            if (!isNaN(pctVal)) {
+                const mgl = (pctVal / 100) * cSatCorr;
+                document.getElementById('sat_to_mgl').textContent = mgl.toFixed(3) + ' mg/l';
+            } else {
+                document.getElementById('sat_to_mgl').textContent = '—';
+            }
+
+            if (!isNaN(mglVal)) {
+                const pct = (mglVal / cSatCorr) * 100;
+                document.getElementById('mgl_to_sat').textContent = pct.toFixed(2) + ' %';
+            } else {
+                document.getElementById('mgl_to_sat').textContent = '—';
+            }
+
+            document.getElementById('sat_result').textContent =
+                'Cₛₐₜ (' + T.toFixed(1) + '°C, ' + P.toFixed(4) + ' bar, ' + S.toFixed(1) + '‰) = ' +
+                cSatCorr.toFixed(3) + ' mg/l';
+
+            highlightSatTable(T);
+        }
+
+        function calcMembrane() {
+            const zero = parseFloat(document.getElementById('mem_zero').value);
+            const span = parseFloat(document.getElementById('mem_span').value);
+            const refSpan = parseFloat(document.getElementById('mem_ref_span').value);
+            const bar = document.getElementById('memStatusBar');
+            const text = document.getElementById('memStatusText');
+            const slopeCell = document.getElementById('mem_slope_cell');
+
+            if (isNaN(zero) || isNaN(span)) {
+                bar.className = 'status-bar status-idle';
+                text.textContent = 'Kalibrierwerte eingeben um die Bewertung zu starten';
+                slopeCell.textContent = '—';
+                return;
+            }
+
+            const slopeAbs = span - zero;
+            slopeCell.textContent = slopeAbs.toFixed(4) + ' (100% − 0%)';
+
+            if (!isNaN(refSpan)) {
+                const refSlopeAbs = refSpan - zero;
+                const slopePct = refSlopeAbs !== 0 ? (slopeAbs / refSlopeAbs) * 100 : NaN;
+                if (!isNaN(slopePct)) {
+                    slopeCell.textContent += '   |   Steilheit vs. Referenz: ' + slopePct.toFixed(1) + '%';
+
+                    if (slopePct >= 80) {
+                        bar.className = 'status-bar status-ok';
+                        text.textContent = '✓ Membran OK — Steilheit ' + slopePct.toFixed(1) + '% der Referenz';
+                    } else if (slopePct >= 60) {
+                        bar.className = 'status-bar status-warn';
+                        text.textContent = '⚠ Membran abgenutzt — Steilheit ' + slopePct.toFixed(1) + '% (Grenze ≥80%)';
+                    } else {
+                        bar.className = 'status-bar status-error';
+                        text.textContent = '✕ Membran austauschen — Steilheit nur ' + slopePct.toFixed(1) + '%';
+                    }
+                    return;
+                }
+            }
+
+            bar.className = 'status-bar status-ok';
+            text.textContent = '✓ Kalibrierung erfasst — Steigung: ' + slopeAbs.toFixed(4) + ' (Referenzsteigung eingeben für Bewertung)';
+        }
+
+        function buildSatTable() {
+            const tbody = document.getElementById('satTableBody');
+            const temps = [0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40];
+            let html = '';
+            for (let i = 0; i < temps.length; i += 2) {
+                const t1 = temps[i], t2 = temps[i+1];
+                const c1 = cSatFresh(t1).toFixed(2);
+                const c2 = t2 !== undefined ? cSatFresh(t2).toFixed(2) : '';
+                html += '<tr>' +
+                    '<td id="stRow_' + t1 + '">' + t1 + '</td>' +
+                    '<td id="stVal_' + t1 + '">' + c1 + '</td>' +
+                    (t2 !== undefined
+                        ? '<td id="stRow_' + t2 + '">' + t2 + '</td><td id="stVal_' + t2 + '">' + c2 + '</td>'
+                        : '<td></td><td></td>') +
+                    '</tr>';
+            }
+            tbody.innerHTML = html;
+        }
+
+        function highlightSatTable(T) {
+            document.querySelectorAll('.sat-table td').forEach(td => td.classList.remove('highlight'));
+            const rounded = Math.round(T / 2) * 2;
+            const rowEl = document.getElementById('stRow_' + rounded);
+            const valEl = document.getElementById('stVal_' + rounded);
+            if (rowEl) rowEl.classList.add('highlight');
+            if (valEl) valEl.classList.add('highlight');
+        }
+
+        ['temp','pressure','salinity','sat_pct','sat_mgl'].forEach(id =>
+            document.getElementById(id).addEventListener('input', calcSat));
+        ['mem_zero','mem_span','mem_ref_span'].forEach(id =>
+            document.getElementById(id).addEventListener('input', calcMembrane));
+
+        buildSatTable();
+        calcSat();
+    </script>
+</body>
+</html>
