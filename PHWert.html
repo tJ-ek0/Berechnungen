@@ -41,6 +41,11 @@
 
         .info-box { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 16px; font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
         .info-box strong { color: var(--text-primary); }
+
+        .mode-toggle { display: inline-flex; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border-default); margin-bottom: 16px; }
+        .mode-toggle-btn { padding: 6px 20px; font-size: 13px; font-weight: 500; border: none; background: var(--bg-default); color: var(--text-secondary); cursor: pointer; font-family: var(--font-sans); transition: background 0.15s, color 0.15s; }
+        .mode-toggle-btn.active { background: var(--accent-fg); color: #fff; }
+        .mode-toggle-btn:not(.active):hover { background: var(--bg-subtle); color: var(--text-primary); }
     </style>
 </head>
 <body data-tool-id="ph">
@@ -97,6 +102,14 @@
                 <span id="statusText">Kalibrierwerte eingeben um die Bewertung zu starten</span>
             </div>
 
+            <!-- Modus -->
+            <div>
+                <div class="mode-toggle">
+                    <button class="mode-toggle-btn active" id="btn2p" onclick="setMode('2p')">2-Punkt</button>
+                    <button class="mode-toggle-btn" id="btn3p" onclick="setMode('3p')">3-Punkt</button>
+                </div>
+            </div>
+
             <!-- Eingabe -->
             <table>
                 <tr><th colspan="6">Kalibrierung</th></tr>
@@ -111,7 +124,7 @@
                         <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:4px;">Ideale Nernst-Steilheit bei dieser Temperatur: <strong id="idealSlope">59,16</strong> mV/pH</div>
                     </td>
                 </tr>
-                <tr><th colspan="3">Puffer 1 (sauer)</th><th colspan="3">Puffer 2 (basisch)</th></tr>
+                <tr><th colspan="3">Puffer 1 (sauer)</th><th colspan="3" id="hdr2">Puffer 2 (basisch)</th></tr>
                 <tr>
                     <td>pH-Wert</td>
                     <td colspan="2">
@@ -142,6 +155,21 @@
                         <input class="input-field" type="number" id="mv2" value="" step="0.1" placeholder="mV"> mV
                     </td>
                 </tr>
+                <tr id="p3HdrRow" style="display:none"><th colspan="3">Puffer 3 (basisch)</th><th colspan="3"></th></tr>
+                <tr id="p3phRow" style="display:none">
+                    <td>pH-Wert</td>
+                    <td colspan="2">
+                        <input class="input-field" type="number" id="ph3" value="" step="0.01" placeholder="z.B. 10.01">
+                        <div class="puffer-btns" style="margin-top:4px;">
+                            <button class="puffer-btn" onclick="setVal('ph3',9.21)">9,21</button>
+                            <button class="puffer-btn" onclick="setVal('ph3',10.01)">10,01</button>
+                        </div>
+                    </td>
+                    <td>Spannung</td>
+                    <td colspan="2">
+                        <input class="input-field" type="number" id="mv3" value="" step="0.1" placeholder="mV"> mV
+                    </td>
+                </tr>
             </table>
 
             <!-- Ergebnis-Karten -->
@@ -156,6 +184,30 @@
                 </div>
                 <div class="result-card">
                     <div class="result-card-value" id="res_nullpunkt">—</div>
+                    <div class="result-card-label">Nullpunkt bei pH 7 (mV)</div>
+                </div>
+            </div>
+
+            <!-- Ergebnis-Karten 3-Punkt -->
+            <div class="result-grid" id="resultGrid3p" style="display:none;">
+                <div class="result-card">
+                    <div class="result-card-value" id="res_slope1">—</div>
+                    <div class="result-card-label">Steilheit P1→P2 (mV/pH)</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-value" id="res_pct1">—</div>
+                    <div class="result-card-label">Steilheit P1→P2 (%)</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-value" id="res_slope2">—</div>
+                    <div class="result-card-label">Steilheit P2→P3 (mV/pH)</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-value" id="res_pct2">—</div>
+                    <div class="result-card-label">Steilheit P2→P3 (%)</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-card-value" id="res_nullpunkt3p">—</div>
                     <div class="result-card-label">Nullpunkt bei pH 7 (mV)</div>
                 </div>
             </div>
@@ -190,19 +242,33 @@
     <script src="shared.js"></script>
     <script>
         // ============ CONSTANTS ============
-        const R = 8.31446;      // Gas constant J/(mol·K)
-        const F = 96485.33;     // Faraday constant C/mol
+        const R = 8.31446;
+        const F = 96485.33;
         let phChart = null;
+        let mode = '2p';
 
         // ============ NERNST IDEAL SLOPE ============
         function idealNernstSlope(tempC) {
-            const T = tempC + 273.15; // Kelvin
-            return (2.3026 * R * T) / F * 1000; // in mV/pH
+            const T = tempC + 273.15;
+            return (2.3026 * R * T) / F * 1000;
         }
 
-        // ============ HELPER ============
+        // ============ HELPERS ============
         function setVal(id, val) {
             document.getElementById(id).value = val;
+            berechne();
+        }
+
+        function setMode(m) {
+            mode = m;
+            document.getElementById('btn2p').className = 'mode-toggle-btn' + (m === '2p' ? ' active' : '');
+            document.getElementById('btn3p').className = 'mode-toggle-btn' + (m === '3p' ? ' active' : '');
+            const show3p = m === '3p';
+            document.getElementById('p3HdrRow').style.display = show3p ? '' : 'none';
+            document.getElementById('p3phRow').style.display = show3p ? '' : 'none';
+            document.getElementById('hdr2').textContent = show3p ? 'Puffer 2 (Mitte)' : 'Puffer 2 (basisch)';
+            if (!show3p) document.getElementById('resultGrid3p').style.display = 'none';
+            else document.getElementById('resultGrid').style.display = 'none';
             berechne();
         }
 
@@ -223,7 +289,6 @@
             const tempC = parseFloat(document.getElementById('temperatur').value);
             if (isNaN(tempC)) return;
 
-            // Ideale Steilheit anzeigen
             const ideal = idealNernstSlope(tempC);
             document.getElementById('idealSlope').textContent = ideal.toFixed(2).replace('.', ',');
 
@@ -234,6 +299,7 @@
 
             if (isNaN(ph1) || isNaN(ph2) || isNaN(mv1) || isNaN(mv2)) {
                 document.getElementById('resultGrid').style.display = 'none';
+                document.getElementById('resultGrid3p').style.display = 'none';
                 document.getElementById('chartWrap').style.display = 'none';
                 updateAmpel(null, null);
                 return;
@@ -242,51 +308,84 @@
             const dpH = ph2 - ph1;
             if (dpH === 0) {
                 document.getElementById('resultGrid').style.display = 'none';
+                document.getElementById('resultGrid3p').style.display = 'none';
                 document.getElementById('chartWrap').style.display = 'none';
                 updateAmpel(null, null);
                 return;
             }
 
-            // Steilheit in mV/pH
             const slope = (mv2 - mv1) / dpH;
-            const absSlope = Math.abs(slope);
-
-            // Steilheit in % der idealen
-            const slopePct = (absSlope / ideal) * 100;
-
-            // Nullpunkt: Spannung bei pH 7
-            // E = E0 + slope * (pH - 7)  →  E0 = E - slope * (pH - 7)
-            // Using point 1: nullpunkt = mv1 - slope * (ph1 - 7)
+            const slopePct = (Math.abs(slope) / ideal) * 100;
             const nullpunkt = mv1 - slope * (ph1 - 7);
 
-            // Ergebnisse anzeigen
-            document.getElementById('resultGrid').style.display = 'grid';
-            document.getElementById('res_slope').textContent = slope.toFixed(2);
-            document.getElementById('res_pct').textContent = slopePct.toFixed(1) + '%';
-            document.getElementById('res_nullpunkt').textContent = nullpunkt.toFixed(1);
+            if (mode === '2p') {
+                document.getElementById('resultGrid').style.display = 'grid';
+                document.getElementById('res_slope').textContent = slope.toFixed(2);
+                document.getElementById('res_pct').textContent = slopePct.toFixed(1) + '%';
+                document.getElementById('res_nullpunkt').textContent = nullpunkt.toFixed(1);
 
-            // Farbliche Markierung Nullpunkt
-            const npEl = document.getElementById('res_nullpunkt');
-            if (Math.abs(nullpunkt) <= 15) {
-                npEl.style.color = 'var(--text-success)';
-            } else if (Math.abs(nullpunkt) <= 30) {
-                npEl.style.color = 'var(--text-attention)';
+                const npEl = document.getElementById('res_nullpunkt');
+                if (Math.abs(nullpunkt) <= 15) npEl.style.color = 'var(--text-success)';
+                else if (Math.abs(nullpunkt) <= 30) npEl.style.color = 'var(--text-attention)';
+                else npEl.style.color = 'var(--text-danger)';
+
+                const pctEl = document.getElementById('res_pct');
+                if (slopePct >= 95 && slopePct <= 105) pctEl.style.color = 'var(--text-success)';
+                else if (slopePct >= 85) pctEl.style.color = 'var(--text-attention)';
+                else pctEl.style.color = 'var(--text-danger)';
+
+                updateAmpel(slopePct, nullpunkt);
+                renderChart(ph1, mv1, ph2, mv2, slope, nullpunkt, ideal, tempC);
             } else {
-                npEl.style.color = 'var(--text-danger)';
-            }
+                const ph3 = parseFloat(document.getElementById('ph3').value);
+                const mv3 = parseFloat(document.getElementById('mv3').value);
 
-            // Farbliche Markierung Steilheit %
-            const pctEl = document.getElementById('res_pct');
-            if (slopePct >= 95 && slopePct <= 105) {
-                pctEl.style.color = 'var(--text-success)';
-            } else if (slopePct >= 85) {
-                pctEl.style.color = 'var(--text-attention)';
-            } else {
-                pctEl.style.color = 'var(--text-danger)';
-            }
+                if (isNaN(ph3) || isNaN(mv3)) {
+                    document.getElementById('resultGrid3p').style.display = 'none';
+                    document.getElementById('chartWrap').style.display = 'none';
+                    updateAmpel(null, null);
+                    return;
+                }
 
-            updateAmpel(slopePct, nullpunkt);
-            renderChart(ph1, mv1, ph2, mv2, slope, nullpunkt, ideal, tempC);
+                const dpH2 = ph3 - ph2;
+                if (dpH2 === 0) {
+                    document.getElementById('resultGrid3p').style.display = 'none';
+                    document.getElementById('chartWrap').style.display = 'none';
+                    updateAmpel(null, null);
+                    return;
+                }
+
+                const slope2 = (mv3 - mv2) / dpH2;
+                const slopePct2 = (Math.abs(slope2) / ideal) * 100;
+
+                let np;
+                if (ph1 <= 7 && 7 <= ph2) np = mv1 + slope * (7 - ph1);
+                else if (ph2 <= 7 && 7 <= ph3) np = mv2 + slope2 * (7 - ph2);
+                else np = mv1 + slope * (7 - ph1);
+
+                document.getElementById('resultGrid3p').style.display = 'grid';
+                document.getElementById('res_slope1').textContent = slope.toFixed(2);
+                document.getElementById('res_pct1').textContent = slopePct.toFixed(1) + '%';
+                document.getElementById('res_slope2').textContent = slope2.toFixed(2);
+                document.getElementById('res_pct2').textContent = slopePct2.toFixed(1) + '%';
+                document.getElementById('res_nullpunkt3p').textContent = np.toFixed(1);
+
+                [['res_pct1', slopePct], ['res_pct2', slopePct2]].forEach(([id, pct]) => {
+                    const el = document.getElementById(id);
+                    if (pct >= 95 && pct <= 105) el.style.color = 'var(--text-success)';
+                    else if (pct >= 85) el.style.color = 'var(--text-attention)';
+                    else el.style.color = 'var(--text-danger)';
+                });
+
+                const absNP3p = Math.abs(np);
+                const npEl3p = document.getElementById('res_nullpunkt3p');
+                if (absNP3p <= 15) npEl3p.style.color = 'var(--text-success)';
+                else if (absNP3p <= 30) npEl3p.style.color = 'var(--text-attention)';
+                else npEl3p.style.color = 'var(--text-danger)';
+
+                updateAmpel3p(slopePct, slopePct2, np);
+                renderChart(ph1, mv1, ph2, mv2, slope, np, ideal, tempC, ph3, mv3, slope2);
+            }
         }
 
         // ============ AMPEL ============
@@ -301,10 +400,10 @@
             }
 
             const absNP = Math.abs(nullpunkt);
-            let slopeOk = slopePct >= 95 && slopePct <= 105;
-            let slopeWarn = slopePct >= 85 && slopePct < 95;
-            let npOk = absNP <= 15;
-            let npWarn = absNP > 15 && absNP <= 30;
+            const slopeOk = slopePct >= 95 && slopePct <= 105;
+            const slopeWarn = slopePct >= 85 && slopePct < 95;
+            const npOk = absNP <= 15;
+            const npWarn = absNP > 15 && absNP <= 30;
 
             if (slopeOk && npOk) {
                 bar.className = 'status-bar status-ok';
@@ -313,50 +412,64 @@
                 bar.className = 'status-bar status-warn';
                 text.textContent = '⚠ Sonde akzeptabel — Steilheit ' + slopePct.toFixed(1) + '%, Nullpunkt ' + nullpunkt.toFixed(1) + ' mV';
             } else {
-                bar.className = 'status-bar status-error';
                 let reason = '';
                 if (slopePct < 85) reason += 'Steilheit zu niedrig (' + slopePct.toFixed(1) + '%)';
                 if (slopePct > 105) reason += 'Steilheit zu hoch (' + slopePct.toFixed(1) + '%)';
-                if (absNP > 30) {
-                    if (reason) reason += ', ';
-                    reason += 'Nullpunkt zu hoch (' + nullpunkt.toFixed(1) + ' mV)';
-                }
+                if (absNP > 30) { if (reason) reason += ', '; reason += 'Nullpunkt zu hoch (' + nullpunkt.toFixed(1) + ' mV)'; }
                 bar.className = 'status-bar status-error';
                 text.textContent = '✕ Sonde prüfen/austauschen — ' + reason;
             }
         }
 
+        function updateAmpel3p(slopePct1, slopePct2, nullpunkt) {
+            const bar = document.getElementById('statusBar');
+            const text = document.getElementById('statusText');
+            const absNP = Math.abs(nullpunkt);
+            const bothGood = slopePct1 >= 95 && slopePct1 <= 105 && slopePct2 >= 95 && slopePct2 <= 105;
+            const bothAccept = slopePct1 >= 85 && slopePct2 >= 85;
+
+            if (bothGood && absNP <= 15) {
+                bar.className = 'status-bar status-ok';
+                text.textContent = '✓ Sonde sehr gut — S1: ' + slopePct1.toFixed(1) + '%, S2: ' + slopePct2.toFixed(1) + '%, NP: ' + nullpunkt.toFixed(1) + ' mV';
+            } else if (bothAccept && absNP <= 30) {
+                bar.className = 'status-bar status-warn';
+                text.textContent = '⚠ Sonde akzeptabel — S1: ' + slopePct1.toFixed(1) + '%, S2: ' + slopePct2.toFixed(1) + '%, NP: ' + nullpunkt.toFixed(1) + ' mV';
+            } else {
+                const reasons = [];
+                if (slopePct1 < 85) reasons.push('S1 zu niedrig (' + slopePct1.toFixed(1) + '%)');
+                if (slopePct2 < 85) reasons.push('S2 zu niedrig (' + slopePct2.toFixed(1) + '%)');
+                if (absNP > 30) reasons.push('NP zu hoch (' + nullpunkt.toFixed(1) + ' mV)');
+                bar.className = 'status-bar status-error';
+                text.textContent = '✕ Sonde prüfen/austauschen — ' + reasons.join(', ');
+            }
+        }
+
         // ============ CHART ============
-        function renderChart(ph1, mv1, ph2, mv2, slope, nullpunkt, idealSlope, tempC) {
+        function renderChart(ph1, mv1, ph2, mv2, slope, nullpunkt, idealSlope, tempC, ph3, mv3, slope2) {
             document.getElementById('chartWrap').style.display = 'block';
             const colors = getChartColors();
+            const has3p = ph3 !== undefined;
+            const phMin = 0, phMax = 14;
 
-            // pH range for chart
-            const phMin = 0;
-            const phMax = 14;
-
-            // Ideal line: passes through (7, 0) with negative ideal slope
-            // E_ideal = -idealSlope * (pH - 7)
             const idealData = [];
             for (let p = phMin; p <= phMax; p += 0.5) {
                 idealData.push({ x: p, y: -idealSlope * (p - 7) });
             }
 
-            // Measured line: passes through calibration points
-            // E_measured = nullpunkt + slope * (pH - 7)
             const measuredData = [];
             for (let p = phMin; p <= phMax; p += 0.5) {
-                measuredData.push({ x: p, y: nullpunkt + slope * (p - 7) });
+                let y;
+                if (!has3p) y = nullpunkt + slope * (p - 7);
+                else if (p <= ph2) y = mv1 + slope * (p - ph1);
+                else y = mv2 + slope2 * (p - ph2);
+                measuredData.push({ x: p, y });
             }
 
-            // Calibration points
-            const calPoints = [
-                { x: ph1, y: mv1 },
-                { x: ph2, y: mv2 }
-            ];
+            const calPoints = has3p
+                ? [{ x: ph1, y: mv1 }, { x: ph2, y: mv2 }, { x: ph3, y: mv3 }]
+                : [{ x: ph1, y: mv1 }, { x: ph2, y: mv2 }];
 
             if (phChart) phChart.destroy();
-
             const ctx = document.getElementById('phChart').getContext('2d');
             phChart = new Chart(ctx, {
                 type: 'scatter',
@@ -373,7 +486,9 @@
                             fill: false
                         },
                         {
-                            label: 'Gemessene Kennlinie (' + Math.abs(slope).toFixed(2) + ' mV/pH)',
+                            label: has3p
+                                ? 'Gemessene Kennlinie (S1: ' + Math.abs(slope).toFixed(2) + ', S2: ' + Math.abs(slope2).toFixed(2) + ' mV/pH)'
+                                : 'Gemessene Kennlinie (' + Math.abs(slope).toFixed(2) + ' mV/pH)',
                             data: measuredData,
                             showLine: true,
                             borderColor: colors.measured,
@@ -399,8 +514,7 @@
                         x: {
                             type: 'linear',
                             title: { display: true, text: 'pH-Wert', color: colors.tick },
-                            min: phMin,
-                            max: phMax,
+                            min: phMin, max: phMax,
                             ticks: { color: colors.tick, stepSize: 1 },
                             grid: { color: colors.grid }
                         },
@@ -408,12 +522,8 @@
                             title: { display: true, text: 'Spannung (mV)', color: colors.tick },
                             ticks: { color: colors.tick },
                             grid: {
-                                color: function(ctx) {
-                                    return ctx.tick.value === 0 ? colors.zeroLine : colors.grid;
-                                },
-                                lineWidth: function(ctx) {
-                                    return ctx.tick.value === 0 ? 2 : 1;
-                                }
+                                color: function(ctx) { return ctx.tick.value === 0 ? colors.zeroLine : colors.grid; },
+                                lineWidth: function(ctx) { return ctx.tick.value === 0 ? 2 : 1; }
                             }
                         }
                     },
@@ -431,15 +541,13 @@
             });
         }
 
-        // Re-render chart on theme change
         onThemeChanged(berechne);
 
         // ============ EVENTS ============
-        document.querySelectorAll('#temperatur, #ph1, #ph2, #mv1, #mv2').forEach(el => {
+        document.querySelectorAll('#temperatur, #ph1, #ph2, #mv1, #mv2, #ph3, #mv3').forEach(el => {
             el.addEventListener('input', berechne);
         });
 
-        // Init
         berechne();
     </script>
 

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Druckkalibrierung – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
+        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+
+        .result-big { font-size: 28px; font-weight: 700; color: var(--accent-fg); font-family: var(--font-mono); }
+        .result-unit { font-size: 14px; color: var(--text-tertiary); margin-left: 4px; }
+
+        .conv-result { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 16px 20px; margin-top: 12px; display: flex; align-items: baseline; gap: 8px; }
+        .section-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin: 24px 0 8px; }
+
+        .ref-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+        .ref-table th { background: var(--bg-subtle); font-weight: 600; color: var(--text-secondary); padding: 8px 12px; text-align: left; border-bottom: 2px solid var(--border-default); }
+        .ref-table td { padding: 6px 12px; border-bottom: 1px solid var(--border-default); color: var(--text-primary); font-family: var(--font-mono); font-size: 12px; }
+        .ref-table tr:last-child td { border-bottom: none; }
+        .ref-table tr:hover td { background: var(--bg-subtle); }
+    </style>
+</head>
+<body data-tool-id="druck">
+
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button>
+        </div>
+    </header>
+
+    <div class="back-bar">
+        <a href="index.html" class="back-link">
+            <svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg>
+            Zurück zur Übersicht
+        </a>
+    </div>
+
+    <div class="page-container">
+        <div class="container">
+            <div class="action-bar">
+                <button class="action-btn" onclick="copyResults()">
+                    <svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>
+                    Kopieren
+                </button>
+                <button class="action-btn" onclick="exportPagePDF('Druckkalibrierung')">
+                    <svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
+                    PDF
+                </button>
+            </div>
+
+            <div class="description">
+                🔧 Druckeinheitenumrechnung, Absolut/Relativ-Konvertierung, hydrostatische Korrektion und Nullpunkt/Span-Abgleich für Drucktransmitter.
+            </div>
+
+            <!-- 1. Einheitenumrechnung -->
+            <div class="section-title">Einheitenumrechnung</div>
+            <table>
+                <tr><th colspan="6">Druckeinheiten umrechnen</th></tr>
+                <tr>
+                    <td colspan="2">Eingabewert</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="conv_val" value="1" step="any" style="max-width:130px">
+                        <select class="input-field" id="conv_from" style="max-width:120px">
+                            <option value="Pa">Pa</option>
+                            <option value="hPa">hPa</option>
+                            <option value="kPa">kPa</option>
+                            <option value="MPa">MPa</option>
+                            <option value="bar" selected>bar</option>
+                            <option value="mbar">mbar</option>
+                            <option value="psi">psi</option>
+                            <option value="mmH2O">mmH₂O</option>
+                            <option value="mH2O">mH₂O</option>
+                            <option value="inH2O">inH₂O</option>
+                            <option value="mmHg">mmHg</option>
+                            <option value="kgfcm2">kgf/cm²</option>
+                            <option value="atm">atm</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Zieleinheit</td>
+                    <td colspan="4">
+                        <select class="input-field" id="conv_to" style="max-width:120px">
+                            <option value="Pa">Pa</option>
+                            <option value="hPa">hPa</option>
+                            <option value="kPa">kPa</option>
+                            <option value="MPa">MPa</option>
+                            <option value="bar">bar</option>
+                            <option value="mbar">mbar</option>
+                            <option value="psi" selected>psi</option>
+                            <option value="mmH2O">mmH₂O</option>
+                            <option value="mH2O">mH₂O</option>
+                            <option value="inH2O">inH₂O</option>
+                            <option value="mmHg">mmHg</option>
+                            <option value="kgfcm2">kgf/cm²</option>
+                            <option value="atm">atm</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            <div class="conv-result">
+                <span id="conv_result_val" class="result-big">—</span>
+                <span id="conv_result_unit" class="result-unit">psi</span>
+            </div>
+
+            <!-- 2. Absolut / Relativ -->
+            <div class="section-title">Absolut ↔ Relativ (Überdruck)</div>
+            <table>
+                <tr><th colspan="6">Drucktypkonvertierung</th></tr>
+                <tr>
+                    <td colspan="2">Atmosphärendruck P<sub>atm</sub></td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="patm" value="1.01325" step="0.00001" style="max-width:120px"> bar
+                        <button class="action-btn" style="margin-left:8px;" onclick="document.getElementById('patm').value='1.01325';calcAbsRel()">Standard</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Absolutdruck P<sub>abs</sub></td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="pabs" value="" step="any" placeholder="bar" style="max-width:120px"> bar
+                        <span style="font-size:12px;color:var(--text-tertiary);margin-left:6px;">→ Relativ: <strong id="prel_from_abs">—</strong> bar</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Relativdruck P<sub>rel</sub></td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="prel" value="" step="any" placeholder="bar" style="max-width:120px"> bar
+                        <span style="font-size:12px;color:var(--text-tertiary);margin-left:6px;">→ Absolut: <strong id="pabs_from_rel">—</strong> bar</span>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- 3. Hydrostatische Korrektion -->
+            <div class="section-title">Hydrostatische Korrektion</div>
+            <table>
+                <tr><th colspan="6">Flüssigkeitssäule → Druck (P = ρ · g · h)</th></tr>
+                <tr>
+                    <td colspan="2">Dichte ρ</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="hydro_rho" value="1000" step="any" style="max-width:120px"> kg/m³
+                        <span style="font-size:12px;color:var(--text-tertiary);margin-left:8px;">
+                            Wasser=1000 · Öl≈850 · Diesel≈840
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Höhe h</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="hydro_h" value="1" step="any" style="max-width:120px"> m
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Erdbeschleunigung g</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="hydro_g" value="9.81" step="0.001" style="max-width:120px"> m/s²
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Ergebnis</td>
+                    <td colspan="4" id="hydro_result" style="font-family:var(--font-mono);font-size:14px;color:var(--accent-fg);">—</td>
+                </tr>
+            </table>
+
+            <!-- 4. Zero/Span -->
+            <div class="section-title">Zero/Span Abgleich (4–20 mA)</div>
+            <table>
+                <tr><th colspan="6">Transmitter-Abgleich</th></tr>
+                <tr>
+                    <td colspan="2">Messbereich</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="span_min" value="0" step="any" style="max-width:100px">
+                        bis
+                        <input class="input-field" type="number" id="span_max" value="10" step="any" style="max-width:100px">
+                        <select class="input-field" id="span_unit" style="max-width:90px">
+                            <option value="bar">bar</option>
+                            <option value="mbar">mbar</option>
+                            <option value="kPa">kPa</option>
+                            <option value="MPa">MPa</option>
+                            <option value="psi">psi</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Sollwert (Druck)</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="span_soll" value="5" step="any" style="max-width:120px">
+                        <span id="span_unit_lbl" style="font-size:13px;color:var(--text-secondary);">bar</span>
+                        <span style="font-size:12px;color:var(--text-tertiary);margin-left:8px;">→ Soll mA: <strong id="span_soll_ma">—</strong></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Istwert (gemessener Strom)</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="span_ist_ma" value="" step="0.001" placeholder="mA" style="max-width:120px"> mA
+                        <span style="font-size:12px;color:var(--text-tertiary);margin-left:8px;">→ Istwert Druck: <strong id="span_ist_druck">—</strong></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Abweichung</td>
+                    <td colspan="4" id="span_abw_cell" style="font-family:var(--font-mono);font-size:14px;">—</td>
+                </tr>
+            </table>
+
+            <!-- Referenztabelle -->
+            <div class="section-title">Referenz: Druckeinheiten</div>
+            <table class="ref-table">
+                <tr>
+                    <th>Einheit</th><th>in Pa</th><th>in bar</th><th>in psi</th><th>in mH₂O</th>
+                </tr>
+                <tr><td>1 Pa</td><td>1</td><td>1,00×10⁻⁵</td><td>1,450×10⁻⁴</td><td>1,020×10⁻⁴</td></tr>
+                <tr><td>1 mbar</td><td>100</td><td>0,001</td><td>0,01450</td><td>0,01020</td></tr>
+                <tr><td>1 bar</td><td>100 000</td><td>1</td><td>14,504</td><td>10,197</td></tr>
+                <tr><td>1 psi</td><td>6 894,76</td><td>0,068948</td><td>1</td><td>0,7030</td></tr>
+                <tr><td>1 mH₂O</td><td>9 806,65</td><td>0,098067</td><td>1,4223</td><td>1</td></tr>
+                <tr><td>1 atm</td><td>101 325</td><td>1,01325</td><td>14,696</td><td>10,333</td></tr>
+                <tr><td>1 mmHg</td><td>133,322</td><td>0,0013332</td><td>0,01934</td><td>0,01360</td></tr>
+                <tr><td>1 kgf/cm²</td><td>98 066,5</td><td>0,98067</td><td>14,223</td><td>10,000</td></tr>
+            </table>
+
+            <div class="shortcuts-hint">
+                <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+                <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bottom-header">
+        <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+    </footer>
+
+    <script src="shared.js"></script>
+    <script>
+        // Konversionsfaktoren → Pa
+        const TO_PA = {
+            Pa: 1, hPa: 100, kPa: 1000, MPa: 1e6,
+            bar: 1e5, mbar: 100,
+            psi: 6894.757,
+            mmH2O: 9.80665, mH2O: 9806.65, inH2O: 249.089,
+            mmHg: 133.322, kgfcm2: 98066.5, atm: 101325
+        };
+        const UNIT_LABELS = {
+            Pa:'Pa', hPa:'hPa', kPa:'kPa', MPa:'MPa',
+            bar:'bar', mbar:'mbar', psi:'psi',
+            mmH2O:'mmH₂O', mH2O:'mH₂O', inH2O:'inH₂O',
+            mmHg:'mmHg', kgfcm2:'kgf/cm²', atm:'atm'
+        };
+
+        function fmtNum(v) {
+            if (Math.abs(v) >= 1e6) return v.toExponential(4);
+            if (Math.abs(v) >= 100) return v.toFixed(3);
+            if (Math.abs(v) >= 1) return v.toFixed(5);
+            return v.toExponential(4);
+        }
+
+        function calcConv() {
+            const val = parseFloat(document.getElementById('conv_val').value);
+            const from = document.getElementById('conv_from').value;
+            const to = document.getElementById('conv_to').value;
+            if (isNaN(val)) { document.getElementById('conv_result_val').textContent = '—'; return; }
+            const pa = val * TO_PA[from];
+            const result = pa / TO_PA[to];
+            document.getElementById('conv_result_val').textContent = fmtNum(result);
+            document.getElementById('conv_result_unit').textContent = UNIT_LABELS[to];
+        }
+
+        function calcAbsRel() {
+            const patm = parseFloat(document.getElementById('patm').value);
+            const pabs = parseFloat(document.getElementById('pabs').value);
+            const prel = parseFloat(document.getElementById('prel').value);
+            if (!isNaN(pabs)) {
+                document.getElementById('prel_from_abs').textContent = (pabs - patm).toFixed(5) + ' bar';
+            } else {
+                document.getElementById('prel_from_abs').textContent = '—';
+            }
+            if (!isNaN(prel)) {
+                document.getElementById('pabs_from_rel').textContent = (prel + patm).toFixed(5) + ' bar';
+            } else {
+                document.getElementById('pabs_from_rel').textContent = '—';
+            }
+        }
+
+        function calcHydro() {
+            const rho = parseFloat(document.getElementById('hydro_rho').value);
+            const h = parseFloat(document.getElementById('hydro_h').value);
+            const g = parseFloat(document.getElementById('hydro_g').value);
+            if (isNaN(rho) || isNaN(h) || isNaN(g)) { document.getElementById('hydro_result').textContent = '—'; return; }
+            const p_pa = rho * g * h;
+            const p_bar = p_pa / 1e5;
+            const p_mbar = p_pa / 100;
+            const p_mmH2O = p_pa / 9.80665;
+            document.getElementById('hydro_result').textContent =
+                p_bar.toFixed(5) + ' bar  |  ' +
+                p_mbar.toFixed(3) + ' mbar  |  ' +
+                p_mmH2O.toFixed(1) + ' mmH₂O  |  ' +
+                (p_pa / 6894.757).toFixed(4) + ' psi';
+        }
+
+        function calcSpan() {
+            const sMin = parseFloat(document.getElementById('span_min').value);
+            const sMax = parseFloat(document.getElementById('span_max').value);
+            const soll = parseFloat(document.getElementById('span_soll').value);
+            const istMa = parseFloat(document.getElementById('span_ist_ma').value);
+            const unit = document.getElementById('span_unit').value;
+            document.getElementById('span_unit_lbl').textContent = unit;
+
+            if (isNaN(sMin) || isNaN(sMax) || sMax === sMin) {
+                document.getElementById('span_soll_ma').textContent = '—';
+                document.getElementById('span_ist_druck').textContent = '—';
+                document.getElementById('span_abw_cell').textContent = '—';
+                return;
+            }
+
+            const span = sMax - sMin;
+            if (!isNaN(soll)) {
+                const sollMa = 4 + ((soll - sMin) / span) * 16;
+                document.getElementById('span_soll_ma').textContent = sollMa.toFixed(3) + ' mA';
+
+                if (!isNaN(istMa)) {
+                    const istDruck = sMin + ((istMa - 4) / 16) * span;
+                    document.getElementById('span_ist_druck').textContent = istDruck.toFixed(4) + ' ' + unit;
+                    const abwPct = ((istDruck - soll) / span) * 100;
+                    const abwAbs = istDruck - soll;
+                    const cell = document.getElementById('span_abw_cell');
+                    const isOk = Math.abs(abwPct) <= 1;
+                    cell.textContent = (abwPct >= 0 ? '+' : '') + abwPct.toFixed(3) + '% vom Messbereich  |  ' +
+                        (abwAbs >= 0 ? '+' : '') + abwAbs.toFixed(4) + ' ' + unit;
+                    cell.style.color = isOk ? 'var(--text-success)' : 'var(--text-danger)';
+                }
+            }
+        }
+
+        // Events
+        ['conv_val','conv_from','conv_to'].forEach(id => document.getElementById(id).addEventListener('change', calcConv));
+        document.getElementById('conv_val').addEventListener('input', calcConv);
+        ['patm','pabs','prel'].forEach(id => document.getElementById(id).addEventListener('input', calcAbsRel));
+        ['hydro_rho','hydro_h','hydro_g'].forEach(id => document.getElementById(id).addEventListener('input', calcHydro));
+        ['span_min','span_max','span_soll','span_ist_ma','span_unit'].forEach(id => {
+            document.getElementById(id).addEventListener('input', calcSpan);
+            document.getElementById(id).addEventListener('change', calcSpan);
+        });
+
+        // Init
+        calcConv(); calcAbsRel(); calcHydro(); calcSpan();
+    </script>
+</body>
+</html>

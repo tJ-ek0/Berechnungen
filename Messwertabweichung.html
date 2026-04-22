@@ -46,6 +46,14 @@
         .meta-fields label { font-size: 13px; color: var(--text-secondary); display: block; margin-bottom: 4px; }
         .meta-fields input { width: 100%; max-width: 100%; }
         @media (max-width: 600px) { .meta-fields { grid-template-columns: 1fr; } }
+
+        .mode-toggle { display: inline-flex; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border-default); }
+        .mode-toggle-btn { padding: 5px 16px; font-size: 13px; font-weight: 500; border: none; background: var(--bg-default); color: var(--text-secondary); cursor: pointer; font-family: var(--font-sans); transition: background 0.15s, color 0.15s; }
+        .mode-toggle-btn.active { background: var(--accent-fg); color: #fff; }
+        .mode-toggle-btn:not(.active):hover { background: var(--bg-subtle); color: var(--text-primary); }
+
+        .afl-af { background: var(--bg-attention) !important; }
+        .afl-al { background: var(--bg-subtle) !important; border-left: 3px solid var(--accent-fg); }
     </style>
 </head>
 <body data-tool-id="abweichung">
@@ -139,12 +147,21 @@
                         <input class="input-field" type="number" id="grenzwert" value="1" step="any" style="max-width:100px"> %
                     </td>
                 </tr>
+                <tr>
+                    <td colspan="2">Modus</td>
+                    <td colspan="4">
+                        <div class="mode-toggle">
+                            <button class="mode-toggle-btn active" id="btnStandard" onclick="setAFLMode(false)">Standard</button>
+                            <button class="mode-toggle-btn" id="btnAFL" onclick="setAFLMode(true)">As-Found / As-Left</button>
+                        </div>
+                    </td>
+                </tr>
             </table>
 
             <!-- Messpunkte -->
             <table id="messpunkte_table">
-                <tr><th colspan="5">Messpunkte</th></tr>
-                <tr>
+                <tr><th id="tblHeader" colspan="5">Messpunkte</th></tr>
+                <tr id="messpunkte_header">
                     <th style="width:40px">#</th>
                     <th>Sollwert</th>
                     <th>Istwert</th>
@@ -209,6 +226,45 @@
     <script>
         let punktCount = 0;
         let chart = null;
+        let aflMode = false;
+
+        // ============ AFL MODE ============
+        function setAFLMode(afl) {
+            const savedData = [];
+            document.querySelectorAll('.mess-row').forEach(row => {
+                savedData.push({
+                    soll: row.querySelector('.soll-input').value,
+                    af: row.querySelector('.ist-input').value,
+                    al: row.querySelector('.al-input') ? row.querySelector('.al-input').value : ''
+                });
+            });
+            aflMode = afl;
+            document.getElementById('btnStandard').className = 'mode-toggle-btn' + (!afl ? ' active' : '');
+            document.getElementById('btnAFL').className = 'mode-toggle-btn' + (afl ? ' active' : '');
+            document.getElementById('tblHeader').colSpan = afl ? 7 : 5;
+            updateTableHeader();
+            const body = document.getElementById('messpunkte_body');
+            body.innerHTML = '';
+            punktCount = 0;
+            const count = savedData.length || 5;
+            for (let i = 0; i < count; i++) addMesspunkt();
+            document.querySelectorAll('.mess-row').forEach((row, i) => {
+                if (!savedData[i]) return;
+                row.querySelector('.soll-input').value = savedData[i].soll;
+                row.querySelector('.ist-input').value = savedData[i].af;
+                if (afl && row.querySelector('.al-input')) row.querySelector('.al-input').value = savedData[i].al;
+            });
+            berechne();
+        }
+
+        function updateTableHeader() {
+            const hdr = document.getElementById('messpunkte_header');
+            if (aflMode) {
+                hdr.innerHTML = '<th style="width:40px">#</th><th>Sollwert</th><th>As-Found</th><th>Abw. AF (%)</th><th>As-Left</th><th>Abw. AL (%)</th><th style="width:40px"></th>';
+            } else {
+                hdr.innerHTML = '<th style="width:40px">#</th><th>Sollwert</th><th>Istwert</th><th>Abweichung (%)</th><th style="width:40px"></th>';
+            }
+        }
 
         // ============ MESSPUNKTE ============
         function addMesspunkt() {
@@ -217,12 +273,23 @@
             const row = document.createElement('tr');
             row.className = 'mess-row';
             row.dataset.nr = punktCount;
-            row.innerHTML =
-                '<td class="row-nr">' + punktCount + '</td>' +
-                '<td><input class="input-field soll-input" type="number" value="0" step="any" placeholder="Soll"></td>' +
-                '<td><input class="input-field ist-input" type="number" value="0" step="any" placeholder="Ist"></td>' +
-                '<td><span class="fehler-display" data-nr="' + punktCount + '">—</span></td>' +
-                '<td><button class="remove-btn" title="Entfernen" onclick="removeMesspunkt(this)">×</button></td>';
+            if (aflMode) {
+                row.innerHTML =
+                    '<td class="row-nr">' + punktCount + '</td>' +
+                    '<td><input class="input-field soll-input" type="number" value="0" step="any" placeholder="Soll"></td>' +
+                    '<td><input class="input-field ist-input" type="number" value="0" step="any" placeholder="As-Found"></td>' +
+                    '<td><span class="fehler-display af-display">—</span></td>' +
+                    '<td><input class="input-field al-input" type="number" value="0" step="any" placeholder="As-Left"></td>' +
+                    '<td><span class="fehler-display al-display">—</span></td>' +
+                    '<td><button class="remove-btn" title="Entfernen" onclick="removeMesspunkt(this)">×</button></td>';
+            } else {
+                row.innerHTML =
+                    '<td class="row-nr">' + punktCount + '</td>' +
+                    '<td><input class="input-field soll-input" type="number" value="0" step="any" placeholder="Soll"></td>' +
+                    '<td><input class="input-field ist-input" type="number" value="0" step="any" placeholder="Ist"></td>' +
+                    '<td><span class="fehler-display">—</span></td>' +
+                    '<td><button class="remove-btn" title="Entfernen" onclick="removeMesspunkt(this)">×</button></td>';
+            }
             container.appendChild(row);
             row.querySelectorAll('input').forEach(inp => inp.addEventListener('input', berechne));
             berechne();
@@ -243,6 +310,24 @@
         }
 
         // ============ BERECHNUNG ============
+        function calcAbw(ist, soll, mb, typ) {
+            if (typ === 'messbereich') return mb !== 0 ? ((ist - soll) / mb) * 100 : 0;
+            return soll !== 0 ? ((ist - soll) / soll) * 100 : 0;
+        }
+
+        function styleDisplay(el, abw, grenzwert) {
+            el.textContent = (abw >= 0 ? '+' : '') + abw.toFixed(3) + '%';
+            if (Math.abs(abw) > grenzwert) {
+                el.className = 'fehler-display outside-tolerance';
+                el.style.background = 'var(--bg-danger)';
+                return false;
+            } else {
+                el.className = 'fehler-display within-tolerance';
+                el.style.background = 'var(--bg-success)';
+                return true;
+            }
+        }
+
         function berechne() {
             const typ = document.getElementById('abweichungstyp').value;
             const mbMin = parseFloat(document.getElementById('mb_min').value) || 0;
@@ -250,42 +335,37 @@
             const mb = mbMax - mbMin;
             const grenzwert = parseFloat(document.getElementById('grenzwert').value) || 1;
 
-            // Messbereich-Zeile ein/ausblenden
             document.getElementById('messbereichRow').style.display = typ === 'messbereich' ? '' : 'none';
 
             const rows = document.querySelectorAll('.mess-row');
-            const abweichungen = [];
-            let punkteOk = 0, punkteNio = 0;
+            const abwAF = [], abwAL = [];
+            let okAF = 0, nioAF = 0, okAL = 0, nioAL = 0;
 
             rows.forEach(row => {
                 const soll = parseFloat(row.querySelector('.soll-input').value) || 0;
-                const ist = parseFloat(row.querySelector('.ist-input').value) || 0;
-                const display = row.querySelector('.fehler-display');
+                const af = parseFloat(row.querySelector('.ist-input').value) || 0;
+                const a = calcAbw(af, soll, mb, typ);
+                abwAF.push(a);
+                const displayAF = aflMode ? row.querySelector('.af-display') : row.querySelector('.fehler-display');
+                if (styleDisplay(displayAF, a, grenzwert)) okAF++; else nioAF++;
 
-                let abw = 0;
-                if (typ === 'messbereich') {
-                    abw = mb !== 0 ? ((ist - soll) / mb) * 100 : 0;
-                } else {
-                    abw = soll !== 0 ? ((ist - soll) / soll) * 100 : 0;
-                }
-
-                abweichungen.push(abw);
-                display.textContent = abw.toFixed(2) + '%';
-
-                if (Math.abs(abw) > grenzwert) {
-                    display.className = 'fehler-display outside-tolerance';
-                    display.style.background = 'var(--bg-danger)';
-                    punkteNio++;
-                } else {
-                    display.className = 'fehler-display within-tolerance';
-                    display.style.background = 'var(--bg-success)';
-                    punkteOk++;
+                if (aflMode) {
+                    const al = parseFloat(row.querySelector('.al-input').value) || 0;
+                    const b = calcAbw(al, soll, mb, typ);
+                    abwAL.push(b);
+                    if (styleDisplay(row.querySelector('.al-display'), b, grenzwert)) okAL++; else nioAL++;
                 }
             });
 
-            updateStats(abweichungen, punkteOk, punkteNio, grenzwert);
-            updateChart(abweichungen, grenzwert);
-            updateAmpel(punkteNio, rows.length);
+            if (aflMode) {
+                updateStatsAFL(abwAF, abwAL, okAF, nioAF, okAL, nioAL, grenzwert);
+                updateChartAFL(abwAF, abwAL, grenzwert);
+                updateAmpelAFL(nioAF, nioAL, rows.length);
+            } else {
+                updateStats(abwAF, okAF, nioAF, grenzwert);
+                updateChart(abwAF, grenzwert);
+                updateAmpel(nioAF, rows.length);
+            }
         }
 
         // ============ STATISTIK ============
@@ -293,11 +373,9 @@
             const grid = document.getElementById('statsGrid');
             if (abw.length === 0) { grid.style.display = 'none'; return; }
             grid.style.display = 'grid';
-
             const absAbw = abw.map(a => Math.abs(a));
             const maxAbw = Math.max(...absAbw);
             const avgAbw = absAbw.reduce((a, b) => a + b, 0) / absAbw.length;
-
             document.getElementById('stat_max_abw').textContent = maxAbw.toFixed(2) + '%';
             document.getElementById('stat_max_abw').style.color = maxAbw > grenzwert ? 'var(--text-danger)' : 'var(--text-success)';
             document.getElementById('stat_avg_abw').textContent = avgAbw.toFixed(2) + '%';
@@ -306,6 +384,23 @@
             document.getElementById('stat_punkte_ok').style.color = 'var(--text-success)';
             document.getElementById('stat_punkte_nio').textContent = nio + ' / ' + (ok + nio);
             document.getElementById('stat_punkte_nio').style.color = nio > 0 ? 'var(--text-danger)' : 'var(--text-success)';
+        }
+
+        function updateStatsAFL(abwAF, abwAL, okAF, nioAF, okAL, nioAL, grenzwert) {
+            const grid = document.getElementById('statsGrid');
+            if (abwAF.length === 0) { grid.style.display = 'none'; return; }
+            grid.style.display = 'grid';
+            const maxAF = Math.max(...abwAF.map(a => Math.abs(a)));
+            const maxAL = Math.max(...abwAL.map(a => Math.abs(a)));
+            const total = okAF + nioAF;
+            document.getElementById('stat_max_abw').textContent = 'AF ' + maxAF.toFixed(2) + '% / AL ' + maxAL.toFixed(2) + '%';
+            document.getElementById('stat_max_abw').style.color = maxAL > grenzwert ? 'var(--text-danger)' : 'var(--text-success)';
+            document.getElementById('stat_avg_abw').textContent = 'Ø AF ' + (abwAF.reduce((a,b)=>a+Math.abs(b),0)/abwAF.length).toFixed(2) + '%';
+            document.getElementById('stat_avg_abw').style.color = 'var(--text-secondary)';
+            document.getElementById('stat_punkte_ok').textContent = 'AF ' + okAF + '/' + total + ' → AL ' + okAL + '/' + total;
+            document.getElementById('stat_punkte_ok').style.color = okAL === total ? 'var(--text-success)' : 'var(--text-attention)';
+            document.getElementById('stat_punkte_nio').textContent = 'AL n.i.O.: ' + nioAL;
+            document.getElementById('stat_punkte_nio').style.color = nioAL > 0 ? 'var(--text-danger)' : 'var(--text-success)';
         }
 
         // ============ AMPEL ============
@@ -324,6 +419,24 @@
             }
         }
 
+        function updateAmpelAFL(nioAF, nioAL, total) {
+            const bar = document.getElementById('statusBar');
+            const text = document.getElementById('statusText');
+            if (total === 0) {
+                bar.className = 'status-bar status-idle';
+                text.textContent = 'Messwerte eingeben um die Bewertung zu starten';
+            } else if (nioAL === 0 && nioAF > 0) {
+                bar.className = 'status-bar status-ok';
+                text.textContent = '✓ As-Left: Alle ' + total + ' i.O. (As-Found: ' + nioAF + ' n.i.O. → Kalibrierung erfolgreich)';
+            } else if (nioAL === 0) {
+                bar.className = 'status-bar status-ok';
+                text.textContent = '✓ As-Found & As-Left: Alle ' + total + ' Punkte i.O.';
+            } else {
+                bar.className = 'status-bar status-error';
+                text.textContent = '✕ As-Left: ' + nioAL + ' von ' + total + ' n.i.O. — Nachkalibrierung erforderlich';
+            }
+        }
+
         // ============ CHART ============
         function getChartColors() {
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -334,6 +447,8 @@
                 barOkBorder: isDark ? '#3fb950' : '#1a7f37',
                 barBad: isDark ? 'rgba(248,81,73,0.3)' : 'rgba(207,34,46,0.2)',
                 barBadBorder: isDark ? '#f85149' : '#cf222e',
+                barAL: isDark ? 'rgba(88,166,255,0.3)' : 'rgba(9,105,218,0.2)',
+                barALBorder: isDark ? '#58a6ff' : '#0969da',
                 limit: isDark ? '#f85149' : '#cf222e'
             };
         }
@@ -345,16 +460,47 @@
             const borderColors = abweichungen.map(a => Math.abs(a) > grenzwert ? colors.barBadBorder : colors.barOkBorder);
             const grenzPos = abweichungen.map(() => grenzwert);
             const grenzNeg = abweichungen.map(() => -grenzwert);
-
             if (chart) chart.destroy();
-
             const ctx = document.getElementById('abweichungsChart').getContext('2d');
             chart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: labels,
+                    labels,
                     datasets: [
-                        { label: 'Abweichung (%)', data: abweichungen.map(a => parseFloat(a.toFixed(2))), backgroundColor: bgColors, borderColor: borderColors, borderWidth: 1 },
+                        { label: 'Abweichung (%)', data: abweichungen.map(a => parseFloat(a.toFixed(3))), backgroundColor: bgColors, borderColor: borderColors, borderWidth: 1 },
+                        { label: 'Grenzwert +', data: grenzPos, type: 'line', borderColor: colors.limit, borderWidth: 2, borderDash: [6, 3], fill: false, pointRadius: 0 },
+                        { label: 'Grenzwert −', data: grenzNeg, type: 'line', borderColor: colors.limit, borderWidth: 2, borderDash: [6, 3], fill: false, pointRadius: 0 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: false, suggestedMin: -Math.max(grenzwert * 3, 5), suggestedMax: Math.max(grenzwert * 3, 5), grid: { color: colors.grid }, ticks: { color: colors.tick } },
+                        x: { grid: { color: colors.grid }, ticks: { color: colors.tick } }
+                    },
+                    plugins: { legend: { labels: { color: colors.tick } } }
+                }
+            });
+        }
+
+        function updateChartAFL(abwAF, abwAL, grenzwert) {
+            const labels = abwAF.map((_, i) => 'Punkt ' + (i + 1));
+            const colors = getChartColors();
+            const bgAF = abwAF.map(a => Math.abs(a) > grenzwert ? colors.barBad : colors.barOk);
+            const borderAF = abwAF.map(a => Math.abs(a) > grenzwert ? colors.barBadBorder : colors.barOkBorder);
+            const bgAL = abwAL.map(a => Math.abs(a) > grenzwert ? colors.barBad : colors.barAL);
+            const borderAL = abwAL.map(a => Math.abs(a) > grenzwert ? colors.barBadBorder : colors.barALBorder);
+            const grenzPos = abwAF.map(() => grenzwert);
+            const grenzNeg = abwAF.map(() => -grenzwert);
+            if (chart) chart.destroy();
+            const ctx = document.getElementById('abweichungsChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'As-Found (%)', data: abwAF.map(a => parseFloat(a.toFixed(3))), backgroundColor: bgAF, borderColor: borderAF, borderWidth: 1 },
+                        { label: 'As-Left (%)', data: abwAL.map(a => parseFloat(a.toFixed(3))), backgroundColor: bgAL, borderColor: borderAL, borderWidth: 1 },
                         { label: 'Grenzwert +', data: grenzPos, type: 'line', borderColor: colors.limit, borderWidth: 2, borderDash: [6, 3], fill: false, pointRadius: 0 },
                         { label: 'Grenzwert −', data: grenzNeg, type: 'line', borderColor: colors.limit, borderWidth: 2, borderDash: [6, 3], fill: false, pointRadius: 0 }
                     ]
@@ -387,7 +533,7 @@
             // Titel
             pdf.setFontSize(18);
             pdf.setTextColor(15, 27, 45);
-            pdf.text("Messwertabweichung - Protokoll", 10, 18);
+            pdf.text("Messwertabweichung - Protokoll" + (aflMode ? ' (As-Found/As-Left)' : ''), 10, 18);
             pdf.setDrawColor(9, 105, 218);
             pdf.setLineWidth(0.5);
             pdf.line(10, 24, 200, 24);
@@ -416,7 +562,6 @@
             pdf.text(statusText, 10, y, { maxWidth: 190 });
             y += 8;
 
-            // Tabelle mit autoTable
             pdf.setTextColor(0);
             pdf.setFont(undefined, 'normal');
 
@@ -424,49 +569,51 @@
             const tableData = [];
             rows.forEach(function(row, i) {
                 const soll = row.querySelector('.soll-input').value;
-                const ist = row.querySelector('.ist-input').value;
-                const fehler = row.querySelector('.fehler-display').textContent;
-                const isOutside = row.querySelector('.outside-tolerance') !== null;
-                tableData.push([
-                    String(i + 1),
-                    soll,
-                    ist,
-                    fehler,
-                    isOutside ? 'n.i.O.' : 'i.O.'
-                ]);
+                const af = row.querySelector('.ist-input').value;
+                if (aflMode) {
+                    const al = row.querySelector('.al-input') ? row.querySelector('.al-input').value : '';
+                    const abwAF = row.querySelector('.af-display') ? row.querySelector('.af-display').textContent : '—';
+                    const abwAL = row.querySelector('.al-display') ? row.querySelector('.al-display').textContent : '—';
+                    const nioAL = row.querySelector('.al-display') && row.querySelector('.al-display').classList.contains('outside-tolerance');
+                    tableData.push([String(i + 1), soll, af, abwAF, al, abwAL, nioAL ? 'n.i.O.' : 'i.O.']);
+                } else {
+                    const fehler = row.querySelector('.fehler-display') ? row.querySelector('.fehler-display').textContent : '—';
+                    const isOutside = row.querySelector('.outside-tolerance') !== null;
+                    tableData.push([String(i + 1), soll, af, fehler, isOutside ? 'n.i.O.' : 'i.O.']);
+                }
             });
 
-            pdf.autoTable({
-                startY: y,
-                head: [['Punkt', 'Sollwert', 'Istwert', 'Abweichung', 'Status']],
-                body: tableData,
-                theme: 'grid',
-                headStyles: {
-                    fillColor: [9, 105, 218],
-                    textColor: 255,
-                    fontStyle: 'bold',
-                    halign: 'center'
-                },
-                bodyStyles: {
-                    halign: 'center',
-                    fontSize: 10
-                },
-                columnStyles: {
-                    0: { cellWidth: 20 },
-                    4: { cellWidth: 25 }
-                },
-                didParseCell: function(data) {
-                    if (data.section === 'body' && data.column.index === 4) {
-                        if (data.cell.raw === 'n.i.O.') {
-                            data.cell.styles.textColor = [207, 34, 46];
-                            data.cell.styles.fontStyle = 'bold';
-                        } else {
-                            data.cell.styles.textColor = [26, 127, 55];
+            if (aflMode) {
+                pdf.autoTable({
+                    startY: y,
+                    head: [['#', 'Soll', 'As-Found', 'Abw. AF', 'As-Left', 'Abw. AL', 'Status']],
+                    body: tableData, theme: 'grid',
+                    headStyles: { fillColor: [9, 105, 218], textColor: 255, fontStyle: 'bold', halign: 'center' },
+                    bodyStyles: { halign: 'center', fontSize: 9 },
+                    columnStyles: { 0: { cellWidth: 12 }, 6: { cellWidth: 20 } },
+                    didParseCell: function(data) {
+                        if (data.section === 'body' && data.column.index === 6) {
+                            data.cell.styles.textColor = data.cell.raw === 'n.i.O.' ? [207, 34, 46] : [26, 127, 55];
                             data.cell.styles.fontStyle = 'bold';
                         }
                     }
-                }
-            });
+                });
+            } else {
+                pdf.autoTable({
+                    startY: y,
+                    head: [['Punkt', 'Sollwert', 'Istwert', 'Abweichung', 'Status']],
+                    body: tableData, theme: 'grid',
+                    headStyles: { fillColor: [9, 105, 218], textColor: 255, fontStyle: 'bold', halign: 'center' },
+                    bodyStyles: { halign: 'center', fontSize: 10 },
+                    columnStyles: { 0: { cellWidth: 20 }, 4: { cellWidth: 25 } },
+                    didParseCell: function(data) {
+                        if (data.section === 'body' && data.column.index === 4) {
+                            data.cell.styles.textColor = data.cell.raw === 'n.i.O.' ? [207, 34, 46] : [26, 127, 55];
+                            data.cell.styles.fontStyle = 'bold';
+                        }
+                    }
+                });
+            }
 
             y = pdf.lastAutoTable.finalY + 10;
 
