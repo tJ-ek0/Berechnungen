@@ -271,7 +271,28 @@ p {
     font-size: 14px;
     line-height: 1.7;
     color: var(--text-secondary);
+    overflow: hidden;
+    transition: max-height 0.3s ease;
 }
+
+.description.desc-collapsed {
+    max-height: 72px;
+    cursor: pointer;
+    margin-bottom: 4px;
+}
+
+.desc-expand-hint {
+    display: none;
+    font-size: 11px;
+    color: var(--accent-fg);
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    margin-bottom: 20px;
+    cursor: pointer;
+    padding: 2px 0;
+}
+
+.desc-expand-hint.visible { display: block; }
 
 /* ---- TABLES ---- */
 table {
@@ -369,11 +390,12 @@ select {
 .result-field {
     background: var(--bg-success) !important;
     color: var(--text-success) !important;
-    padding: 10px 14px;
+    padding: 12px 16px;
     border-radius: var(--radius-md);
-    font-weight: 600;
+    font-weight: 700;
     font-family: var(--font-mono);
-    font-size: 14px;
+    font-size: 16px;
+    border-left: 3px solid var(--success-fg);
 }
 
 .good {
@@ -474,8 +496,9 @@ footer.bottom-header {
     .page-container { padding: 12px; }
     .container { padding: 14px; }
     button { width: 100%; padding: 12px; }
-    /* Pill-style category/device buttons and history-clear must stay compact */
-    .cat-btn, .dev-btn, .history-clear { width: auto; }
+    /* Pill-style, action and history buttons must stay compact */
+    .cat-btn, .dev-btn, .history-clear, .action-btn { width: auto; }
+    .action-btn { padding: 6px 14px; }
 }
 
 /* ---- VALIDATION ---- */
@@ -626,3 +649,42 @@ footer.bottom-header {
     opacity: 0.8;
     text-decoration: none;
 }
+
+/* ---- MOBILE TOOL PAGE HEADER ---- */
+/* On mobile: replace "Techniker Berechnungstools" with "← ToolName", hide back-bar */
+@media (max-width: 768px) {
+    .is-tool-page .back-bar { display: none; }
+    .is-tool-page .header-logo { display: none; }
+    .is-tool-page .header-title[data-tool] { font-size: 0; line-height: 0; }
+    .is-tool-page .header-title[data-tool]::after {
+        content: attr(data-tool);
+        font-size: 15px;
+        line-height: 1.2;
+        color: #ffffff;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+    }
+    .is-tool-page .header-home-link { gap: 6px; }
+    .is-tool-page .header-home-link::before {
+        content: '←';
+        color: rgba(255,255,255,0.7);
+        font-size: 20px;
+        line-height: 1;
+    }
+}
+
+/* ---- CATEGORY ICON COLORS (index page) ---- */
+.cat-blue   { background: var(--bg-accent); }
+.cat-amber  { background: var(--bg-attention); }
+.cat-teal   { background: #d2f4ea; }
+.cat-purple { background: #f3d9fa; }
+.cat-green  { background: var(--bg-success); }
+.cat-red    { background: var(--bg-danger); }
+.cat-warm   { background: #ffd8a8; }
+.cat-orange { background: #ffe4cc; }
+.cat-gray   { background: var(--bg-subtle); }
+
+[data-theme="dark"] .cat-teal   { background: #0d2d22; }
+[data-theme="dark"] .cat-purple { background: #280f38; }
+[data-theme="dark"] .cat-warm   { background: #2e1800; }
+[data-theme="dark"] .cat-orange { background: #2e1800; }

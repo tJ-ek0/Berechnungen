@@ -374,6 +374,21 @@ const _TOOL_META = {
     elektro:         { title: 'Elektro-Grundlagen',     href: 'Elektro_Grundlagen.html',icon: '⚡' },
     kabel:           { title: 'Kabelquerschnitt',        href: 'Kabelquerschnitt.html',  icon: '🔌' },
     waerme:          { title: 'Wärmetechnik',            href: 'Waermetechnik.html',     icon: '🌡️' },
+    normdurchfluss:  { title: 'Normdurchfluss',          href: 'Normdurchfluss.html',    icon: '🌡️' },
+    taupunkt:        { title: 'Taupunkt & Feuchte',      href: 'Taupunkt.html',          icon: '💦' },
+    rohrklassen:     { title: 'Rohrklassen (ASME)',      href: 'Rohrklassen.html',       icon: '🔩' },
+    dp_durchfluss:   { title: 'DP-Durchfluss Skalierung',href: 'DPDurchfluss.html',      icon: '📊' },
+    konzentration:   { title: 'Konzentration aus Dichte',href: 'Konzentration.html',     icon: '🧪' },
+    mid_lf:          { title: 'MID Leitfähigkeit',       href: 'MID_Leitfaehigkeit.html',icon: '💧' },
+    schallgeschwindigkeit: { title: 'Schallgeschwindigkeit', href: 'Schallgeschwindigkeit.html', icon: '🔊' },
+    loop_diagnose:   { title: '4-20 mA Loop-Diagnose',  href: 'Loop_Diagnose.html',     icon: '🔌' },
+    sil_pfd:         { title: 'SIL / PFD Rechner',       href: 'SIL_PFD.html',           icon: '🛡️' },
+    prozessanschluesse: { title: 'Prozessanschlüsse',   href: 'Prozessanschluesse.html',icon: '🔧' },
+    eh_fehlercodes:  { title: 'E+H Fehlercodes',         href: 'EH_Fehlercodes.html',    icon: '⚠️' },
+    inbetriebnahme:  { title: 'Inbetriebnahme',          href: 'Inbetriebnahme.html',    icon: '📋' },
+    kalibrierprotokoll: { title: 'Kalibrierprotokoll',  href: 'Kalibrierprotokoll.html',icon: '📄' },
+    csv:             { title: 'CSV-Umwandler',           href: 'csv.html',               icon: '📄' },
+    csvvisu:         { title: 'CSV-Visualisierung',      href: 'csvauswertung.html',     icon: '📈' },
 };
 
 const _TOOL_RELATIONS = {
@@ -477,6 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const toolId = document.body.dataset.toolId;
     if (toolId) {
+        document.body.classList.add('is-tool-page');
         trackToolUsage(toolId);
         loadUnitPresets(toolId);
         injectRelatedTools(toolId);
@@ -493,6 +509,29 @@ document.addEventListener('DOMContentLoaded', () => {
             a.title = 'Zurück zur Übersicht';
             while (headerLeft.firstChild) a.appendChild(headerLeft.firstChild);
             headerLeft.appendChild(a);
+        }
+
+        // Mobile: show tool name in header instead of brand name
+        const toolMeta = _TOOL_META[toolId];
+        if (toolMeta) {
+            const titleEl = document.querySelector('.header-title');
+            if (titleEl) titleEl.setAttribute('data-tool', toolMeta.title);
+        }
+
+        // Mobile: collapsible description box (one-tap to expand, stays open)
+        const desc = document.querySelector('.description');
+        if (desc && window.innerWidth <= 768) {
+            desc.classList.add('desc-collapsed');
+            const hint = document.createElement('div');
+            hint.className = 'desc-expand-hint visible';
+            hint.textContent = '▼ Info einblenden';
+            desc.insertAdjacentElement('afterend', hint);
+            function expandDesc() {
+                desc.classList.remove('desc-collapsed');
+                hint.classList.remove('visible');
+            }
+            desc.addEventListener('click', expandDesc);
+            hint.addEventListener('click', expandDesc);
         }
     }
 });
