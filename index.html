@@ -79,6 +79,13 @@
             .filter-toggle { display: flex; }
             .filter-bar { display: none; }
             .filter-bar.open { display: flex; }
+            /* Larger touch targets for glove/field use */
+            .filter-tag { padding: 8px 14px; font-size: 13px; min-height: 36px; }
+            .star-btn { width: 44px; height: 44px; }
+        }
+        @media (max-width: 480px) {
+            /* Keep view-toggle buttons side-by-side, not full-width */
+            .view-btn { width: auto !important; padding: 8px 10px; }
         }
     </style>
 </head>

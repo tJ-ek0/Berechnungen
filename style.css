@@ -474,6 +474,8 @@ footer.bottom-header {
     .page-container { padding: 12px; }
     .container { padding: 14px; }
     button { width: 100%; padding: 12px; }
+    /* Pill-style category/device buttons and history-clear must stay compact */
+    .cat-btn, .dev-btn, .history-clear { width: auto; }
 }
 
 /* ---- VALIDATION ---- */
@@ -608,4 +610,19 @@ footer.bottom-header {
 .badge-frequent {
     background: var(--bg-accent);
     color: var(--accent-fg);
+}
+
+/* ---- HEADER HOME LINK (tool pages) ---- */
+.header-home-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: inherit;
+    transition: opacity 0.15s;
+}
+
+.header-home-link:hover {
+    opacity: 0.8;
+    text-decoration: none;
 }

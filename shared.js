@@ -458,6 +458,23 @@ document.addEventListener('DOMContentLoaded', () => {
     loadFromShareLink();
     trackPageVisit();
 
+    // Auto-assign IDs to action buttons so showBtnFeedback works on all pages
+    document.querySelectorAll('button[onclick]').forEach(btn => {
+        if (!btn.id) {
+            const oc = btn.getAttribute('onclick') || '';
+            if (oc.includes('copyResults'))        btn.id = 'copyBtn';
+            else if (oc.includes('resetFields'))   btn.id = 'resetBtn';
+            else if (oc.includes('exportPagePDF')) btn.id = 'pdfBtn';
+            else if (oc.includes('generateShareLink')) btn.id = 'shareBtn';
+        }
+    });
+
+    // Mobile: numeric keyboard + suppress browser autocomplete on calculation inputs
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+        if (!input.hasAttribute('inputmode'))    input.setAttribute('inputmode', 'decimal');
+        if (!input.hasAttribute('autocomplete')) input.setAttribute('autocomplete', 'off');
+    });
+
     const toolId = document.body.dataset.toolId;
     if (toolId) {
         trackToolUsage(toolId);
@@ -466,5 +483,16 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('select').forEach(s => {
             s.addEventListener('change', () => saveUnitPresets(toolId));
         });
+
+        // Make header logo+title a home link on tool pages
+        const headerLeft = document.querySelector('.header-left');
+        if (headerLeft && !headerLeft.querySelector('a')) {
+            const a = document.createElement('a');
+            a.href = 'index.html';
+            a.className = 'header-home-link';
+            a.title = 'Zurück zur Übersicht';
+            while (headerLeft.firstChild) a.appendChild(headerLeft.firstChild);
+            headerLeft.appendChild(a);
+        }
     }
 });
