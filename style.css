@@ -272,11 +272,12 @@ p {
     line-height: 1.7;
     color: var(--text-secondary);
     overflow: hidden;
-    transition: max-height 0.3s ease;
+    max-height: 400px;         /* baseline needed for CSS transition to work */
+    transition: max-height 0.35s ease;
 }
 
 .description.desc-collapsed {
-    max-height: 72px;
+    max-height: 72px;          /* approx. 2 lines + padding */
     cursor: pointer;
     margin-bottom: 4px;
 }
@@ -487,6 +488,46 @@ footer.bottom-header {
     input[type="text"],
     select {
         max-width: 100%;
+    }
+}
+
+/* ---- MOBILE TABLE STACKING (≤600px) ---- */
+/* Label stacks above input — prevents cramped horizontal layout on phones */
+@media (max-width: 600px) {
+    .container table { border-radius: 0; border-left: none; border-right: none; }
+
+    .container table tr { display: block; padding: 8px 0; border-bottom: 1px solid var(--border-default); }
+    .container table tr:last-child { border-bottom: none; }
+
+    /* Hide colspan section headers from stacking weirdly */
+    .container table tr:has(> th[colspan]) { padding: 0; }
+
+    .container table td {
+        display: block;
+        border: none;
+        text-align: left;
+        padding: 2px 0;
+    }
+
+    /* First cell = label → small uppercase label */
+    .container table td:first-child {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding-top: 4px;
+        padding-bottom: 3px;
+    }
+
+    .container table th { display: block; }
+
+    /* Result cells: much more prominent on small screens */
+    .container table td.result-field {
+        font-size: 20px;
+        padding: 12px 14px;
+        margin-top: 4px;
+        border-radius: var(--radius-md);
     }
 }
 
