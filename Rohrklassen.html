@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rohrklassen – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔩</text></svg>">
+    <style>
+        .action-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+        .action-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-size:13px;font-weight:500;border-radius:var(--radius-md);border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;font-family:var(--font-sans)}
+        .action-btn:hover{background:var(--bg-subtle);color:var(--text-primary)}
+        .action-btn svg{width:14px;height:14px;fill:currentColor}
+        .section-divider{border:none;border-top:1px solid var(--border-default);margin:24px 0}
+        .section-title{font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin:0 0 10px 0}
+        .pipe-wrap{overflow-x:auto;border:1px solid var(--border-default);border-radius:var(--radius-md)}
+        #pipe_table{width:100%;border-collapse:collapse;font-size:12px}
+        #pipe_table th{background:var(--bg-subtle);font-size:11px;font-weight:600;color:var(--text-secondary);padding:6px 8px;border-bottom:1px solid var(--border-default);text-align:right;white-space:nowrap}
+        #pipe_table th:nth-child(-n+2){text-align:left}
+        #pipe_table td{padding:5px 8px;border-bottom:1px solid var(--border-default);text-align:right;font-family:var(--font-mono);font-size:12px}
+        #pipe_table td:nth-child(-n+2){text-align:left;font-family:var(--font-sans);font-weight:600}
+        #pipe_table tr:last-child td{border-bottom:none}
+        #pipe_table tr:hover td{background:var(--bg-subtle)}
+        #pipe_table tr.highlight td{background:var(--bg-success)}
+        .search-row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+        .search-row label{font-size:13px;color:var(--text-secondary)}
+        .sch-toggle{display:flex;gap:4px;flex-wrap:wrap}
+        .sch-btn{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:500;border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer}
+        .sch-btn.active{background:var(--accent-emphasis);color:var(--text-on-emphasis);border-color:var(--accent-emphasis)}
+    </style>
+</head>
+<body data-tool-id="rohrklassen">
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right"><button class="theme-toggle" id="themeToggle"><span id="themeIcon">🌙</span></button></div>
+    </header>
+    <div class="back-bar"><a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a></div>
+
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="exportPagePDF('Rohrklassen')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+        </div>
+        <div class="description">🔩 Innendurchmesser, Wanddicken und freie Querschnitte für ASME/ANSI B36.10 Rohrklassen (Schedule 10 bis XXS) und metrische Rohre nach DIN EN 10220.</div>
+
+        <div class="search-row">
+            <label>DN/NPS suchen: <input class="input-field" type="text" id="search" placeholder="z.B. 100 oder 4&quot;" style="width:120px" oninput="renderTable()"></label>
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                <span style="font-size:12px;color:var(--text-secondary)">Schedule:</span>
+                <div class="sch-toggle" id="sch_toggle"></div>
+            </div>
+        </div>
+
+        <div class="pipe-wrap">
+            <table id="pipe_table">
+                <thead id="pipe_thead"></thead>
+                <tbody id="pipe_tbody"></tbody>
+            </table>
+        </div>
+
+        <div style="background:var(--bg-subtle);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:12px 16px;margin-top:14px;font-size:12px;color:var(--text-tertiary);line-height:1.6">
+            <strong style="color:var(--text-secondary)">Hinweis:</strong> Wanddicken nach ASME B36.10M für Kohlenstoffstahl. Für Edelstahl (ASME B36.19) können Wanddicken abweichen. Maße in mm. da = Außendurchmesser, s = Wanddicke, di = Innendurchmesser (da − 2s).
+        </div>
+    </div></div>
+
+    <footer class="bottom-header"><p>Keine Gewähr. Maßgeblich sind die jeweiligen Normen.</p></footer>
+    <script src="shared.js"></script>
+    <script>
+        // ASME B36.10: [NPS_inch, DN, da_mm, {SCH: wall_mm}]
+        const PIPES = [
+            ['1/8"',  6,  10.3,  {5:1.24, 10:1.24, 40:1.73, 80:2.41}],
+            ['1/4"',  8,  13.7,  {5:1.65, 10:1.65, 40:2.24, 80:3.02}],
+            ['3/8"', 10,  17.1,  {5:1.65, 10:1.65, 40:2.31, 80:3.20}],
+            ['1/2"', 15,  21.3,  {5:1.65, 10:2.11, 40:2.77, 80:3.73, 160:4.78, 'XXS':7.47}],
+            ['3/4"', 20,  26.7,  {5:1.65, 10:2.11, 40:2.87, 80:3.91, 160:5.56, 'XXS':7.82}],
+            ['1"',   25,  33.4,  {5:1.65, 10:2.77, 40:3.38, 80:4.55, 160:6.35, 'XXS':9.09}],
+            ['1¼"',  32,  42.2,  {5:1.65, 10:2.77, 40:3.56, 80:4.85, 160:6.35, 'XXS':9.70}],
+            ['1½"',  40,  48.3,  {5:1.65, 10:2.77, 40:3.68, 80:5.08, 160:7.14, 'XXS':10.16}],
+            ['2"',   50,  60.3,  {5:1.65, 10:2.77, 40:3.91, 80:5.54, 160:8.74, 'XXS':11.07}],
+            ['2½"',  65,  73.0,  {5:2.11, 10:3.05, 40:5.16, 80:7.01, 160:9.53, 'XXS':14.02}],
+            ['3"',   80,  88.9,  {5:2.11, 10:3.05, 40:5.49, 80:7.62, 160:11.13,'XXS':15.24}],
+            ['3½"',  90, 101.6,  {5:2.11, 10:3.05, 40:5.74, 80:8.08}],
+            ['4"',  100, 114.3,  {5:2.11, 10:3.05, 20:3.05, 40:6.02, 80:8.56, 120:11.13, 160:13.49,'XXS':17.12}],
+            ['5"',  125, 141.3,  {5:2.77, 10:3.40, 40:6.55, 80:9.53, 120:12.70, 160:15.88,'XXS':19.05}],
+            ['6"',  150, 168.3,  {5:2.77, 10:3.40, 40:7.11, 80:10.97,120:14.27, 160:18.26,'XXS':21.95}],
+            ['8"',  200, 219.1,  {5:2.77, 10:3.76, 20:6.35, 40:8.18, 80:12.70, 120:15.09, 160:18.26,'XXS':22.23}],
+            ['10"', 250, 273.1,  {5:3.40, 10:4.19, 20:6.35, 40:9.27, 80:12.70, 120:15.09, 160:21.44,'XXS':25.40}],
+            ['12"', 300, 323.9,  {5:3.96, 10:4.57, 20:6.35, 40:9.53, 80:12.70, 120:17.48, 160:21.44,'XXS':25.40}],
+            ['14"', 350, 355.6,  {5:3.96, 10:6.35, 20:7.92, 40:9.53, 80:15.09, 120:19.05, 160:23.83}],
+            ['16"', 400, 406.4,  {5:4.19, 10:6.35, 20:7.92, 40:9.53, 80:16.66, 120:21.44, 160:26.19}],
+            ['18"', 450, 457.2,  {5:4.19, 10:6.35, 20:7.92, 40:11.13,80:19.05, 120:23.83, 160:29.36}],
+            ['20"', 500, 508.0,  {5:4.78, 10:6.35, 20:9.53, 40:12.70, 80:20.62, 120:26.19, 160:32.54}],
+            ['24"', 600, 609.6,  {5:5.54, 10:6.35, 20:9.53, 40:14.27, 80:24.61, 120:30.96, 160:38.89}],
+        ];
+
+        const ALL_SCH = [5,10,20,40,80,120,160,'XXS'];
+        let activeSch = new Set([40, 80]);
+
+        // Build schedule toggle buttons
+        const toggle = document.getElementById('sch_toggle');
+        ALL_SCH.forEach(s => {
+            const btn = document.createElement('button');
+            btn.className = 'sch-btn' + (activeSch.has(s) ? ' active' : '');
+            btn.textContent = 'SCH ' + s;
+            btn.onclick = () => {
+                if (activeSch.has(s)) { if (activeSch.size > 1) activeSch.delete(s); }
+                else activeSch.add(s);
+                toggle.querySelectorAll('.sch-btn').forEach((b,i) => b.classList.toggle('active', activeSch.has(ALL_SCH[i])));
+                renderTable();
+            };
+            toggle.appendChild(btn);
+        });
+
+        function renderTable() {
+            const q = (document.getElementById('search').value || '').toLowerCase().trim();
+            const schList = ALL_SCH.filter(s => activeSch.has(s));
+
+            // Header
+            document.getElementById('pipe_thead').innerHTML =
+                '<tr><th>NPS</th><th>DN</th><th>da (mm)</th>' +
+                schList.map(s => '<th>SCH ' + s + '<br><span style="font-weight:400">s (mm)</span></th><th>SCH ' + s + '<br><span style="font-weight:400">di (mm)</span></th>').join('') + '</tr>';
+
+            const tbody = document.getElementById('pipe_tbody');
+            tbody.innerHTML = '';
+            PIPES.forEach(([nps, dn, da, walls]) => {
+                if (q && !nps.includes(q) && !String(dn).includes(q)) return;
+                const tr = document.createElement('tr');
+                let html = '<td>' + nps + '</td><td>DN ' + dn + '</td><td>' + da.toFixed(1) + '</td>';
+                schList.forEach(s => {
+                    const w = walls[s];
+                    if (w) {
+                        const di = da - 2 * w;
+                        html += '<td>' + w.toFixed(2) + '</td><td>' + di.toFixed(2) + '</td>';
+                    } else {
+                        html += '<td style="color:var(--text-tertiary)">–</td><td style="color:var(--text-tertiary)">–</td>';
+                    }
+                });
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            });
+        }
+
+        renderTable();
+    </script>
+</body>
+</html>

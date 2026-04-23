@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4-20mA Loop-Diagnose – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔌</text></svg>">
+    <style>
+        .action-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+        .action-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-size:13px;font-weight:500;border-radius:var(--radius-md);border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;font-family:var(--font-sans)}
+        .action-btn:hover{background:var(--bg-subtle);color:var(--text-primary)}
+        .action-btn svg{width:14px;height:14px;fill:currentColor}
+        .section-divider{border:none;border-top:1px solid var(--border-default);margin:24px 0}
+        .section-title{font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin:0 0 10px 0}
+        .symptom-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:16px}
+        .symptom-card{border:2px solid var(--border-default);border-radius:var(--radius-md);padding:12px;cursor:pointer;transition:all .15s;background:var(--bg-default)}
+        .symptom-card:hover{border-color:var(--accent-fg);background:var(--bg-subtle)}
+        .symptom-card.active{border-color:var(--accent-fg);background:var(--bg-accent)}
+        .symptom-card.active .sc-title{color:var(--accent-fg)}
+        .sc-signal{font-size:18px;font-weight:700;font-family:var(--font-mono);color:var(--text-primary);margin-bottom:4px}
+        .sc-title{font-size:12px;font-weight:600;color:var(--text-secondary)}
+        .sc-badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:600;margin-top:4px}
+        .badge-err{background:#f8d7da;color:#842029}
+        .badge-warn{background:#fff3cd;color:#664d03}
+        .badge-ok{background:#d4edda;color:#155724}
+        .badge-info{background:var(--bg-accent);color:var(--accent-fg)}
+        .diag-panel{background:var(--bg-subtle);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:16px}
+        .diag-title{font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:6px}
+        .diag-cause{font-size:13px;color:var(--text-secondary);margin-bottom:14px;line-height:1.5}
+        .check-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+        .check-item{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border-radius:var(--radius-md);background:var(--bg-default);border:1px solid var(--border-default);cursor:pointer;transition:background .1s}
+        .check-item:hover{background:var(--bg-subtle)}
+        .check-item.done{background:var(--bg-success)}
+        .check-item.done .ci-text{color:var(--text-success);text-decoration:line-through}
+        .check-box{width:18px;height:18px;border-radius:4px;border:2px solid var(--border-default);flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px}
+        .check-item.done .check-box{background:var(--accent-emphasis);border-color:var(--accent-emphasis);color:#fff}
+        .ci-num{font-size:11px;font-weight:700;color:var(--text-tertiary);flex-shrink:0;min-width:18px;margin-top:2px}
+        .ci-text{font-size:13px;color:var(--text-primary);line-height:1.5;flex:1}
+        .ci-sub{font-size:11px;color:var(--text-tertiary);margin-top:2px}
+        .reset-checks{font-size:12px;color:var(--text-tertiary);cursor:pointer;text-decoration:underline;margin-top:8px;display:inline-block}
+        .reset-checks:hover{color:var(--text-secondary)}
+    </style>
+</head>
+<body data-tool-id="loop_diagnose">
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right"><button class="theme-toggle" id="themeToggle"><span id="themeIcon">🌙</span></button></div>
+    </header>
+    <div class="back-bar"><a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a></div>
+
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="exportPagePDF('4-20mA-Loop-Diagnose')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+        </div>
+
+        <div class="description">🔌 4-20 mA Schleifendiagnose: Symptom auswählen und geführte Fehlersuche durchführen. Checkliste für 2-Draht-Transmitter mit NAMUR NE 43 Signalzuordnung.</div>
+
+        <p class="section-title">Was zeigt das Messgerät / die SPS?</p>
+        <div class="symptom-grid" id="symptom_grid"></div>
+
+        <div id="diag_panel" style="display:none"></div>
+    </div></div>
+
+    <footer class="bottom-header"><p>Keine Gewähr. NAMUR NE 43: Störalarm Low ≤ 3,6 mA, Störalarm High ≥ 21,0 mA.</p></footer>
+    <script src="shared.js"></script>
+    <script>
+        const SYMPTOMS = [
+            {
+                signal: '0 mA', title: 'Kein Strom', badge: 'badge-err', badgeText: 'Kein Signal',
+                cause: 'Keine Stromversorgung, Kabelbruch, falsche Polarität oder Transmitter defekt.',
+                steps: [
+                    { text: 'Versorgungsspannung an Transmitterklemmen messen', sub: 'Soll: 12–32 VDC (2-Draht). Bei < 10 V: Netzteil, Sicherung, Kaberwiderstand prüfen.' },
+                    { text: 'Polarität der Versorgung prüfen', sub: '+ und – vertauscht → Transmitter erhält keinen Strom und gibt 0 mA aus.' },
+                    { text: 'Kabelkontinuität prüfen (Durchgang)', sub: 'Kabel unterbrechen und mit Ohmmeter Durchgang messen. Aderbruch, Wackelkontakt?' },
+                    { text: 'Schleifenwiderstand prüfen', sub: '2-Draht: R_max = (U_sp – 12 V) / 22 mA. Bei 24 V: max. ~545 Ω. Zu hoher Widerstand → Transmitter kann nicht 4 mA liefern.' },
+                    { text: 'Transmitter tauschen / Elektronik prüfen', sub: 'Falls alle oben OK → Transmitter-Elektronik defekt.' }
+                ]
+            },
+            {
+                signal: '1–3,5 mA', title: 'Zu niedrig (kein NAMUR)', badge: 'badge-err', badgeText: 'Wiring-Fehler',
+                cause: 'Versorgungsspannung zu gering oder Schleifenwiderstand zu hoch. Transmitter kommt nicht auf 4 mA.',
+                steps: [
+                    { text: 'Spannung direkt an Transmitterklemmen messen', sub: 'Spannungsabfall über Kabel und Bürde reduziert die verfügbare Klemmenspannung.' },
+                    { text: 'Gesamtwiderstand der Schleife berechnen', sub: 'R_gesamt = Kabelwiderstand + HART-Filter + AI-Eingangswiderstand. Maximal zulässig je nach Netzteil.' },
+                    { text: 'Parallele Verbraucher in der Schleife prüfen', sub: 'Weitere Geräte parallel in der Schleife können Strom abziehen.' },
+                    { text: 'Netzteilspannung erhöhen oder Leitungswiderstand reduzieren', sub: 'Größerer Kabelquerschnitt, kürzere Leitung oder anderes Netzteil.' }
+                ]
+            },
+            {
+                signal: '3,6 mA', title: 'NAMUR Low Alarm', badge: 'badge-err', badgeText: 'Störalarm',
+                cause: 'Gerät signalisiert einen Fehler (NAMUR NE 43, Unterer Störalarm). Sensor- oder Elektronikfehler.',
+                steps: [
+                    { text: 'Display am Transmitter ablesen', sub: 'Fehlercode / Diagnosemeldung notieren (z.B. E001, F123 …).' },
+                    { text: 'HART-Kommunikator anschließen und Diagnosemeldung auslesen', sub: 'Cmd 48 (zusätzliche Statusinformation) oder Cmd 3 auslesen.' },
+                    { text: 'Prozessbedingung prüfen', sub: 'Ist die Messgröße tatsächlich außerhalb des Bereichs? (Unterfüllung, Leerrohr, Kavitation …)' },
+                    { text: 'Sensor prüfen / tauschen', sub: 'Für pH/O₂/Lf: Sensor auf Membranschaden, Vergiftung oder Alterung prüfen.' },
+                    { text: 'Elektronik zurücksetzen', sub: 'Spannungsversorgung kurz unterbrechen. Falls Problem bleibt → Elektronik tauschen.' }
+                ]
+            },
+            {
+                signal: '4,0 mA', title: 'Nullpunkt / Kein Prozess', badge: 'badge-warn', badgeText: 'Prüfen',
+                cause: 'Messgröße ist Null oder Minimum, Transmitter offline/Simulation, oder falsch abgeglichen.',
+                steps: [
+                    { text: 'Ist die Messgröße wirklich Null/Minimum?', sub: 'Ventile offen? Prozess aktiv? Behälter befüllt? Medium in der Leitung?' },
+                    { text: 'Simulationsmodus / Fixed-Output prüfen', sub: 'Einige Transmitter können auf festen Ausgangswert gesetzt sein. Im Menü / über HART prüfen.' },
+                    { text: 'Zero-Trim (Nullpunktabgleich) prüfen', sub: 'Wurde der Nullpunkt mit beaufschlagtem Medium abgeglichen? Statischer Druck, leere Rohrleitung?' },
+                    { text: 'LRV (Lower Range Value) prüfen', sub: 'Ist LRV korrekt eingestellt? Z.B. 4 mA = 0 bar oder 4 mA = -10 mbar?' }
+                ]
+            },
+            {
+                signal: '4–20 mA falsch', title: 'Falscher Messwert', badge: 'badge-warn', badgeText: 'Kalibrierung',
+                cause: 'Signal im Normalbereich, aber Wert weicht von Referenz ab. Offset, Span oder Konfigurationsfehler.',
+                steps: [
+                    { text: 'Messbereich LRV/URV prüfen', sub: 'Stimmt der konfigurierte Messbereich? 4 mA = LRV, 20 mA = URV. Einheiten beachten (m³/h vs. l/h).' },
+                    { text: 'Offset-Fehler oder Span-Fehler identifizieren', sub: 'Konstantverschiebung → Zero-Fehler. Proportionale Abweichung → Span-Fehler.' },
+                    { text: 'Prozessparameter prüfen', sub: 'Druck, Temperatur, Dichte, Viskosität korrekt konfiguriert? Falsche Rohrabmessungen (MID, Durchfluss)?' },
+                    { text: 'Zero-/Span-Abgleich durchführen', sub: 'Mit bekanntem Referenzpunkt abgleichen. Ggf. Werksreset und Neuabgleich.' },
+                    { text: 'Vergleichsmessung mit Referenzgerät', sub: 'Portables Referenzgerät parallel anschließen und Werte vergleichen.' }
+                ]
+            },
+            {
+                signal: '20–21 mA', title: 'Bereichsüberschreitung', badge: 'badge-warn', badgeText: 'Sättigungs',
+                cause: 'Messgröße liegt am oder über dem Endwert. Messbereich zu klein oder Prozess außerhalb Spezifikation.',
+                steps: [
+                    { text: 'Ist der Prozesswert tatsächlich am Maximum?', sub: 'Ventile, Pumpen, Füllstand prüfen. Realer Prozess oder Messproblem?' },
+                    { text: 'URV anpassen', sub: 'Messbereich für tatsächliche Prozessbedingungen anpassen. URV erhöhen.' },
+                    { text: 'Bei > 21 mA: NAMUR High-Alarm prüfen', sub: 'NAMUR NE 43: ≥ 21,0 mA ist oberer Störalarm (Gerätefehler, nicht Prozess).' }
+                ]
+            },
+            {
+                signal: '21,0 mA', title: 'NAMUR High Alarm', badge: 'badge-err', badgeText: 'Störalarm',
+                cause: 'Gerät signalisiert einen Fehler (NAMUR NE 43, Oberer Störalarm). Sensor oder Elektronik defekt.',
+                steps: [
+                    { text: 'Display am Transmitter ablesen', sub: 'Fehlercode notieren.' },
+                    { text: 'HART-Kommunikator: Diagnosemeldung auslesen', sub: 'Befehl 48 oder Gerätestatus auslesen.' },
+                    { text: 'Sensor prüfen', sub: 'Sensorbruch (z.B. Pt100-Bruch → ∞ Ω), Elektroden defekt, Membrane beschädigt?' },
+                    { text: 'Elektronik zurücksetzen / tauschen', sub: 'Kurze Stromunterbrechung. Falls persistent → Elektronik tauschen.' }
+                ]
+            },
+            {
+                signal: '22 mA', title: 'Gerätefehler / Anlauf', badge: 'badge-err', badgeText: 'Device Error',
+                cause: 'Interne Gerätediagnose hat schwerwiegenden Fehler erkannt, oder Transmitter befindet sich im Anlauf.',
+                steps: [
+                    { text: 'Warten bis Anlaufphase abgeschlossen', sub: 'Manche Transmitter zeigen beim Start kurz 22 mA (Selbsttest). Nach 10–30 s prüfen.' },
+                    { text: 'Display und Fehlercode auslesen', sub: 'Fehlercode im Gerätemenü oder Anzeige notieren.' },
+                    { text: 'Stromversorgung kurz unterbrechen (Reset)', sub: 'Gerät neu starten. Falls Problem nach Neustart bleibt → Schritt 4.' },
+                    { text: 'Firmware-Fehler / Hardwarefehler', sub: 'HART-Kommunikator: Extended Device Status auslesen. Elektronikmodul tauschen.' }
+                ]
+            },
+            {
+                signal: 'Schwankend', title: 'Signal unruhig / rauschend', badge: 'badge-warn', badgeText: 'Störung',
+                cause: 'Elektromagnetische Einstreuung, Erdungs-/Schirmungsproblem oder tatsächliche Prozessinstabilität.',
+                steps: [
+                    { text: 'Ist der Prozess tatsächlich instabil?', sub: 'Turbulenz, Kavitation, Zweiphasenströmung, Vibrationen am Sensor prüfen.' },
+                    { text: 'Dämpfung (Damping) im Transmitter erhöhen', sub: 'Zeitkonstante auf 2–10 s erhöhen. Achtung: verschlechtert dynamische Reaktion.' },
+                    { text: 'Kabelschirmung prüfen', sub: 'Schirm nur einseitig erden (schutzleiterseitig). Schirm unterbrochen oder fehlt?' },
+                    { text: 'Kabelverlegung prüfen', sub: 'Signal-/Messkabel neben Starkstromkabeln (>400 V, Umrichter) verlegt? Mindestabstand 30 cm, Kreuzung nur im 90°-Winkel.' },
+                    { text: 'Erdung / Potenzialausgleich prüfen', sub: 'Transmitter, Schutzerde und Anlage auf gleiches Potenzial. Ausgleichsströme über Kabelschirm vermeiden.' },
+                    { text: 'HART-Multi-Drop versehentlich aktiv?', sub: 'Im Multi-Drop-Modus liefert der Transmitter nur 4 mA (fest). Adresse 0 prüfen.' }
+                ]
+            }
+        ];
+
+        let activeIdx = null;
+        let checked = {};
+
+        function render() {
+            const grid = document.getElementById('symptom_grid');
+            grid.innerHTML = '';
+            SYMPTOMS.forEach((s, i) => {
+                const card = document.createElement('div');
+                card.className = 'symptom-card' + (activeIdx === i ? ' active' : '');
+                card.innerHTML = '<div class="sc-signal">' + s.signal + '</div><div class="sc-title">' + s.title + '</div><div><span class="sc-badge ' + s.badge + '">' + s.badgeText + '</span></div>';
+                card.onclick = () => { activeIdx = i; if (!checked[i]) checked[i] = {}; render(); renderDiag(); };
+                grid.appendChild(card);
+            });
+        }
+
+        function renderDiag() {
+            const panel = document.getElementById('diag_panel');
+            if (activeIdx === null) { panel.style.display = 'none'; return; }
+            panel.style.display = '';
+            const s = SYMPTOMS[activeIdx];
+            const c = checked[activeIdx] || {};
+            let stepsHtml = s.steps.map((step, si) => {
+                const done = c[si];
+                return '<li class="check-item' + (done ? ' done' : '') + '" onclick="toggleCheck(' + activeIdx + ',' + si + ')">' +
+                    '<div class="check-box">' + (done ? '✓' : '') + '</div>' +
+                    '<div class="ci-num">' + (si + 1) + '.</div>' +
+                    '<div><div class="ci-text">' + step.text + '</div>' + (step.sub ? '<div class="ci-sub">' + step.sub + '</div>' : '') + '</div>' +
+                    '</li>';
+            }).join('');
+            panel.innerHTML = '<div class="diag-panel"><div class="diag-title">Diagnose: ' + s.signal + ' – ' + s.title + '</div>' +
+                '<div class="diag-cause"><strong>Mögliche Ursache:</strong> ' + s.cause + '</div>' +
+                '<ul class="check-list">' + stepsHtml + '</ul>' +
+                '<span class="reset-checks" onclick="resetChecks(' + activeIdx + ')">Alle zurücksetzen</span></div>';
+        }
+
+        function toggleCheck(idx, si) {
+            if (!checked[idx]) checked[idx] = {};
+            checked[idx][si] = !checked[idx][si];
+            renderDiag();
+        }
+
+        function resetChecks(idx) { checked[idx] = {}; renderDiag(); }
+
+        render();
+    </script>
+</body>
+</html>
