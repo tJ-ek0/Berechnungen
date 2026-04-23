@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E+H Fehlercodes – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚠️</text></svg>">
+    <style>
+        .action-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+        .action-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-size:13px;font-weight:500;border-radius:var(--radius-md);border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;font-family:var(--font-sans)}
+        .action-btn:hover{background:var(--bg-subtle);color:var(--text-primary)}
+        .action-btn svg{width:14px;height:14px;fill:currentColor}
+        .section-title{font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin:0 0 10px 0}
+        .cat-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+        .cat-btn{padding:5px 16px;border-radius:20px;font-size:13px;font-weight:700;border:2px solid;cursor:pointer;font-family:var(--font-sans);transition:all .15s}
+        .cat-btn.F{border-color:#f85149;color:#f85149;background:transparent}
+        .cat-btn.F.active{background:#f85149;color:#fff}
+        .cat-btn.C{border-color:#d29922;color:#d29922;background:transparent}
+        .cat-btn.C.active{background:#d29922;color:#fff}
+        .cat-btn.S{border-color:#0969da;color:#0969da;background:transparent}
+        .cat-btn.S.active{background:#0969da;color:#fff}
+        .cat-btn.M{border-color:#2ea043;color:#2ea043;background:transparent}
+        .cat-btn.M.active{background:#2ea043;color:#fff}
+        .cat-btn.all{border-color:var(--border-default);color:var(--text-secondary);background:transparent}
+        .cat-btn.all.active{background:var(--accent-emphasis);color:#fff;border-color:var(--accent-emphasis)}
+        .err-card{border:1px solid var(--border-default);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start}
+        .err-card.hidden{display:none}
+        .err-badge{font-size:14px;font-weight:800;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--font-mono)}
+        .err-badge.F{background:#ffd7d5;color:#a40e26}
+        .err-badge.C{background:#fff3cd;color:#664d03}
+        .err-badge.S{background:#cce5ff;color:#004085}
+        .err-badge.M{background:#d4edda;color:#155724}
+        .err-title{font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:3px}
+        .err-cause{font-size:12px;color:var(--text-secondary);margin-bottom:4px}
+        .err-action{font-size:12px;color:var(--text-tertiary)}
+        .err-action strong{color:var(--text-secondary)}
+        .err-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+        .etag{font-size:10px;padding:1px 7px;border-radius:10px;background:var(--bg-subtle);color:var(--text-tertiary);border:1px solid var(--border-subtle)}
+        .namur-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:16px}
+        .namur-card{border-radius:var(--radius-md);padding:12px;border:2px solid}
+        .namur-card.F{border-color:#f85149;background:#ffd7d520}
+        .namur-card.C{border-color:#d29922;background:#fff3cd40}
+        .namur-card.S{border-color:#0969da;background:#cce5ff30}
+        .namur-card.M{border-color:#2ea043;background:#d4edda40}
+        .namur-letter{font-size:28px;font-weight:900;font-family:var(--font-mono);line-height:1}
+        .namur-card.F .namur-letter{color:#a40e26}
+        .namur-card.C .namur-letter{color:#664d03}
+        .namur-card.S .namur-letter{color:#004085}
+        .namur-card.M .namur-letter{color:#155724}
+        .namur-name{font-size:12px;font-weight:700;color:var(--text-primary);margin-top:2px}
+        .namur-desc{font-size:11px;color:var(--text-tertiary);margin-top:3px;line-height:1.4}
+    </style>
+</head>
+<body data-tool-id="eh_fehlercodes">
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right"><button class="theme-toggle" id="themeToggle"><span id="themeIcon">🌙</span></button></div>
+    </header>
+    <div class="back-bar"><a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a></div>
+
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="exportPagePDF('EH-Fehlercodes')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+        </div>
+
+        <div class="description">⚠️ Endress+Hauser Diagnosemeldungen nach NAMUR NE 107. Kategorie wählen oder Meldung suchen. Ursachen und empfohlene Maßnahmen für die häufigsten Störungen.</div>
+
+        <div class="namur-bar">
+            <div class="namur-card F"><div class="namur-letter">F</div><div class="namur-name">Failure – Ausfall</div><div class="namur-desc">Gerät defekt. Signal nicht verwertbar. Prozesssteuerung nicht möglich. 4-20 mA auf ≤ 3,6 mA oder ≥ 21 mA.</div></div>
+            <div class="namur-card C"><div class="namur-letter">C</div><div class="namur-name">Function Check – Funktionskontrolle</div><div class="namur-desc">Gerät vorübergehend außer Betrieb (Simulation, Kalibrierung, Anlauf). Kein Fehler.</div></div>
+            <div class="namur-card S"><div class="namur-letter">S</div><div class="namur-name">Out of Spec – Außerhalb Spez.</div><div class="namur-desc">Prozess- oder Umgebungsbedingungen außerhalb der Gerätespezifikation. Messung eingeschränkt.</div></div>
+            <div class="namur-card M"><div class="namur-letter">M</div><div class="namur-name">Maintenance – Wartungsbedarf</div><div class="namur-desc">Gerät funktioniert, Wartung bald erforderlich. Messung noch verwertbar.</div></div>
+        </div>
+
+        <p class="section-title">Meldungen suchen & filtern</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center">
+            <input class="input-field" type="text" id="search" placeholder="Suchen…" style="width:200px" oninput="render()">
+            <select class="input-field" id="dev_filter" style="width:160px" onchange="render()">
+                <option value="">Alle Gerätefamilien</option>
+                <option>MID / Promag</option>
+                <option>Coriolis / Promass</option>
+                <option>Vortex / Prowirl</option>
+                <option>Druck / Cerabar</option>
+                <option>Füllstand / Radar</option>
+                <option>Analytik</option>
+                <option>Alle Geräte</option>
+            </select>
+        </div>
+        <div class="cat-row" id="cat_row"></div>
+        <div id="err_list"></div>
+        <div id="no_results" style="display:none;text-align:center;padding:30px;color:var(--text-tertiary);font-size:13px">Keine Meldungen gefunden.</div>
+    </div></div>
+
+    <footer class="bottom-header"><p>Keine Gewähr. Gerätespezifische Codes immer mit der Originaldokumentation (BA/SD) des jeweiligen Geräts abgleichen.</p></footer>
+    <script src="shared.js"></script>
+    <script>
+        const CODES = [
+            // F – Failure
+            {cat:'F', title:'Elektronik-Defekt / Hardware-Fehler', cause:'Interne Hardwarestörung: Überspannung, Feuchtigkeit, Alterung, Schlag.', action:'Elektronikmodul zurücksetzen (Spannung kurz weg). Falls persistent: Elektronikmodul tauschen.', devs:['Alle Geräte']},
+            {cat:'F', title:'Sensor-Kurzschluss', cause:'Sensoranschluss kurzgeschlossen. Kabelisolation beschädigt, Feuchtigkeit im Anschlussraum.', action:'Kabelmantel prüfen, Anschlussraum auf Feuchtigkeit prüfen, Sensor tauschen.', devs:['Analytik','Coriolis / Promass']},
+            {cat:'F', title:'Sensorbruch / Kabelbruch', cause:'Sensor oder Verbindungskabel unterbrochen. Mechanische Beschädigung, Korrosion, Zugkraft.', action:'Kabel auf Durchgang prüfen, Kabel/Sensor tauschen.', devs:['Analytik','MID / Promag']},
+            {cat:'F', title:'Speicherfehler (EEPROM/Flash)', cause:'Parametrierung oder Kalibrierdaten korrumpiert. Überspannung, elektrostat. Entladung.', action:'Werksreset versuchen, Parametrierung neu laden. Falls persistent: Elektronik tauschen.', devs:['Alle Geräte']},
+            {cat:'F', title:'Versorgungsspannung zu niedrig', cause:'Klemmenspannung unter Mindestanforderung. Zu hoher Schleifenwiderstand, schlechtes Netzteil, langer Kabelweg.', action:'Spannung an Transmitterklemmen messen. Kabel, Netzteil und Schleifenwiderstand prüfen.', devs:['Alle Geräte']},
+            {cat:'F', title:'Leerrohr / Messrohr nicht befüllt (MID)', cause:'Messrohr nicht vollständig mit Flüssigkeit gefüllt. Falsche Einbaulage, Gase im Medium, Kavitation.', action:'Einbaulage prüfen (Durchströmung von unten nach oben). Absperrorgane öffnen. Leerrohr-Abgleich zurücksetzen.', devs:['MID / Promag']},
+            {cat:'F', title:'Antriebsfehler / Rohr schwingt nicht (Coriolis)', cause:'Schwingungsantrieb kann Messrohr nicht in Resonanz halten. Gasblasen, falsche Dichte, mechanischer Defekt.', action:'Rohr auf Befüllung prüfen. Medium-Dichte mit Spezifikation abgleichen. Elektronik/Sensor tauschen.', devs:['Coriolis / Promass']},
+            {cat:'F', title:'Kommunikationsfehler (intern)', cause:'Interne Buskommunikation zwischen Hauptelektronik und Sensormodul gestört.', action:'Steckverbinder zwischen Elektronik und Sensor prüfen. Neustart. Elektronikmodul tauschen.', devs:['Alle Geräte']},
+            {cat:'F', title:'Radar – kein Echosignal (Füllstand)', cause:'Kein auswertbares Echo empfangen. Falsche Ausrichtung, Kondensat auf Antenne, Schaum, Rühren.', action:'Antenne auf Medium ausrichten, reinigen. Störechoausblendung neu einlernen. Medium und Einbau prüfen.', devs:['Füllstand / Radar']},
+            {cat:'F', title:'Elektrodenpotential außer Bereich (MID)', cause:'Elektrodenbelag durch Ablagerungen oder Luftblasen. Medium haftet an Elektroden.', action:'Elektroden reinigen. Prüfen ob Medium leitfähig genug (≥ 5 µS/cm). Elektrodenwerkstoff prüfen.', devs:['MID / Promag']},
+            // C – Function Check
+            {cat:'C', title:'Simulation aktiv (Ausgang fest)', cause:'Ausgang wurde auf festen Wert gesetzt (Fixed Output / Simulation). Kein Fehler.', action:'Simulation im Gerätemenü oder über HART deaktivieren. 4-20 mA Ausgang prüfen.', devs:['Alle Geräte']},
+            {cat:'C', title:'Prozessvariable simuliert', cause:'Eingangsgröße (z.B. Durchfluss, Füllstand) wird simuliert. Ausgang folgt Simulationswert.', action:'Simulation beenden. Gerät kehrt zu echter Messung zurück.', devs:['Alle Geräte']},
+            {cat:'C', title:'Anlaufphase / Warmup', cause:'Gerät startet, interne Initialisierung läuft. Normal nach Einschalten oder Reset.', action:'Warten (10–60 s je nach Gerät). Meldung erlischt automatisch.', devs:['Alle Geräte']},
+            {cat:'C', title:'Zero-Trim / Nullpunktabgleich aktiv', cause:'Nullpunktabgleich wird gerade durchgeführt.', action:'Warten bis Abgleich abgeschlossen. Medium muss dabei still stehen (kein Durchfluss).', devs:['MID / Promag','Coriolis / Promass','Druck / Cerabar']},
+            {cat:'C', title:'Konfigurationsänderung / Download', cause:'Parameter werden übertragen (z.B. via HART, FDT/DTM, Fieldcare).', action:'Übertragung abwarten. Danach Gerät auf korrekte Funktion prüfen.', devs:['Alle Geräte']},
+            {cat:'C', title:'Gerätetest / Diagnosetest aktiv', cause:'Interner Selbsttest oder manuell ausgelöster Diagnosetest läuft.', action:'Test abwarten. Falls Test hängt: Neustart.', devs:['Alle Geräte']},
+            // S – Out of Specification
+            {cat:'S', title:'Prozessrauschen zu hoch', cause:'Signal instabil durch Kavitation, Turbulenzen, Zweiphasenströmung, Vibrationen oder EMV-Einstreuung.', action:'Dämpfung erhöhen (Filterzeit 2–10 s). Prozessbedingungen prüfen. Kabelschirmung und Erdung prüfen.', devs:['Alle Geräte']},
+            {cat:'S', title:'Umgebungstemperatur zu hoch', cause:'Elektronik über maximalem Umgebungstemperaturbereich (oft 60–85 °C).', action:'Sonnenschutz montieren, Belüftung verbessern, Abstand zu Wärmequellen vergrößern. Ggf. geeigneteres Gerät.', devs:['Alle Geräte']},
+            {cat:'S', title:'Umgebungstemperatur zu niedrig', cause:'Elektronik unter minimalem Temperaturbereich (oft −40 °C bis −20 °C).', action:'Heizmanschette oder Gehäuseheizung. Wetterschutzhaube prüfen.', devs:['Alle Geräte']},
+            {cat:'S', title:'Prozesstemperatur zu hoch / zu niedrig', cause:'Medium außerhalb des Temperatureinsatzbereichs des Sensors.', action:'Prozesstemperatur und Geräte-Spezifikation abgleichen. Geeigneteres Gerät wählen.', devs:['Alle Geräte']},
+            {cat:'S', title:'Überdruck / Differenzdruck zu hoch', cause:'Prozessdruck überschreitet Messbereich oder Überlastgrenze.', action:'Prozessdruck prüfen. Überlastschutz prüfen. Geräte-MWP vs. Betriebsdruck abgleichen.', devs:['Druck / Cerabar']},
+            {cat:'S', title:'Messwert außerhalb Bereich (Sättigung)', cause:'Messgröße über URV oder unter LRV. Ausgang gesättigt.', action:'Messbereich anpassen (URV/LRV neu einstellen). Prozess prüfen.', devs:['Alle Geräte']},
+            {cat:'S', title:'Leitfähigkeit zu gering (MID)', cause:'Mediumleitfähigkeit unter Mindestanforderung (typisch 5 µS/cm). Keine verwertbare Messung möglich.', action:'Leitfähigkeit messen. Geeigneteres Gerät (Niedrigleitfähigkeit) oder Medium prüfen.', devs:['MID / Promag']},
+            {cat:'S', title:'Schwingungsamplitude außer Bereich (Coriolis)', cause:'Rohrresonanz nicht optimal. Gasblasen, falsche Dichte, Ablagerungen im Rohr.', action:'Rohr auf Befüllung und Ablagerungen prüfen. Rohr spülen. Dichte-Sollwert prüfen.', devs:['Coriolis / Promass']},
+            {cat:'S', title:'pH-Elektrode: Steilheit außer Bereich', cause:'Elektrodenalterung, Vergiftung, Schaden. Steilheit < 54 mV/pH als kritisch.', action:'Elektrode kalibrieren. Falls Steilheit nicht erreichbar: Elektrode tauschen.', devs:['Analytik']},
+            // M – Maintenance
+            {cat:'M', title:'Wartung erforderlich (allgemein)', cause:'Vorsorgewartung fällig laut Wartungsintervall oder Betriebsstundenzähler.', action:'Service durchführen: Sensor reinigen/tauschen, Kalibrierung prüfen, Dichtungen prüfen.', devs:['Alle Geräte']},
+            {cat:'M', title:'Sensor-Abgleich empfohlen', cause:'Kalibrierabweichung wächst. Sensor nähert sich Grenze oder Lebensdauerwarnung.', action:'Kalibrierung durchführen. Sensor und Referenzmedium prüfen.', devs:['Analytik']},
+            {cat:'M', title:'Parametrierung sichern', cause:'Aktuelle Parametrierung wurde noch nicht gesichert oder stimmt nicht mit Backup überein.', action:'Parameter via FieldCare / DeviceCare / HART sichern und dokumentieren.', devs:['Alle Geräte']},
+            {cat:'M', title:'Nächste Kalibrierung fällig', cause:'Kalibrier-Timer abgelaufen.', action:'Kalibrierung planen und durchführen. Kalibrier-Timer im Gerät zurücksetzen.', devs:['Analytik','MID / Promag','Coriolis / Promass']},
+            {cat:'M', title:'Stromausgang driftet', cause:'4-20 mA Ausgangstrimm weicht ab. Elektronikdrift.', action:'Stromausgang-Abgleich (Output Trim) mit Referenzmessgerät durchführen.', devs:['Alle Geräte']},
+        ];
+
+        const CATS = ['all','F','C','S','M'];
+        const CAT_LABEL = {all:'Alle', F:'F – Ausfall', C:'C – Funktionskontrolle', S:'S – Außerhalb Spez.', M:'M – Wartung'};
+        let activeCat = 'all';
+
+        const catRow = document.getElementById('cat_row');
+        CATS.forEach(c => {
+            const btn = document.createElement('button');
+            btn.className = 'cat-btn ' + c + (c === 'all' ? ' active' : '');
+            btn.textContent = CAT_LABEL[c];
+            btn.onclick = () => {
+                activeCat = c;
+                catRow.querySelectorAll('.cat-btn').forEach((b,i) => b.classList.toggle('active', CATS[i] === c));
+                render();
+            };
+            catRow.appendChild(btn);
+        });
+
+        function render() {
+            const q = (document.getElementById('search').value || '').toLowerCase();
+            const dev = document.getElementById('dev_filter').value;
+            const list = document.getElementById('err_list');
+            list.innerHTML = '';
+            let count = 0;
+            CODES.forEach(c => {
+                const catMatch = activeCat === 'all' || c.cat === activeCat;
+                const devMatch = !dev || c.devs.includes(dev) || c.devs.includes('Alle Geräte');
+                const qMatch = !q || c.title.toLowerCase().includes(q) || c.cause.toLowerCase().includes(q) || c.action.toLowerCase().includes(q);
+                if (!catMatch || !devMatch || !qMatch) return;
+                count++;
+                const d = document.createElement('div');
+                d.className = 'err-card';
+                d.innerHTML = '<div class="err-badge ' + c.cat + '">' + c.cat + '</div>' +
+                    '<div style="flex:1"><div class="err-title">' + c.title + '</div>' +
+                    '<div class="err-cause">Ursache: ' + c.cause + '</div>' +
+                    '<div class="err-action"><strong>Maßnahme:</strong> ' + c.action + '</div>' +
+                    '<div class="err-tags">' + c.devs.map(d => '<span class="etag">' + d + '</span>').join('') + '</div></div>';
+                list.appendChild(d);
+            });
+            document.getElementById('no_results').style.display = count === 0 ? '' : 'none';
+        }
+
+        render();
+    </script>
+</body>
+</html>
