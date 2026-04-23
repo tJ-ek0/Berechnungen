@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalibrierprotokoll – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+    <style>
+        .action-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+        .action-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-size:13px;font-weight:500;border-radius:var(--radius-md);border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;font-family:var(--font-sans)}
+        .action-btn:hover{background:var(--bg-subtle);color:var(--text-primary)}
+        .action-btn svg{width:14px;height:14px;fill:currentColor}
+        .section-title{font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 8px}
+        .section-divider{border:none;border-top:1px solid var(--border-default);margin:20px 0}
+        .cal-table{width:100%;border-collapse:collapse;font-size:12px}
+        .cal-table th{background:var(--bg-subtle);font-size:11px;font-weight:600;color:var(--text-secondary);padding:6px 8px;border:1px solid var(--border-default);text-align:center;white-space:nowrap}
+        .cal-table td{padding:4px 6px;border:1px solid var(--border-default);text-align:center;vertical-align:middle}
+        .cal-table td input{width:80px;text-align:center;border:none;background:transparent;font-family:var(--font-mono);font-size:12px;color:var(--text-primary);outline:none}
+        .cal-table td.auto{font-family:var(--font-mono);font-size:12px;color:var(--text-secondary);background:var(--bg-subtle)}
+        .cal-table tr.ok td{background:#d4edda40}
+        .cal-table tr.nok td{background:#f8d7da40}
+        .status-badge{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:700}
+        .ok-badge{background:#d4edda;color:#155724}
+        .nok-badge{background:#f8d7da;color:#721c24}
+        .result-box{padding:14px 16px;border-radius:var(--radius-md);border:2px solid;font-size:15px;font-weight:700;text-align:center;margin-top:14px}
+        .result-box.ok{background:#d4edda;border-color:#2ea043;color:#155724}
+        .result-box.nok{background:#f8d7da;border-color:#f85149;color:#721c24}
+        .result-box.empty{background:var(--bg-subtle);border-color:var(--border-default);color:var(--text-tertiary)}
+        @media print{
+            header,footer,.back-bar,.action-bar{display:none!important}
+            .page-container{padding:0!important}
+            .container{max-width:100%!important;padding:0 8px!important}
+            body{font-size:11px}
+        }
+    </style>
+</head>
+<body data-tool-id="kalibrierprotokoll">
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right"><button class="theme-toggle" id="themeToggle"><span id="themeIcon">🌙</span></button></div>
+    </header>
+    <div class="back-bar"><a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a></div>
+
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="window.print()"><svg viewBox="0 0 16 16"><path d="M1.75 10h12.5a.75.75 0 0 1 0 1.5H14v2.25A1.75 1.75 0 0 1 12.25 15.5h-8.5A1.75 1.75 0 0 1 2 13.75V11.5h-.25a.75.75 0 0 1 0-1.5ZM12.5 11.5h-9v2.25c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25ZM3.75 1h8.5A1.75 1.75 0 0 1 14 2.75V8a.75.75 0 0 1-.75.75H2.75A.75.75 0 0 1 2 8V2.75A1.75 1.75 0 0 1 3.75 1Zm8.5 1.5h-8.5a.25.25 0 0 0-.25.25V7.25h9V2.75a.25.25 0 0 0-.25-.25Z"/></svg> Drucken / PDF</button>
+            <button class="action-btn" onclick="resetForm()"><svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg> Zurücksetzen</button>
+        </div>
+        <div class="description">📄 Kalibrierprotokoll erstellen: As-Found / As-Left Werte eingeben, Toleranz prüfen und als druckfertiges PDF exportieren. Für 4-20 mA Transmitter und analoge Messgeber.</div>
+
+        <p class="section-title">Prüfling</p>
+        <table>
+            <tr><td colspan="2">Messstellenbezeichnung / TAG</td><td colspan="4"><input class="input-field" id="f_tag" placeholder="z.B. FT-101" oninput="save()"></td></tr>
+            <tr><td colspan="2">Gerätename / Typ</td><td colspan="4"><input class="input-field" id="f_typ" placeholder="z.B. Promag 50W" oninput="save()"></td></tr>
+            <tr><td colspan="2">Hersteller</td><td colspan="4"><input class="input-field" id="f_hersteller" value="Endress+Hauser" oninput="save()"></td></tr>
+            <tr><td colspan="2">Seriennummer</td><td colspan="4"><input class="input-field" id="f_sn" placeholder="z.B. G8H2A000" oninput="save()"></td></tr>
+            <tr>
+                <td colspan="2">Messbereich</td>
+                <td><input class="input-field" type="number" id="f_lrv" value="0" style="width:80px" oninput="recalc()"> …</td>
+                <td><input class="input-field" type="number" id="f_urv" value="100" style="width:80px" oninput="recalc()"></td>
+                <td><input class="input-field" id="f_unit" value="%" style="width:60px" oninput="recalc()"></td>
+            </tr>
+            <tr>
+                <td colspan="2">Ausgangsart</td>
+                <td colspan="2">
+                    <select class="input-field" id="f_out" onchange="recalc()">
+                        <option value="420">4-20 mA</option>
+                        <option value="020">0-20 mA</option>
+                        <option value="010">0-10 V</option>
+                    </select>
+                </td>
+                <td colspan="2">Toleranz ± <input class="input-field" type="number" id="f_tol" value="0.5" step="0.1" style="width:60px" oninput="recalc()"> %</td>
+            </tr>
+        </table>
+
+        <p class="section-title">Prüfmittel</p>
+        <table>
+            <tr><td colspan="2">Kalibrator Bezeichnung</td><td colspan="4"><input class="input-field" id="f_kaltyp" placeholder="z.B. HART Communicator 475" oninput="save()"></td></tr>
+            <tr><td colspan="2">Kalibrator Seriennummer</td><td colspan="4"><input class="input-field" id="f_kalsn" oninput="save()"></td></tr>
+            <tr><td colspan="2">Kalibriert bis</td><td colspan="4"><input class="input-field" type="date" id="f_kaldate" oninput="save()"></td></tr>
+        </table>
+
+        <p class="section-title">Kalibrierung</p>
+        <table>
+            <tr>
+                <td colspan="2">Datum</td>
+                <td colspan="2"><input class="input-field" type="date" id="f_datum" oninput="save()"></td>
+                <td colspan="2">Techniker: <input class="input-field" id="f_tech" placeholder="Name" style="width:140px" oninput="save()"></td>
+            </tr>
+            <tr>
+                <td colspan="2">Umgebungstemperatur</td>
+                <td colspan="2"><input class="input-field" type="number" id="f_temp" value="20" style="width:70px" oninput="save()"> °C</td>
+            </tr>
+        </table>
+
+        <hr class="section-divider">
+        <p class="section-title">Kalibrierpunkte</p>
+        <div style="overflow-x:auto">
+            <table class="cal-table" id="cal_table">
+                <thead><tr>
+                    <th>Punkt</th>
+                    <th>Sollwert</th>
+                    <th>Ausgang-Soll</th>
+                    <th colspan="3">As-Found (Vor Abgleich)</th>
+                    <th colspan="3">As-Left (Nach Abgleich)</th>
+                </tr>
+                <tr>
+                    <th></th><th></th><th></th>
+                    <th>Istwert</th><th>Abw. %</th><th>Status</th>
+                    <th>Istwert</th><th>Abw. %</th><th>Status</th>
+                </tr></thead>
+                <tbody id="cal_body"></tbody>
+            </table>
+        </div>
+
+        <div id="result_box" class="result-box empty">— Bitte Kalibrierpunkte eingeben —</div>
+
+        <hr class="section-divider">
+        <p class="section-title">Ergebnis &amp; Unterschrift</p>
+        <table>
+            <tr><td colspan="2">Maßnahme</td>
+                <td colspan="4">
+                    <select class="input-field" id="f_massnahme" style="width:100%" oninput="save()">
+                        <option>Keine Anpassung notwendig</option>
+                        <option>Nullpunkt-/Spanabgleich durchgeführt</option>
+                        <option>Gerät getauscht</option>
+                        <option>Sonstiges (siehe Bemerkungen)</option>
+                    </select>
+                </td>
+            </tr>
+            <tr><td colspan="2">Bemerkungen</td>
+                <td colspan="4"><textarea class="input-field" id="f_bem" rows="2" style="width:100%;resize:vertical" oninput="save()"></textarea></td>
+            </tr>
+            <tr>
+                <td colspan="2">Unterschrift Techniker</td>
+                <td colspan="2"><input class="input-field" id="f_sig_tech" placeholder="Name Techniker" oninput="save()"></td>
+                <td colspan="2">Unterschrift Kunde (opt.): <input class="input-field" id="f_sig_cust" placeholder="Name Kunde" oninput="save()"></td>
+            </tr>
+        </table>
+    </div></div>
+
+    <footer class="bottom-header"><p>Keine Gewähr. Kalibrierprotokoll ist kein DAkkS-Kalibrierschein.</p></footer>
+    <script src="shared.js"></script>
+    <script>
+        const PCTS = [0, 25, 50, 75, 100];
+        const istFields = {};
+
+        function getOut() {
+            const v = document.getElementById('f_out').value;
+            if (v === '420') return {lo:4, hi:20, unit:'mA'};
+            if (v === '020') return {lo:0, hi:20, unit:'mA'};
+            return {lo:0, hi:10, unit:'V'};
+        }
+
+        function buildTable() {
+            const body = document.getElementById('cal_body');
+            body.innerHTML = '';
+            const lrv = parseFloat(document.getElementById('f_lrv').value) || 0;
+            const urv = parseFloat(document.getElementById('f_urv').value) || 100;
+            const unit = document.getElementById('f_unit').value || '';
+            const out = getOut();
+            const tol = parseFloat(document.getElementById('f_tol').value) || 0.5;
+
+            PCTS.forEach((pct, i) => {
+                const soll = lrv + (urv - lrv) * pct / 100;
+                const outSoll = out.lo + (out.hi - out.lo) * pct / 100;
+                const tr = document.createElement('tr');
+                tr.id = 'row_' + i;
+
+                // Restore saved ist values
+                const afVal = istFields['af_' + i] || '';
+                const alVal = istFields['al_' + i] || '';
+
+                tr.innerHTML = '<td>' + pct + ' %</td>' +
+                    '<td class="auto">' + soll.toFixed(2) + ' ' + unit + '</td>' +
+                    '<td class="auto">' + outSoll.toFixed(3) + ' ' + out.unit + '</td>' +
+                    '<td><input type="number" step="0.001" id="af_' + i + '" value="' + afVal + '" placeholder="—" oninput="recalcRow(' + i + ')"></td>' +
+                    '<td class="auto" id="af_dev_' + i + '">—</td>' +
+                    '<td class="auto" id="af_ok_' + i + '">—</td>' +
+                    '<td><input type="number" step="0.001" id="al_' + i + '" value="' + alVal + '" placeholder="—" oninput="recalcRow(' + i + ')"></td>' +
+                    '<td class="auto" id="al_dev_' + i + '">—</td>' +
+                    '<td class="auto" id="al_ok_' + i + '">—</td>';
+                body.appendChild(tr);
+                recalcRow(i);
+            });
+        }
+
+        function recalcRow(i) {
+            const lrv = parseFloat(document.getElementById('f_lrv').value) || 0;
+            const urv = parseFloat(document.getElementById('f_urv').value) || 100;
+            const out = getOut();
+            const tol = parseFloat(document.getElementById('f_tol').value) || 0.5;
+            const pct = PCTS[i];
+            const outSoll = out.lo + (out.hi - out.lo) * pct / 100;
+            const span = out.hi - out.lo;
+
+            ['af', 'al'].forEach(prefix => {
+                const el = document.getElementById(prefix + '_' + i);
+                if (!el) return;
+                const val = parseFloat(el.value);
+                istFields[prefix + '_' + i] = el.value;
+                const devEl = document.getElementById(prefix + '_dev_' + i);
+                const okEl = document.getElementById(prefix + '_ok_' + i);
+                if (isNaN(val)) { devEl.textContent = '—'; okEl.textContent = '—'; return; }
+                const dev = (val - outSoll) / span * 100;
+                const ok = Math.abs(dev) <= tol;
+                devEl.textContent = (dev >= 0 ? '+' : '') + dev.toFixed(2) + ' %';
+                okEl.innerHTML = ok ? '<span class="status-badge ok-badge">✓ OK</span>' : '<span class="status-badge nok-badge">✗ NOK</span>';
+            });
+
+            updateResult();
+            save();
+        }
+
+        function updateResult() {
+            const tol = parseFloat(document.getElementById('f_tol').value) || 0.5;
+            const out = getOut();
+            const span = out.hi - out.lo;
+            let anyEntered = false, allOk = true;
+
+            PCTS.forEach((pct, i) => {
+                const outSoll = out.lo + (out.hi - out.lo) * pct / 100;
+                const alEl = document.getElementById('al_' + i);
+                if (!alEl) return;
+                const val = parseFloat(alEl.value);
+                if (!isNaN(val)) {
+                    anyEntered = true;
+                    const dev = Math.abs((val - outSoll) / span * 100);
+                    if (dev > tol) allOk = false;
+                }
+            });
+
+            const box = document.getElementById('result_box');
+            if (!anyEntered) { box.className = 'result-box empty'; box.textContent = '— Bitte As-Left Istwerte eingeben —'; }
+            else if (allOk) { box.className = 'result-box ok'; box.textContent = '✓ BESTANDEN — Alle As-Left Werte innerhalb Toleranz ± ' + tol + ' %'; }
+            else { box.className = 'result-box nok'; box.textContent = '✗ NICHT BESTANDEN — Mindestens ein As-Left Wert außerhalb Toleranz'; }
+        }
+
+        function recalc() { buildTable(); save(); }
+
+        function save() {
+            const data = {};
+            ['f_tag','f_typ','f_hersteller','f_sn','f_lrv','f_urv','f_unit','f_out','f_tol',
+             'f_kaltyp','f_kalsn','f_kaldate','f_datum','f_tech','f_temp',
+             'f_massnahme','f_bem','f_sig_tech','f_sig_cust'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) data[id] = el.value;
+            });
+            data.istFields = istFields;
+            try { localStorage.setItem('kalibprot', JSON.stringify(data)); } catch(e) {}
+        }
+
+        function loadSaved() {
+            try {
+                const s = localStorage.getItem('kalibprot');
+                if (!s) return;
+                const data = JSON.parse(s);
+                Object.keys(data).forEach(id => {
+                    if (id === 'istFields') { Object.assign(istFields, data.istFields || {}); return; }
+                    const el = document.getElementById(id);
+                    if (el) el.value = data[id];
+                });
+            } catch(e) {}
+        }
+
+        function resetForm() {
+            ['f_tag','f_typ','f_sn','f_kaltyp','f_kalsn','f_kaldate','f_tech','f_bem','f_sig_tech','f_sig_cust'].forEach(id => {
+                const el = document.getElementById(id); if (el) el.value = '';
+            });
+            document.getElementById('f_hersteller').value = 'Endress+Hauser';
+            document.getElementById('f_lrv').value = '0';
+            document.getElementById('f_urv').value = '100';
+            document.getElementById('f_unit').value = '%';
+            document.getElementById('f_tol').value = '0.5';
+            document.getElementById('f_out').value = '420';
+            document.getElementById('f_temp').value = '20';
+            Object.keys(istFields).forEach(k => delete istFields[k]);
+            document.getElementById('f_datum').value = new Date().toISOString().slice(0,10);
+            localStorage.removeItem('kalibprot');
+            buildTable();
+        }
+
+        // Init
+        document.getElementById('f_datum').value = new Date().toISOString().slice(0,10);
+        loadSaved();
+        buildTable();
+    </script>
+</body>
+</html>

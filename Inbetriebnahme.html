@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inbetriebnahme – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+    <style>
+        .action-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+        .action-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-size:13px;font-weight:500;border-radius:var(--radius-md);border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;font-family:var(--font-sans)}
+        .action-btn:hover{background:var(--bg-subtle);color:var(--text-primary)}
+        .action-btn svg{width:14px;height:14px;fill:currentColor}
+        .dev-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+        .dev-btn{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;font-family:var(--font-sans)}
+        .dev-btn.active{background:var(--accent-emphasis);color:#fff;border-color:var(--accent-emphasis)}
+        .progress-bar{height:6px;background:var(--bg-subtle);border-radius:3px;margin-bottom:14px;overflow:hidden}
+        .progress-fill{height:100%;background:var(--accent-emphasis);border-radius:3px;transition:width .3s}
+        .progress-label{font-size:12px;color:var(--text-tertiary);margin-bottom:6px}
+        .check-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:var(--radius-md);border:1px solid var(--border-default);margin-bottom:6px;cursor:pointer;background:var(--bg-default);transition:background .1s}
+        .check-item:hover{background:var(--bg-subtle)}
+        .check-item.done{background:var(--bg-success);border-color:#2ea04340}
+        .check-box{width:20px;height:20px;border-radius:5px;border:2px solid var(--border-default);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;margin-top:1px}
+        .check-item.done .check-box{background:var(--accent-emphasis);border-color:var(--accent-emphasis);color:#fff}
+        .ci-num{font-size:11px;font-weight:700;color:var(--text-tertiary);flex-shrink:0;min-width:20px;padding-top:2px}
+        .ci-title{font-size:13px;font-weight:600;color:var(--text-primary)}
+        .check-item.done .ci-title{color:var(--text-success)}
+        .ci-sub{font-size:11px;color:var(--text-tertiary);margin-top:2px;line-height:1.4}
+        .section-title{font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin:0 0 10px 0}
+    </style>
+</head>
+<body data-tool-id="inbetriebnahme">
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right"><button class="theme-toggle" id="themeToggle"><span id="themeIcon">🌙</span></button></div>
+    </header>
+    <div class="back-bar"><a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a></div>
+
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="resetCurrent()"><svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg> Zurücksetzen</button>
+            <button class="action-btn" onclick="exportPagePDF('Inbetriebnahme-Checkliste')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+        </div>
+        <div class="description">📋 Inbetriebnahme-Checklisten für E+H Messgeräte. Schritt für Schritt durch die Inbetriebnahme — abhaken und als PDF exportieren.</div>
+
+        <p class="section-title">Gerät wählen</p>
+        <div class="dev-row" id="dev_row"></div>
+
+        <div class="progress-label" id="prog_label">0 / 0 Schritte erledigt</div>
+        <div class="progress-bar"><div class="progress-fill" id="prog_fill" style="width:0%"></div></div>
+
+        <div id="checklist"></div>
+    </div></div>
+
+    <footer class="bottom-header"><p>Keine Gewähr. Gerätespezifische Inbetriebnahmeanleitung (BA) stets beachten.</p></footer>
+    <script src="shared.js"></script>
+    <script>
+    const DEVICES = {
+        promag: {
+            name: 'Promag (MID)',
+            steps: [
+                ['Einbaulage prüfen', 'Rohrleitung vollständig befüllt? Aufwärts-Durchströmung empfohlen. Min. 5× DN Einlaufstrecke einhalten.'],
+                ['Elektrische Anschlüsse', 'Versorgungsspannung, Signalausgang, PE-Anschluss. Anzugsmoment der Klemmen beachten.'],
+                ['Potenzialausgleich / Erdung', 'Erdungsringe oder Erdungselektroden korrekt installiert? Potenzialausgleichsleiter verlegt?'],
+                ['Versorgungsspannung messen', 'Klemmenspannung prüfen (Soll: 10,5–32 VDC / 90–253 VAC je nach Typ).'],
+                ['Rohrnennweite DN konfigurieren', 'DN im Gerätemenü einstellen — muss mit physischem Einbau übereinstimmen.'],
+                ['Messbereich URV/LRV einstellen', 'URV (= 20 mA) und LRV (= 4 mA) in korrekter Einheit einstellen.'],
+                ['Leerrohr-Erkennung', 'Falls vorhanden: Funktion aktivieren und Schwellwert einstellen.'],
+                ['Zero Trim (Nullpunktabgleich)', 'Bei stehendem Medium (Ventil zu) und vollgefülltem Rohr ausführen. Kein Durchfluss!'],
+                ['4-20 mA Ausgang prüfen', 'Simulation aktivieren und Signal am SPS-Eingang oder mit Multimeter messen.'],
+                ['Funktionstest Durchfluss', 'Medium zum Fließen bringen. Messwert mit Referenzgerät vergleichen.'],
+                ['Alarme und Grenzwerte', 'Prozessgrenzwerte, NAMUR-Ausgabe und Alarmrelais konfigurieren.'],
+                ['Dokumentation', 'Messstellenblatt mit DN, Messbereich, Seriennummer, Datum und Zero-Wert ausfüllen.']
+            ]
+        },
+        promass: {
+            name: 'Promass (Coriolis)',
+            steps: [
+                ['Einbauposition prüfen', 'Schwingungsknoten frei? Keine Rohrleitungsspannungen auf das Gerät. Bypass-Ventile vorhanden?'],
+                ['Elektrische Anschlüsse', 'Versorgung, Signalausgänge (4-20 mA, Puls, HART), Schirmung prüfen.'],
+                ['Messrohre befüllen und entlüften', 'Messrohre vollständig mit Prozessmedium füllen. Gasblasen austragen.'],
+                ['Versorgungsspannung prüfen', 'Klemmenspannung in Spezifikation (je nach Typ).'],
+                ['Messgröße und Einheiten konfigurieren', 'Massenstrom, Volumenstrom, Dichte, Temperatur wählen. Einheiten festlegen.'],
+                ['Messbereich URV/LRV einstellen', 'Nenndurchfluss aus Datenblatt als URV übernehmen.'],
+                ['Zero Trim KRITISCH', 'Ventile schließen → absoluter Stillstand im Rohr (kein Durchfluss) → Zero Trim ausführen. Rohr muss vollbefüllt sein!'],
+                ['Zero-Ergebnis prüfen', 'Zero-Wert notieren. Sollte < 0,5% vom URV sein. Bei schlechtem Ergebnis Entlüftung und Rohrstillstand prüfen.'],
+                ['Ausgänge prüfen', 'Massenstrom, Dichte und Temperatur simulieren und an SPS prüfen.'],
+                ['Dichtemessung kalibrieren', 'Falls benötigt: Dichte-Kalibrierung mit Medium bekannter Dichte durchführen.'],
+                ['Grenzwerte konfigurieren', 'Alarm-Grenzwerte für alle Messgrößen einstellen.'],
+                ['Dokumentation', 'Konfiguration, Seriennummer, Zero-Wert, Datum dokumentieren.']
+            ]
+        },
+        prowirl: {
+            name: 'Prowirl (Vortex)',
+            steps: [
+                ['Einbauposition prüfen', 'Min. 15–20 DN Einlauf, 5 DN Auslauf (bei Bögen mehr). Strömungsrichtungspfeil beachten.'],
+                ['Elektrische Anschlüsse', 'Versorgung, Ausgang (4-20 mA / Puls), Schirmung.'],
+                ['Mindestdurchfluss prüfen', 'Vortex benötigt Mindestdurchfluss. Bei zu kleinem Volumenstrom keine Messung möglich — Strouhal-Zahl beachten.'],
+                ['Rohrnennweite und Rohrgeometrie', 'DN, Wanddicke und ggf. Linerdicke korrekt eingeben.'],
+                ['Medium konfigurieren', 'Gas, Dampf oder Flüssigkeit wählen. Dichte, Druck, Temperaturkompensation einstellen.'],
+                ['Messbereich URV einstellen', 'URV entsprechend maximalem Volumenstrom setzen.'],
+                ['Low-Flow-Cutoff', 'Kleinsignal-Unterdrückung einstellen (typisch 5–10% des Mindestdurchflusses).'],
+                ['Dämpfung einstellen', 'Zeitkonstante für stabile Anzeige anpassen (typisch 1–5 s).'],
+                ['Ausgänge prüfen', 'Frequenz-/Pulsausgang und 4-20 mA am SPS-Eingang prüfen.'],
+                ['Dampfanwendung prüfen', 'Falls Sattdampf: Druck-/Temperaturkompensation aktiv? Kondensatbildung im Messrohr ausschließen.'],
+                ['Funktionstest', 'Durchfluss variieren und Linearität des Ausgangssignals prüfen.'],
+                ['Dokumentation', 'Konfiguration, Kalibrierdaten, Einbaumaße und Datum notieren.']
+            ]
+        },
+        cerabar: {
+            name: 'Cerabar (Druck)',
+            steps: [
+                ['Prozessanschluss prüfen', 'Dichtigkeit prüfen. Gewindeanschluss korrekt angezogen (Anzugsmoment aus Datenblatt).'],
+                ['Referenzebene festlegen', 'Lage des Sensors relativ zum Messpunkt notieren (relevant für hydrostatische Korrekturen).'],
+                ['Elektrische Anschlüsse', 'Versorgung, Signalausgang, Schirmung. Polarität bei 2-Draht beachten.'],
+                ['Versorgungsspannung messen', 'Klemmenspannung messen (Soll: 10,5–32 VDC für 2-Draht).'],
+                ['Druckart konfigurieren', 'Relativdruck (ü), Absolutdruck (abs) oder Differenzdruck auswählen.'],
+                ['Messbereich URV/LRV einstellen', '4 mA (LRV) und 20 mA (URV) auf Prozessbedingungen einstellen.'],
+                ['Zero Trim (Nullpunktabgleich)', 'Referenzdruck anlegen (z.B. Atmosphäre für Relativdruck) und Zero Trim ausführen.'],
+                ['Hydrostatische Korrektion', 'Falls Sensor nicht auf Messpunktebene: Höhenunterschied × Dichte × g als Offset eingeben.'],
+                ['Ausgang prüfen', 'Referenzdruck anlegen und 4-20 mA am SPS-Eingang messen.'],
+                ['Alarmgrenzwerte konfigurieren', 'Prozessgrenzwerte und NAMUR-Ausgabe einstellen.'],
+                ['Dokumentation', 'Messbereich, Prozessanschluss, Zero-Datum und Seriennummer dokumentieren.']
+            ]
+        },
+        micropilot: {
+            name: 'Micropilot (Radar)',
+            steps: [
+                ['Einbauposition prüfen', 'Abstand zu Einbauten und Behälterwand ≥ 1/6 Behälterdurchmesser. Strahlkegel muss frei sein.'],
+                ['Elektrische Anschlüsse', 'Versorgung, Ausgang, Schirmung (besonders wichtig bei Radar!).'],
+                ['Behältergeometrie eingeben', 'Leerabstand (Sensor → Behälterboden leer) und Vollabstand (Sensor → Oberfläche bei Vollbehälter) eingeben.'],
+                ['Störechoausblendung einlernen', 'Behälter möglichst leer fahren, dann Mapping/Störechoausblendung einlernen. Einbauten werden ausgeblendet.'],
+                ['Dielektrizitätskonstante eingeben', 'DK-Wert des Mediums konfigurieren (Flüssigkeit, Schüttgut). Standardwert Wasser: 80.'],
+                ['Messbereich konfigurieren', '4 mA = leer (Leerabstand), 20 mA = voll (Vollabstand).'],
+                ['Linearisierung', 'Falls Behälter nicht zylindrisch: Linearisierungstabelle (Füllstand → Volumen) eingeben.'],
+                ['Sicherheitsabstand', 'Überfüllsicherheitsabstand (Totbereich oben) konfigurieren.'],
+                ['Funktionstest', 'Behälter füllen/leeren, Echo-Kurve und Messwert auf Plausibilität prüfen.'],
+                ['Grenzwerte konfigurieren', 'Alarm-Grenzwerte und ggf. SIL-Funktion konfigurieren.'],
+                ['Dokumentation', 'Einbauskizze, Leerabstand, Vollabstand, DK-Wert und Seriennummer dokumentieren.']
+            ]
+        },
+        levelflex: {
+            name: 'Levelflex (Geführter Radar)',
+            steps: [
+                ['Sonde prüfen', 'Sondenlänge passend zum Behälter? Seilsonde, Stabsonde oder Koaxialsonde korrekt gewählt?'],
+                ['Einbau prüfen', 'Sonde hängt senkrecht? Keine Berührung mit Behälterwand. Einschraubtiefe korrekt.'],
+                ['Elektrische Anschlüsse', 'Versorgung, Ausgang, Schirmung.'],
+                ['Behältergeometrie eingeben', 'Leerabstand und Vollabstand eingeben.'],
+                ['Medium konfigurieren', 'DK-Wert, Schüttgut oder Flüssigkeit auswählen. Bei Trennschicht: untere Phase konfigurieren.'],
+                ['Störechoausblendung einlernen', 'Behälter auf bekanntes Niveau fahren, Mapping einlernen. Befestigungen und Einbauten werden ausgeblendet.'],
+                ['Blockdistanz prüfen', 'Bereich direkt unterhalb des Sensors (keine Messung möglich). Ausreichend Abstand zum Maximalniveau sicherstellen.'],
+                ['Messbereich konfigurieren', '4 mA = leer, 20 mA = voll.'],
+                ['Trennschicht', 'Falls Trennschicht-Messung: obere und untere Phase konfigurieren und Einlernen mit bekannten Pegeln.'],
+                ['Funktionstest', 'Niveau variieren, Echo-Kurve und Messwert auf Plausibilität prüfen.'],
+                ['Grenzwerte konfigurieren', 'Alarm-Grenzwerte einstellen.'],
+                ['Dokumentation', 'Einbaumaße, Sondenlänge, DK-Wert, Konfiguration und Seriennummer dokumentieren.']
+            ]
+        }
+    };
+
+    const KEYS = Object.keys(DEVICES);
+    let activeKey = KEYS[0];
+    let state = {};
+
+    function loadState() {
+        try { state = JSON.parse(localStorage.getItem('ibn_state') || '{}'); } catch(e) { state = {}; }
+    }
+    function saveState() {
+        try { localStorage.setItem('ibn_state', JSON.stringify(state)); } catch(e) {}
+    }
+
+    // Build device buttons
+    const devRow = document.getElementById('dev_row');
+    KEYS.forEach(k => {
+        const btn = document.createElement('button');
+        btn.className = 'dev-btn' + (k === activeKey ? ' active' : '');
+        btn.textContent = DEVICES[k].name;
+        btn.onclick = () => {
+            activeKey = k;
+            devRow.querySelectorAll('.dev-btn').forEach((b,i) => b.classList.toggle('active', KEYS[i] === k));
+            render();
+        };
+        devRow.appendChild(btn);
+    });
+
+    function render() {
+        const dev = DEVICES[activeKey];
+        const checks = state[activeKey] || {};
+        const total = dev.steps.length;
+        const done = Object.values(checks).filter(Boolean).length;
+
+        document.getElementById('prog_label').textContent = done + ' / ' + total + ' Schritte erledigt';
+        document.getElementById('prog_fill').style.width = (total ? done / total * 100 : 0) + '%';
+
+        const cl = document.getElementById('checklist');
+        cl.innerHTML = '';
+        dev.steps.forEach(([title, sub], i) => {
+            const d = document.createElement('div');
+            d.className = 'check-item' + (checks[i] ? ' done' : '');
+            d.innerHTML = '<div class="check-box">' + (checks[i] ? '✓' : '') + '</div>' +
+                '<div class="ci-num">' + (i+1) + '.</div>' +
+                '<div><div class="ci-title">' + title + '</div><div class="ci-sub">' + sub + '</div></div>';
+            d.onclick = () => {
+                if (!state[activeKey]) state[activeKey] = {};
+                state[activeKey][i] = !state[activeKey][i];
+                saveState();
+                render();
+            };
+            cl.appendChild(d);
+        });
+    }
+
+    function resetCurrent() {
+        state[activeKey] = {};
+        saveState();
+        render();
+    }
+
+    loadState();
+    render();
+    </script>
+</body>
+</html>
