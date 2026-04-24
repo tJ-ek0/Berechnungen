@@ -23,6 +23,9 @@
         .abw-ok{color:var(--text-success);font-weight:600;font-family:var(--font-mono)}
         .abw-nio{color:var(--text-danger);font-weight:600;font-family:var(--font-mono)}
         .abw-leer{color:var(--text-tertiary);font-family:var(--font-mono)}
+        .dir-up{color:var(--text-success)}
+        .dir-dn{color:var(--accent-fg)}
+        .custom-row{display:none}
     </style>
 </head>
 <body data-tool-id="kalibrier">
@@ -73,8 +76,27 @@
                 </td>
             </tr>
             <tr>
-                <td colspan="2">Anzahl Kalibrierpunkte</td>
+                <td colspan="2">Verteilung</td>
+                <td colspan="4">
+                    <select class="input-field" id="verteilung" onchange="onVerteilungChange()">
+                        <option value="namur5">NAMUR 5-Punkt: 0 / 25 / 50 / 75 / 100 %</option>
+                        <option value="namur9">NAMUR 9-Punkt Hysterese: ↑ 0→100 ↓ 100→0</option>
+                        <option value="3punkt">3-Punkt: 0 / 50 / 100 %</option>
+                        <option value="linear">Linear gleichmäßig (n Punkte)</option>
+                        <option value="custom">Benutzerdefiniert</option>
+                    </select>
+                </td>
+            </tr>
+            <tr id="row_linear" style="display:none">
+                <td colspan="2">Anzahl Punkte</td>
                 <td colspan="4"><input class="input-field" type="number" id="kalibrierpunkte" value="5" min="2" max="20" style="max-width:80px"></td>
+            </tr>
+            <tr id="row_custom" style="display:none">
+                <td colspan="2">Punkte in %</td>
+                <td colspan="4">
+                    <input class="input-field" type="text" id="custom_pcts" value="0, 10, 25, 50, 75, 90, 100" style="max-width:280px" placeholder="z.B. 0, 10, 50, 90, 100">
+                    <span style="font-size:11px;color:var(--text-tertiary);margin-left:6px">Komma-getrennt</span>
+                </td>
             </tr>
             <tr>
                 <td colspan="2">Toleranz</td>
@@ -120,16 +142,39 @@
             }
         }
 
+        function onVerteilungChange() {
+            const v = document.getElementById('verteilung').value;
+            document.getElementById('row_linear').style.display = v === 'linear' ? '' : 'none';
+            document.getElementById('row_custom').style.display = v === 'custom' ? '' : 'none';
+            berechneKalibrierpunkte();
+        }
+
+        function getPcts() {
+            const v = document.getElementById('verteilung').value;
+            if (v === 'namur5') return [0, 25, 50, 75, 100];
+            if (v === 'namur9') return [0, 25, 50, 75, 100, 75, 50, 25, 0];
+            if (v === '3punkt') return [0, 50, 100];
+            if (v === 'linear') {
+                const anz = Math.max(2, parseInt(document.getElementById('kalibrierpunkte').value) || 5);
+                return Array.from({length: anz}, (_, i) => (i / (anz - 1)) * 100);
+            }
+            if (v === 'custom') {
+                const raw = document.getElementById('custom_pcts').value;
+                return raw.split(/[,;\s]+/).map(s => parseFloat(s.trim())).filter(n => !isNaN(n) && n >= 0 && n <= 100);
+            }
+            return [0, 25, 50, 75, 100];
+        }
+
         function berechneKalibrierpunkte() {
-            const mbMin = parseFloat(document.getElementById('messbereich_min').value) || 0;
-            const mbMax = parseFloat(document.getElementById('messbereich_max').value) || 0;
-            const anz   = parseInt(document.getElementById('kalibrierpunkte').value) || 5;
-            const grenz = parseFloat(document.getElementById('grenzwert').value) || 0.5;
-            const cfg   = getSignalConfig();
+            const mbMin   = parseFloat(document.getElementById('messbereich_min').value) || 0;
+            const mbMax   = parseFloat(document.getElementById('messbereich_max').value) || 0;
+            const grenz   = parseFloat(document.getElementById('grenzwert').value) || 0.5;
+            const cfg     = getSignalConfig();
             const einheit = document.getElementById('messbereich_einheit').value;
             const mbSpanne = mbMax - mbMin;
+            const pcts    = getPcts();
+            const isHyst  = document.getElementById('verteilung').value === 'namur9';
 
-            // Update headers
             document.getElementById('thSignal').textContent  = 'Signal (' + cfg.einheit + ')';
             document.getElementById('thSoll').textContent    = 'Sollwert' + (einheit ? ' (' + einheit + ')' : '');
             document.getElementById('thIstwert').textContent = 'Istwert' + (einheit ? ' (' + einheit + ')' : '');
@@ -138,36 +183,37 @@
             document.getElementById('toleranzAbs').textContent =
                 '= ±' + toleranzAbsVal.toFixed(4) + (einheit ? ' ' + einheit : '');
 
-            // Save existing Istwert inputs before rebuilding
             const prev = Array.from(document.querySelectorAll('.ist-kp-input')).map(el => el.value);
-
             const tbody = document.getElementById('kalibrierpunkte_body');
             tbody.innerHTML = '';
 
-            for (let i = 0; i < anz; i++) {
-                const pct    = (i / (anz - 1)) * 100;
+            pcts.forEach((pct, i) => {
                 const signal = cfg.min + ((cfg.max - cfg.min) * pct / 100);
                 const soll   = mbMin + (mbSpanne * pct / 100);
-
+                // Direction indicator for hysteresis
+                let dirHtml = '';
+                if (isHyst) {
+                    const up = i <= 4;
+                    dirHtml = ' <span class="' + (up ? 'dir-up' : 'dir-dn') + '">' + (up ? '↑' : '↓') + '</span>';
+                }
                 const tr = document.createElement('tr');
                 tr.dataset.soll  = soll;
                 tr.dataset.mb    = mbSpanne;
                 tr.dataset.grenz = grenz;
                 tr.innerHTML =
                     '<td style="text-align:center">' + (i + 1) + '</td>' +
-                    '<td style="font-family:var(--font-mono)">' + pct.toFixed(1) + '%</td>' +
+                    '<td style="font-family:var(--font-mono)">' + pct.toFixed(1) + '%' + dirHtml + '</td>' +
                     '<td style="font-family:var(--font-mono)">' + signal.toFixed(3) + ' ' + cfg.einheit + '</td>' +
                     '<td style="font-family:var(--font-mono)">' + soll.toFixed(4) + '</td>' +
                     '<td><input class="input-field ist-kp-input" type="number" step="any" placeholder="—" style="max-width:130px" oninput="pruefAbw(this)"></td>' +
                     '<td class="abw-cell abw-leer">—</td>';
                 tbody.appendChild(tr);
 
-                // Restore previously entered value
                 if (prev[i] !== undefined && prev[i] !== '') {
                     tr.querySelector('.ist-kp-input').value = prev[i];
                     pruefAbw(tr.querySelector('.ist-kp-input'));
                 }
-            }
+            });
 
             updateStatusBar();
         }
@@ -226,7 +272,7 @@
             berechneKalibrierpunkte();
         }
 
-        document.querySelectorAll('#messbereich_min,#messbereich_max,#signalbereich,#kalibrierpunkte,#messbereich_einheit,#grenzwert').forEach(el => {
+        document.querySelectorAll('#messbereich_min,#messbereich_max,#signalbereich,#kalibrierpunkte,#messbereich_einheit,#grenzwert,#custom_pcts').forEach(el => {
             el.addEventListener('input', berechneKalibrierpunkte);
             el.addEventListener('change', berechneKalibrierpunkte);
         });
