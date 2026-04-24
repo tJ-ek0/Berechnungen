@@ -518,7 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (titleEl) titleEl.setAttribute('data-tool', toolMeta.title);
         }
 
-        // Mobile: collapsible description box (one-tap to expand, stays open)
+        // Mobile: collapsible description box (toggle)
         const desc = document.querySelector('.description');
         if (desc && window.innerWidth <= 768) {
             desc.classList.add('desc-collapsed');
@@ -526,12 +526,12 @@ document.addEventListener('DOMContentLoaded', () => {
             hint.className = 'desc-expand-hint visible';
             hint.textContent = '▼ Info einblenden';
             desc.insertAdjacentElement('afterend', hint);
-            function expandDesc() {
-                desc.classList.remove('desc-collapsed');
-                hint.classList.remove('visible');
+            function toggleDesc() {
+                const collapsed = desc.classList.toggle('desc-collapsed');
+                hint.textContent = collapsed ? '▼ Info einblenden' : '▲ Info ausblenden';
             }
-            desc.addEventListener('click', expandDesc);
-            hint.addEventListener('click', expandDesc);
+            hint.addEventListener('click', toggleDesc);
+            desc.addEventListener('click', toggleDesc);
         }
     }
 });
