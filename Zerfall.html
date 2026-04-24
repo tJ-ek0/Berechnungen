@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zerfallsrechner – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .action-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+        .action-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-size:13px;font-weight:500;border-radius:var(--radius-md);border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;transition:all .2s;box-shadow:none;font-family:var(--font-sans)}
+        .action-btn:hover{background:var(--bg-subtle);color:var(--text-primary);border-color:var(--border-muted);transform:none;box-shadow:none;filter:none}
+        .action-btn svg{width:14px;height:14px;fill:currentColor}
+        .status-bar{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:var(--radius-md);border:1px solid var(--border-default);margin-bottom:20px;font-size:14px;font-weight:500;transition:all .3s}
+        .status-bar.status-ok{background:var(--bg-success);color:var(--text-success);border-color:var(--text-success)}
+        .status-bar.status-warn{background:var(--bg-attention);color:var(--text-attention);border-color:var(--text-attention)}
+        .status-bar.status-idle{background:var(--bg-subtle);color:var(--text-tertiary)}
+        .status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+        .status-ok .status-dot{background:var(--text-success)}
+        .status-warn .status-dot{background:var(--text-attention)}
+        .status-idle .status-dot{background:var(--text-tertiary)}
+        .result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:16px 0}
+        .result-card{background:var(--bg-success);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:12px;text-align:center}
+        .result-card-value{font-size:18px;font-weight:600;color:var(--text-success);font-family:var(--font-mono)}
+        .result-card-label{font-size:11px;color:var(--text-tertiary);margin-top:2px}
+        .result-card-sub{font-size:10px;color:var(--text-tertiary)}
+        .info-box{background:var(--bg-subtle);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--text-secondary);line-height:1.6}
+        .info-box strong{color:var(--text-primary)}
+        .section-divider{border:none;border-top:1px solid var(--border-default);margin:24px 0}
+        .decay-bar-wrap{margin:16px 0}
+        .decay-bar-label{font-size:12px;color:var(--text-tertiary);margin-bottom:4px;display:flex;justify-content:space-between}
+        .decay-bar-track{height:14px;background:var(--bg-subtle);border-radius:7px;border:1px solid var(--border-default);overflow:hidden}
+        .decay-bar-fill{height:100%;border-radius:6px;transition:width .4s,background .4s}
+        .threshold-box{background:var(--bg-subtle);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:14px 18px;margin:16px 0}
+        .threshold-box h4{font-size:13px;font-weight:600;margin:0 0 10px 0;color:var(--text-primary)}
+    </style>
+</head>
+<body data-tool-id="zerfall">
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right"><button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button></div>
+    </header>
+    <div class="back-bar"><a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a></div>
+
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="copyResults()"><svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg> Kopieren</button>
+            <button class="action-btn" onclick="resetFields()"><svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg> Zurücksetzen</button>
+            <button class="action-btn" onclick="exportPagePDF('Zerfallsrechner')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+        </div>
+
+        <div class="description">⚛️ Radioaktiver Zerfall: Berechne die aktuelle Aktivität aus Anfangsaktivität, Nuklid und Zeitraum. Nuklid-Halbwertszeiten nach Frankfurter Tabelle vorbelegt.</div>
+
+        <div class="status-bar status-idle" id="statusBar">
+            <div class="status-dot"></div>
+            <span id="statusText">Werte eingeben</span>
+        </div>
+
+        <table>
+            <tr><th colspan="4">Nuklid & Anfangsaktivität</th></tr>
+            <tr>
+                <td colspan="2">Nuklid</td>
+                <td colspan="2">
+                    <select class="input-field" id="nuklid" style="max-width:220px" onchange="onNuklidChange()">
+                        <option value="Cs-137">Cäsium-137 (T½ = 30,17 a)</option>
+                        <option value="Co-60">Kobalt-60 (T½ = 5,271 a)</option>
+                        <option value="Ir-192">Iridium-192 (T½ = 73,83 d)</option>
+                        <option value="Se-75">Selen-75 (T½ = 119,78 d)</option>
+                        <option value="Yb-169">Ytterbium-169 (T½ = 32,01 d)</option>
+                        <option value="Am-241">Americium-241 (T½ = 432,2 a)</option>
+                        <option value="Ra-226">Radium-226 (T½ = 1600 a)</option>
+                        <option value="Tm-170">Thulium-170 (T½ = 128,6 d)</option>
+                        <option value="custom">— Eigene Halbwertszeit —</option>
+                    </select>
+                </td>
+            </tr>
+            <tr id="customRow" style="display:none">
+                <td colspan="2">Eigene Halbwertszeit T½</td>
+                <td colspan="2">
+                    <input class="input-field" type="number" id="customT" value="100" min="0.001" step="any" style="max-width:100px">
+                    <select class="input-field" id="customTunit" style="max-width:100px">
+                        <option value="1">Tage</option>
+                        <option value="365.25">Jahre</option>
+                        <option value="0.041667">Stunden</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Anfangsaktivität A₀</td>
+                <td colspan="2">
+                    <input class="input-field" type="number" id="a0" value="100" min="0" step="any" style="max-width:120px">
+                    <select class="input-field" id="a0unit" style="max-width:90px">
+                        <option value="1">Bq</option>
+                        <option value="1e3">kBq</option>
+                        <option value="1e6" selected>MBq</option>
+                        <option value="1e9">GBq</option>
+                        <option value="1e12">TBq</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+
+        <table>
+            <tr><th colspan="4">Zeitraum</th></tr>
+            <tr>
+                <td colspan="2">Referenzdatum (A₀ gültig am)</td>
+                <td colspan="2"><input class="input-field" type="date" id="dateRef" style="max-width:180px"></td>
+            </tr>
+            <tr>
+                <td colspan="2">Zieldatum (Aktivität berechnen für)</td>
+                <td colspan="2"><input class="input-field" type="date" id="dateTarget" style="max-width:180px"></td>
+            </tr>
+            <tr>
+                <td colspan="2" style="font-size:12px;color:var(--text-tertiary)">oder direkt Zeitraum eingeben</td>
+                <td colspan="2">
+                    <input class="input-field" type="number" id="elapsed" min="0" step="any" style="max-width:100px" placeholder="z.B. 365">
+                    <select class="input-field" id="elapsedUnit" style="max-width:100px">
+                        <option value="1">Tage</option>
+                        <option value="365.25">Jahre</option>
+                        <option value="0.041667">Stunden</option>
+                    </select>
+                    <span style="font-size:11px;color:var(--text-tertiary);margin-left:4px">(überschreibt Datum)</span>
+                </td>
+            </tr>
+        </table>
+
+        <div class="result-grid" id="resultGrid" style="display:none">
+            <div class="result-card">
+                <div class="result-card-value" id="resAkt">—</div>
+                <div class="result-card-label">Aktivität A(t)</div>
+                <div class="result-card-sub" id="resAktSub">—</div>
+            </div>
+            <div class="result-card">
+                <div class="result-card-value" id="resProzent">—</div>
+                <div class="result-card-label">Verbleibend</div>
+                <div class="result-card-sub">Anteil von A₀</div>
+            </div>
+            <div class="result-card">
+                <div class="result-card-value" id="resHWZ">—</div>
+                <div class="result-card-label">Halbwertszeiten vergangen</div>
+                <div class="result-card-sub">t / T½</div>
+            </div>
+            <div class="result-card">
+                <div class="result-card-value" id="resZeit">—</div>
+                <div class="result-card-label">Zeitraum</div>
+                <div class="result-card-sub" id="resZeitSub">—</div>
+            </div>
+        </div>
+
+        <div class="decay-bar-wrap" id="decayBarWrap" style="display:none">
+            <div class="decay-bar-label"><span>Aktivitätsanteil</span><span id="barLabel">100 %</span></div>
+            <div class="decay-bar-track"><div class="decay-bar-fill" id="decayBarFill" style="width:100%;background:var(--text-success)"></div></div>
+        </div>
+
+        <div class="threshold-box" id="thresholdBox" style="display:none">
+            <h4>Wann sinkt die Aktivität unter …?</h4>
+            <table style="width:100%;font-size:12px">
+                <thead><tr>
+                    <th style="text-align:left;padding:4px 8px;font-size:10px;text-transform:uppercase">Schwellwert</th>
+                    <th style="text-align:left;padding:4px 8px;font-size:10px;text-transform:uppercase">Verbleibende Zeit ab A₀</th>
+                    <th style="text-align:left;padding:4px 8px;font-size:10px;text-transform:uppercase">Datum</th>
+                </tr></thead>
+                <tbody id="thresholdBody"></tbody>
+            </table>
+        </div>
+
+        <div class="info-box" style="margin-top:16px">
+            <strong>Formel:</strong> A(t) = A₀ × (½)^(t / T½)<br>
+            <strong>Zerfallskonstante:</strong> λ = ln(2) / T½<br>
+            Halbwertszeiten aus Frankfurter Tabelle (Euratom/ICRP-Daten). Gilt für einfachen Zerfall ohne Folgeprodukte (Ausnahme: Ra-226 mit Töchtern).
+        </div>
+
+        <div class="shortcuts-hint">
+            <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+            <span><kbd>Esc</kbd> Zurücksetzen</span>
+            <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+        </div>
+    </div></div>
+
+    <footer class="bottom-header"><p>Keine Gewähr für die Genauigkeit oder Vollständigkeit. Nutzung auf eigenes Risiko.</p></footer>
+
+    <script src="shared.js"></script>
+    <script>
+        // Halbwertszeiten in Tagen
+        const NUKLIDE = {
+            'Cs-137': 30.17 * 365.25,
+            'Co-60':  5.271 * 365.25,
+            'Ir-192': 73.83,
+            'Se-75':  119.78,
+            'Yb-169': 32.01,
+            'Am-241': 432.2 * 365.25,
+            'Ra-226': 1600 * 365.25,
+            'Tm-170': 128.6,
+        };
+
+        const UNITS = ['Bq','kBq','MBq','GBq','TBq'];
+        const UNIT_VALS = [1,1e3,1e6,1e9,1e12];
+
+        function onNuklidChange() {
+            const isCustom = document.getElementById('nuklid').value === 'custom';
+            document.getElementById('customRow').style.display = isCustom ? '' : 'none';
+            calc();
+        }
+
+        function getT_days() {
+            const sel = document.getElementById('nuklid').value;
+            if (sel !== 'custom') return NUKLIDE[sel];
+            const val = parseFloat(document.getElementById('customT').value);
+            const unit = parseFloat(document.getElementById('customTunit').value);
+            return val * unit;
+        }
+
+        function fmtActivity(bq) {
+            if (bq >= 1e12) return (bq / 1e12).toFixed(4) + ' TBq';
+            if (bq >= 1e9)  return (bq / 1e9).toFixed(4) + ' GBq';
+            if (bq >= 1e6)  return (bq / 1e6).toFixed(4) + ' MBq';
+            if (bq >= 1e3)  return (bq / 1e3).toFixed(4) + ' kBq';
+            return bq.toFixed(2) + ' Bq';
+        }
+
+        function fmtDays(d) {
+            if (d < 0) return '— (in der Vergangenheit)';
+            if (d < 1) return (d * 24).toFixed(1) + ' Stunden';
+            if (d < 365) return d.toFixed(1) + ' Tage';
+            return (d / 365.25).toFixed(2) + ' Jahre';
+        }
+
+        function addDays(dateStr, days) {
+            const d = new Date(dateStr);
+            d.setTime(d.getTime() + days * 86400000);
+            return d.toLocaleDateString('de-DE');
+        }
+
+        function calc() {
+            const T = getT_days();
+            if (!T || T <= 0) return;
+
+            const a0raw = parseFloat(document.getElementById('a0').value);
+            const a0unit = parseFloat(document.getElementById('a0unit').value);
+            if (isNaN(a0raw) || a0raw <= 0) {
+                document.getElementById('resultGrid').style.display = 'none';
+                document.getElementById('decayBarWrap').style.display = 'none';
+                document.getElementById('thresholdBox').style.display = 'none';
+                setStatus('idle', 'Werte eingeben');
+                return;
+            }
+            const a0 = a0raw * a0unit;
+
+            // Get elapsed time
+            let elapsedDays;
+            const elapsedInput = document.getElementById('elapsed').value;
+            if (elapsedInput !== '') {
+                const val = parseFloat(elapsedInput);
+                const unit = parseFloat(document.getElementById('elapsedUnit').value);
+                elapsedDays = val * unit;
+            } else {
+                const dateRef = document.getElementById('dateRef').value;
+                const dateTarget = document.getElementById('dateTarget').value;
+                if (!dateRef || !dateTarget) {
+                    document.getElementById('resultGrid').style.display = 'none';
+                    setStatus('idle', 'Referenzdatum und Zieldatum oder Zeitraum eingeben');
+                    return;
+                }
+                const msRef = new Date(dateRef).getTime();
+                const msTarget = new Date(dateTarget).getTime();
+                elapsedDays = (msTarget - msRef) / 86400000;
+            }
+
+            if (isNaN(elapsedDays)) return;
+
+            const n = elapsedDays / T;
+            const fraction = Math.pow(0.5, n);
+            const at = a0 * fraction;
+
+            document.getElementById('resAkt').textContent = fmtActivity(at);
+            document.getElementById('resAktSub').textContent = fmtActivity(a0) + ' → ' + (fraction * 100).toFixed(4) + '%';
+            document.getElementById('resProzent').textContent = (fraction * 100).toFixed(4) + ' %';
+            document.getElementById('resHWZ').textContent = Math.abs(n).toFixed(3);
+            document.getElementById('resZeit').textContent = fmtDays(Math.abs(elapsedDays));
+            document.getElementById('resZeitSub').textContent = elapsedDays < 0 ? '(Zukunft)' : '(vergangen)';
+
+            document.getElementById('resultGrid').style.display = 'grid';
+            document.getElementById('decayBarWrap').style.display = '';
+            document.getElementById('thresholdBox').style.display = '';
+
+            const pct = Math.min(100, Math.max(0, fraction * 100));
+            const fill = document.getElementById('decayBarFill');
+            fill.style.width = pct + '%';
+            fill.style.background = pct > 50 ? 'var(--text-success)' : pct > 20 ? 'var(--text-attention)' : 'var(--text-danger)';
+            document.getElementById('barLabel').textContent = pct.toFixed(2) + ' %';
+
+            const statusMsg = elapsedDays < 0
+                ? '→ In ' + fmtDays(-elapsedDays) + ' beträgt die Aktivität ' + fmtActivity(at)
+                : '→ Nach ' + fmtDays(elapsedDays) + ' verbleiben ' + fmtActivity(at) + ' (' + (fraction*100).toFixed(2) + '%)';
+            setStatus(pct > 50 ? 'ok' : 'warn', statusMsg);
+
+            // Threshold table: at what time falls below 50%, 10%, 1%, 0.1%?
+            const refDateStr = document.getElementById('dateRef').value;
+            const thresholds = [
+                { label: '50 % von A₀', frac: 0.5 },
+                { label: '10 % von A₀', frac: 0.1 },
+                { label: '1 % von A₀',  frac: 0.01 },
+                { label: '0,1 % von A₀', frac: 0.001 },
+            ];
+            const tbody = document.getElementById('thresholdBody');
+            tbody.innerHTML = thresholds.map(th => {
+                // a0 * (0.5)^(t/T) = a0 * th.frac  →  t = T * log(th.frac) / log(0.5)
+                const tDays = T * Math.log(th.frac) / Math.log(0.5);
+                const datStr = refDateStr ? addDays(refDateStr, tDays) : '—';
+                return `<tr>
+                    <td style="padding:4px 8px">${th.label} = ${fmtActivity(a0 * th.frac)}</td>
+                    <td style="padding:4px 8px;font-family:var(--font-mono)">${fmtDays(tDays)}</td>
+                    <td style="padding:4px 8px;font-family:var(--font-mono)">${datStr}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function setStatus(type, msg) {
+            const bar = document.getElementById('statusBar');
+            bar.className = 'status-bar status-' + type;
+            document.getElementById('statusText').textContent = msg;
+        }
+
+        function resetFields() {
+            document.getElementById('nuklid').selectedIndex = 0;
+            document.getElementById('customRow').style.display = 'none';
+            document.getElementById('a0').value = '100';
+            document.getElementById('a0unit').value = '1e6';
+            document.getElementById('dateRef').value = '';
+            document.getElementById('dateTarget').value = '';
+            document.getElementById('elapsed').value = '';
+            calc();
+        }
+
+        // Set today and one year later as defaults
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        document.getElementById('dateRef').value = `${yyyy}-${mm}-${dd}`;
+        const next = new Date(today);
+        next.setFullYear(next.getFullYear() + 1);
+        document.getElementById('dateTarget').value = `${next.getFullYear()}-${mm}-${dd}`;
+
+        document.querySelectorAll('#nuklid,#a0,#a0unit,#dateRef,#dateTarget,#elapsed,#elapsedUnit,#customT,#customTunit').forEach(el => {
+            el.addEventListener('input', calc);
+            el.addEventListener('change', calc);
+        });
+
+        calc();
+    </script>
+</body>
+</html>

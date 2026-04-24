@@ -9,19 +9,20 @@
     <style>
         .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
         .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
-        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); }
         .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
 
         .section-divider { border: none; border-top: 1px solid var(--border-default); margin: 24px 0; }
+        .section-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px 0; }
 
-        .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 16px; margin-bottom: 16px; }
+        .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 16px; margin-bottom: 16px; }
         .result-card { background: var(--bg-success); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 12px; text-align: center; }
         .result-card-value { font-size: 18px; font-weight: 600; color: var(--text-success); font-family: var(--font-mono); }
         .result-card-label { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
 
         .shape-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
         .shape-btn { padding: 10px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); cursor: pointer; font-family: var(--font-sans); font-size: 13px; font-weight: 500; color: var(--text-secondary); transition: all 0.15s; box-shadow: none; display: flex; align-items: center; gap: 8px; }
-        .shape-btn:hover { border-color: var(--accent-fg); color: var(--accent-fg); transform: none; box-shadow: none; filter: none; }
+        .shape-btn:hover { border-color: var(--accent-fg); color: var(--accent-fg); }
         .shape-btn.active { background: var(--accent-emphasis); color: var(--text-on-emphasis); border-color: var(--accent-emphasis); }
         .shape-btn .shape-icon { font-size: 20px; }
 
@@ -35,6 +36,19 @@
 
         .info-box { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 14px 18px; margin-top: 16px; font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
         .info-box strong { color: var(--text-primary); }
+
+        .lin-table-wrapper { overflow-x: auto; margin-top: 10px; border: 1px solid var(--border-default); border-radius: var(--radius-md); }
+        #lin_table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        #lin_table th { background: var(--bg-subtle); font-weight: 600; font-size: 11px; color: var(--text-secondary); padding: 7px 10px; text-align: right; border-bottom: 1px solid var(--border-default); white-space: nowrap; }
+        #lin_table th:first-child { text-align: center; }
+        #lin_table td { padding: 5px 10px; text-align: right; border-bottom: 1px solid var(--border-default); font-family: var(--font-mono); color: var(--text-primary); }
+        #lin_table td:first-child { text-align: center; color: var(--text-tertiary); font-family: var(--font-sans); font-size: 11px; }
+        #lin_table tr:last-child td { border-bottom: none; }
+        #lin_table tr.lin-row-edge td { background: var(--bg-attention); }
+        #lin_table .lin-num { color: var(--text-tertiary); }
+
+        .lin-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+        .lin-controls label { font-size: 13px; color: var(--text-secondary); }
     </style>
 </head>
 <body data-tool-id="tank">
@@ -62,24 +76,24 @@
             </div>
 
             <div class="description">
-                🛢️ Berechnet das Füllvolumen eines Tanks basierend auf Füllstand und Tankgeometrie. Unterstützt stehende und liegende Zylinder, Kugeltanks und konische Behälter.
+                🛢️ Berechnet Füllvolumen, Füllmasse und Linearisierungstabelle für Füllstandsmessungen. Unterstützt stehende/liegende Zylinder, Kugeltanks und Kegelstümpfe mit LRV/URV-Konfiguration.
             </div>
 
             <!-- Tankform -->
             <div class="shape-btns">
-                <button class="shape-btn active" onclick="setShape('vCyl')"><span class="shape-icon">🥫</span> Stehender Zylinder</button>
-                <button class="shape-btn" onclick="setShape('hCyl')"><span class="shape-icon">🛢️</span> Liegender Zylinder</button>
-                <button class="shape-btn" onclick="setShape('sphere')"><span class="shape-icon">🔵</span> Kugeltank</button>
-                <button class="shape-btn" onclick="setShape('cone')"><span class="shape-icon">🔻</span> Konus (stehend)</button>
+                <button class="shape-btn active" onclick="setShape('vCyl', this)"><span class="shape-icon">🥫</span> Stehender Zylinder</button>
+                <button class="shape-btn" onclick="setShape('hCyl', this)"><span class="shape-icon">🛢️</span> Liegender Zylinder</button>
+                <button class="shape-btn" onclick="setShape('sphere', this)"><span class="shape-icon">🔵</span> Kugeltank</button>
+                <button class="shape-btn" onclick="setShape('cone', this)"><span class="shape-icon">🔻</span> Konus (stehend)</button>
             </div>
 
             <!-- Stehender Zylinder -->
             <div class="param-section active" id="sec_vCyl">
                 <table>
                     <tr><th colspan="6">Stehender Zylinder</th></tr>
-                    <tr><td colspan="2">Durchmesser</td><td colspan="4"><input class="input-field" type="number" id="vCyl_d" value="2" step="0.01"> m</td></tr>
-                    <tr><td colspan="2">Gesamthöhe</td><td colspan="4"><input class="input-field" type="number" id="vCyl_h" value="5" step="0.01"> m</td></tr>
-                    <tr><td colspan="2">Füllstand</td><td colspan="4"><input class="input-field" type="number" id="vCyl_level" value="3" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Durchmesser</td><td colspan="4"><input class="input-field" type="number" id="vCyl_d" value="2" min="0" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Gesamthöhe</td><td colspan="4"><input class="input-field" type="number" id="vCyl_h" value="5" min="0" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Füllstand</td><td colspan="4"><input class="input-field" type="number" id="vCyl_level" value="3" min="0" step="0.001"> m</td></tr>
                 </table>
             </div>
 
@@ -87,9 +101,9 @@
             <div class="param-section" id="sec_hCyl">
                 <table>
                     <tr><th colspan="6">Liegender Zylinder</th></tr>
-                    <tr><td colspan="2">Durchmesser</td><td colspan="4"><input class="input-field" type="number" id="hCyl_d" value="2" step="0.01"> m</td></tr>
-                    <tr><td colspan="2">Länge</td><td colspan="4"><input class="input-field" type="number" id="hCyl_l" value="5" step="0.01"> m</td></tr>
-                    <tr><td colspan="2">Füllstand (vom Boden)</td><td colspan="4"><input class="input-field" type="number" id="hCyl_level" value="1" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Durchmesser</td><td colspan="4"><input class="input-field" type="number" id="hCyl_d" value="2" min="0" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Länge</td><td colspan="4"><input class="input-field" type="number" id="hCyl_l" value="5" min="0" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Füllstand (vom Boden)</td><td colspan="4"><input class="input-field" type="number" id="hCyl_level" value="1" min="0" step="0.001"> m</td></tr>
                 </table>
             </div>
 
@@ -97,8 +111,8 @@
             <div class="param-section" id="sec_sphere">
                 <table>
                     <tr><th colspan="6">Kugeltank</th></tr>
-                    <tr><td colspan="2">Durchmesser</td><td colspan="4"><input class="input-field" type="number" id="sph_d" value="3" step="0.01"> m</td></tr>
-                    <tr><td colspan="2">Füllstand (vom Boden)</td><td colspan="4"><input class="input-field" type="number" id="sph_level" value="1.5" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Durchmesser</td><td colspan="4"><input class="input-field" type="number" id="sph_d" value="3" min="0" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Füllstand (vom Boden)</td><td colspan="4"><input class="input-field" type="number" id="sph_level" value="1.5" min="0" step="0.001"> m</td></tr>
                 </table>
             </div>
 
@@ -106,19 +120,40 @@
             <div class="param-section" id="sec_cone">
                 <table>
                     <tr><th colspan="6">Stehender Konus (Kegelstumpf)</th></tr>
-                    <tr><td colspan="2">Durchmesser unten</td><td colspan="4"><input class="input-field" type="number" id="cone_d1" value="1" step="0.01"> m</td></tr>
-                    <tr><td colspan="2">Durchmesser oben</td><td colspan="4"><input class="input-field" type="number" id="cone_d2" value="2" step="0.01"> m</td></tr>
-                    <tr><td colspan="2">Gesamthöhe</td><td colspan="4"><input class="input-field" type="number" id="cone_h" value="3" step="0.01"> m</td></tr>
-                    <tr><td colspan="2">Füllstand</td><td colspan="4"><input class="input-field" type="number" id="cone_level" value="1.5" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Durchmesser unten</td><td colspan="4"><input class="input-field" type="number" id="cone_d1" value="1" min="0" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Durchmesser oben</td><td colspan="4"><input class="input-field" type="number" id="cone_d2" value="2" min="0" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Gesamthöhe</td><td colspan="4"><input class="input-field" type="number" id="cone_h" value="3" min="0" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Füllstand</td><td colspan="4"><input class="input-field" type="number" id="cone_level" value="1.5" min="0" step="0.001"> m</td></tr>
                 </table>
             </div>
 
+            <!-- Messstellenkonfiguration -->
+            <hr class="section-divider">
+            <p class="section-title">Messstellenkonfiguration</p>
+            <table>
+                <tr>
+                    <td colspan="2">Dichte des Mediums</td>
+                    <td colspan="4"><input class="input-field" type="number" id="cfg_density" value="1000" min="0" step="1"> kg/m³ <span style="font-size:11px;color:var(--text-tertiary)">(Wasser = 1000)</span></td>
+                </tr>
+                <tr>
+                    <td colspan="2">LRV – Unterer Messbereich</td>
+                    <td colspan="4"><input class="input-field" type="number" id="cfg_lrv" value="0" min="0" step="1"> mm vom Tankboden</td>
+                </tr>
+                <tr>
+                    <td colspan="2">URV – Oberer Messbereich</td>
+                    <td colspan="4"><input class="input-field" type="number" id="cfg_urv" value="5000" min="0" step="1"> mm vom Tankboden</td>
+                </tr>
+            </table>
+
             <!-- Ergebnisse -->
+            <hr class="section-divider">
             <div class="result-grid" id="resultGrid">
                 <div class="result-card"><div class="result-card-value" id="res_vol_m3">—</div><div class="result-card-label">Füllvolumen (m³)</div></div>
                 <div class="result-card"><div class="result-card-value" id="res_vol_l">—</div><div class="result-card-label">Füllvolumen (Liter)</div></div>
                 <div class="result-card"><div class="result-card-value" id="res_total_m3">—</div><div class="result-card-label">Gesamtvolumen (m³)</div></div>
                 <div class="result-card"><div class="result-card-value" id="res_pct">—</div><div class="result-card-label">Füllgrad (%)</div></div>
+                <div class="result-card"><div class="result-card-value" id="res_mass_kg">—</div><div class="result-card-label">Füllmasse (kg)</div></div>
+                <div class="result-card"><div class="result-card-value" id="res_mass_t">—</div><div class="result-card-label">Füllmasse (t)</div></div>
             </div>
 
             <!-- Füllstandsbalken -->
@@ -148,8 +183,45 @@
                 </tr>
             </table>
 
-            <div class="info-box">
-                <strong>Hinweis:</strong> Alle Berechnungen gelten für ideale geometrische Formen ohne Einbauten, Stutzen oder Böden (Klöpper-/Korbbogenböden). Der liegender Zylinder wird als glatte Trommel ohne gewölbte Enden berechnet. Für höhere Genauigkeit die Herstellerangaben verwenden.
+            <hr class="section-divider">
+
+            <!-- Linearisierungstabelle -->
+            <p class="section-title">Linearisierungstabelle (LRV → URV)</p>
+            <div class="lin-controls">
+                <label>Punkte:
+                    <select class="input-field" id="lin_n" style="width:auto;padding:4px 8px;">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="16">16</option>
+                        <option value="20">20</option>
+                        <option value="25">25</option>
+                        <option value="32">32</option>
+                    </select>
+                </label>
+                <button class="action-btn" onclick="exportCSV()">
+                    <svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
+                    CSV Export
+                </button>
+            </div>
+            <div class="lin-table-wrapper">
+                <table id="lin_table">
+                    <thead>
+                        <tr>
+                            <th>Nr.</th>
+                            <th>Füllstand (mm)</th>
+                            <th>Füllstand (%)</th>
+                            <th>Volumen (m³)</th>
+                            <th>Volumen (l)</th>
+                            <th>Masse (kg)</th>
+                            <th>Masse (t)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lin_body"></tbody>
+                </table>
+            </div>
+
+            <div class="info-box" style="margin-top:16px;">
+                <strong>Hinweis:</strong> Alle Berechnungen gelten für ideale geometrische Formen ohne Einbauten oder gewölbte Böden (Klöpper-/Korbbogenböden). Füllstand % bezieht sich auf die Gesamtfüllhöhe des Tanks. LRV/URV definieren den Messbereich des Transmitters für die Linearisierungstabelle.
             </div>
 
             <div class="shortcuts-hint" style="margin-top:16px;">
@@ -168,157 +240,204 @@
     <script>
         let activeShape = 'vCyl';
 
-        function setShape(shape) {
+        function setShape(shape, btn) {
             activeShape = shape;
             document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
-            event.target.closest('.shape-btn').classList.add('active');
+            btn.classList.add('active');
             document.querySelectorAll('.param-section').forEach(s => s.classList.remove('active'));
             document.getElementById('sec_' + shape).classList.add('active');
             calc();
         }
 
-        // ============ CALCULATIONS ============
+        // ============ PURE VOLUME FUNCTIONS ============
 
-        // Stehender Zylinder: V = π × r² × h_fill
-        function calcVCyl() {
-            const d = parseFloat(document.getElementById('vCyl_d').value) || 0;
-            const h = parseFloat(document.getElementById('vCyl_h').value) || 0;
-            const level = Math.min(parseFloat(document.getElementById('vCyl_level').value) || 0, h);
+        function volVCyl(d, h, levelM) {
             const r = d / 2;
-            const fillVol = Math.PI * r * r * level;
-            const totalVol = Math.PI * r * r * h;
-            return { fillVol, totalVol, maxLevel: h };
+            const lv = Math.max(0, Math.min(levelM, h));
+            return { fill: Math.PI * r * r * lv, total: Math.PI * r * r * h, maxH: h };
         }
 
-        // Liegender Zylinder: Kreissegment × Länge
-        // A = r² × arccos((r-h)/r) - (r-h) × √(2rh - h²)
-        function calcHCyl() {
-            const d = parseFloat(document.getElementById('hCyl_d').value) || 0;
-            const l = parseFloat(document.getElementById('hCyl_l').value) || 0;
-            const level = Math.min(parseFloat(document.getElementById('hCyl_level').value) || 0, d);
+        function volHCyl(d, l, levelM) {
             const r = d / 2;
-            if (r <= 0 || l <= 0) return { fillVol: 0, totalVol: 0, maxLevel: d };
-            const segmentArea = r * r * Math.acos((r - level) / r) - (r - level) * Math.sqrt(2 * r * level - level * level);
-            const fillVol = segmentArea * l;
-            const totalVol = Math.PI * r * r * l;
-            return { fillVol, totalVol, maxLevel: d };
+            const lv = Math.max(0, Math.min(levelM, d));
+            if (r <= 0 || l <= 0) return { fill: 0, total: Math.PI * r * r * l, maxH: d };
+            const area = r * r * Math.acos((r - lv) / r) - (r - lv) * Math.sqrt(Math.max(0, 2 * r * lv - lv * lv));
+            return { fill: area * l, total: Math.PI * r * r * l, maxH: d };
         }
 
-        // Kugeltank: V = π × h² × (3r - h) / 3  (Kugelkappe)
-        function calcSphere() {
-            const d = parseFloat(document.getElementById('sph_d').value) || 0;
-            const level = Math.min(parseFloat(document.getElementById('sph_level').value) || 0, d);
+        function volSphere(d, levelM) {
             const r = d / 2;
-            if (r <= 0) return { fillVol: 0, totalVol: 0, maxLevel: d };
-            const fillVol = Math.PI * level * level * (3 * r - level) / 3;
-            const totalVol = (4 / 3) * Math.PI * r * r * r;
-            return { fillVol, totalVol, maxLevel: d };
+            const lv = Math.max(0, Math.min(levelM, d));
+            if (r <= 0) return { fill: 0, total: 0, maxH: d };
+            return {
+                fill: Math.PI * lv * lv * (3 * r - lv) / 3,
+                total: (4 / 3) * Math.PI * r * r * r,
+                maxH: d
+            };
         }
 
-        // Konus (Kegelstumpf): bei Füllstand h_fill
-        // Radius bei Höhe h: r(h) = r1 + (r2-r1) × h/H
-        // V(h) = π×h/3 × (r1² + r1×r(h) + r(h)²)
-        function calcCone() {
-            const d1 = parseFloat(document.getElementById('cone_d1').value) || 0;
-            const d2 = parseFloat(document.getElementById('cone_d2').value) || 0;
-            const H = parseFloat(document.getElementById('cone_h').value) || 0;
-            const level = Math.min(parseFloat(document.getElementById('cone_level').value) || 0, H);
-            const r1 = d1 / 2;
-            const r2 = d2 / 2;
-            if (H <= 0) return { fillVol: 0, totalVol: 0, maxLevel: H };
-            function coneVol(h) {
+        function volCone(d1, d2, H, levelM) {
+            const r1 = d1 / 2, r2 = d2 / 2;
+            const lv = Math.max(0, Math.min(levelM, H));
+            if (H <= 0) return { fill: 0, total: 0, maxH: H };
+            function cv(h) {
                 const rh = r1 + (r2 - r1) * h / H;
                 return (Math.PI * h / 3) * (r1 * r1 + r1 * rh + rh * rh);
             }
-            return { fillVol: coneVol(level), totalVol: coneVol(H), maxLevel: H };
+            return { fill: cv(lv), total: cv(H), maxH: H };
+        }
+
+        // ============ GEOMETRY READER ============
+
+        function getGeom() {
+            function n(id) { return parseFloat(document.getElementById(id).value) || 0; }
+            switch (activeShape) {
+                case 'vCyl':   return { d: n('vCyl_d'), h: n('vCyl_h'), level: n('vCyl_level') };
+                case 'hCyl':   return { d: n('hCyl_d'), l: n('hCyl_l'), level: n('hCyl_level') };
+                case 'sphere': return { d: n('sph_d'), level: n('sph_level') };
+                case 'cone':   return { d1: n('cone_d1'), d2: n('cone_d2'), h: n('cone_h'), level: n('cone_level') };
+            }
+        }
+
+        function getVolumeAtLevel(levelM) {
+            const g = getGeom();
+            switch (activeShape) {
+                case 'vCyl':   return volVCyl(g.d, g.h, levelM);
+                case 'hCyl':   return volHCyl(g.d, g.l, levelM);
+                case 'sphere': return volSphere(g.d, levelM);
+                case 'cone':   return volCone(g.d1, g.d2, g.h, levelM);
+            }
         }
 
         // ============ MAIN CALC ============
+
         function calc() {
-            let result;
-            switch (activeShape) {
-                case 'vCyl': result = calcVCyl(); break;
-                case 'hCyl': result = calcHCyl(); break;
-                case 'sphere': result = calcSphere(); break;
-                case 'cone': result = calcCone(); break;
-                default: return;
-            }
+            const g = getGeom();
+            const res = getVolumeAtLevel(g.level);
+            const density = parseFloat(document.getElementById('cfg_density').value) || 1000;
+            const pct = res.total > 0 ? (res.fill / res.total) * 100 : 0;
+            const massKg = res.fill * density;
 
-            const pct = result.totalVol > 0 ? (result.fillVol / result.totalVol) * 100 : 0;
-
-            document.getElementById('res_vol_m3').textContent = result.fillVol.toFixed(3);
-            document.getElementById('res_vol_l').textContent = (result.fillVol * 1000).toFixed(1);
-            document.getElementById('res_total_m3').textContent = result.totalVol.toFixed(3);
+            document.getElementById('res_vol_m3').textContent = res.fill.toFixed(3);
+            document.getElementById('res_vol_l').textContent = (res.fill * 1000).toFixed(1);
+            document.getElementById('res_total_m3').textContent = res.total.toFixed(3);
             document.getElementById('res_pct').textContent = pct.toFixed(1) + '%';
+            document.getElementById('res_mass_kg').textContent = massKg.toFixed(1);
+            document.getElementById('res_mass_t').textContent = (massKg / 1000).toFixed(3);
 
-            // Fill bar
-            const clampPct = Math.max(0, Math.min(100, pct));
-            document.getElementById('fillBarFill').style.width = clampPct + '%';
-            document.getElementById('fillPctLabel').textContent = clampPct.toFixed(1) + '%';
+            const cp = Math.max(0, Math.min(100, pct));
+            document.getElementById('fillBarFill').style.width = cp + '%';
+            document.getElementById('fillPctLabel').textContent = cp.toFixed(1) + '%';
 
-            // Reverse calc
-            calcReverse(result);
+            calcReverse(res);
+            updateLinTable();
         }
 
         // ============ REVERSE: Volume → Level ============
+
         function calcReverse(fwdResult) {
             let vol = parseFloat(document.getElementById('rev_vol').value) || 0;
             const unit = document.getElementById('rev_unit').value;
-            if (unit === 'l') vol = vol / 1000; // to m³
+            if (unit === 'l') vol /= 1000;
 
-            if (vol <= 0 || fwdResult.totalVol <= 0) {
-                document.getElementById('rev_level').textContent = '';
-                return;
-            }
+            const el = document.getElementById('rev_level');
+            if (vol <= 0 || fwdResult.total <= 0) { el.textContent = ''; return; }
+            if (vol > fwdResult.total) { el.textContent = 'Volumen überschreitet Tankkapazität!'; return; }
 
-            // Bisection search for level
-            let lo = 0, hi = fwdResult.maxLevel;
+            let lo = 0, hi = fwdResult.maxH;
             for (let i = 0; i < 100; i++) {
                 const mid = (lo + hi) / 2;
-                setTempLevel(mid);
-                let r;
-                switch (activeShape) {
-                    case 'vCyl': r = calcVCyl(); break;
-                    case 'hCyl': r = calcHCyl(); break;
-                    case 'sphere': r = calcSphere(); break;
-                    case 'cone': r = calcCone(); break;
-                }
-                if (Math.abs(r.fillVol - vol) < 0.00001) { lo = hi = mid; break; }
-                if (r.fillVol < vol) lo = mid; else hi = mid;
+                const r = getVolumeAtLevel(mid);
+                if (Math.abs(r.fill - vol) < 1e-7) { lo = hi = mid; break; }
+                if (r.fill < vol) lo = mid; else hi = mid;
             }
-            restoreLevel();
             const level = (lo + hi) / 2;
+            el.textContent = level.toFixed(3) + ' m  (' + (level * 1000).toFixed(0) + ' mm)';
+        }
 
-            if (vol > fwdResult.totalVol) {
-                document.getElementById('rev_level').textContent = 'Volumen überschreitet Tankkapazität!';
-            } else {
-                document.getElementById('rev_level').textContent = level.toFixed(3) + ' m (' + (level * 1000).toFixed(0) + ' mm)';
+        // ============ LINEARIZATION TABLE ============
+
+        function updateLinTable() {
+            const N = parseInt(document.getElementById('lin_n').value) || 10;
+            const lrv = parseFloat(document.getElementById('cfg_lrv').value) || 0;
+            const urv = parseFloat(document.getElementById('cfg_urv').value) || 0;
+            const density = parseFloat(document.getElementById('cfg_density').value) || 1000;
+
+            const res0 = getVolumeAtLevel(0);
+            const maxH_mm = res0.maxH * 1000;
+
+            const tbody = document.getElementById('lin_body');
+            tbody.innerHTML = '';
+
+            for (let i = 0; i < N; i++) {
+                const level_mm = lrv + (N === 1 ? 0 : (i / (N - 1)) * (urv - lrv));
+                const level_m = level_mm / 1000;
+                const r = getVolumeAtLevel(level_m);
+                const pct = r.total > 0 ? (r.fill / r.total) * 100 : 0;
+                const massKg = r.fill * density;
+
+                const tr = document.createElement('tr');
+                if (i === 0 || i === N - 1) tr.classList.add('lin-row-edge');
+
+                tr.innerHTML =
+                    '<td>' + (i + 1) + '</td>' +
+                    '<td>' + level_mm.toFixed(0) + '</td>' +
+                    '<td>' + pct.toFixed(2) + '</td>' +
+                    '<td>' + r.fill.toFixed(4) + '</td>' +
+                    '<td>' + (r.fill * 1000).toFixed(2) + '</td>' +
+                    '<td>' + massKg.toFixed(1) + '</td>' +
+                    '<td>' + (massKg / 1000).toFixed(4) + '</td>';
+
+                tbody.appendChild(tr);
             }
         }
 
-        // Temp level manipulation for reverse calc
-        let savedLevel = null;
-        function setTempLevel(val) {
-            const fields = { vCyl: 'vCyl_level', hCyl: 'hCyl_level', sphere: 'sph_level', cone: 'cone_level' };
-            const f = document.getElementById(fields[activeShape]);
-            if (savedLevel === null) savedLevel = f.value;
-            f.value = val;
-        }
-        function restoreLevel() {
-            if (savedLevel !== null) {
-                const fields = { vCyl: 'vCyl_level', hCyl: 'hCyl_level', sphere: 'sph_level', cone: 'cone_level' };
-                document.getElementById(fields[activeShape]).value = savedLevel;
-                savedLevel = null;
+        // ============ CSV EXPORT ============
+
+        function exportCSV() {
+            const N = parseInt(document.getElementById('lin_n').value) || 10;
+            const lrv = parseFloat(document.getElementById('cfg_lrv').value) || 0;
+            const urv = parseFloat(document.getElementById('cfg_urv').value) || 0;
+            const density = parseFloat(document.getElementById('cfg_density').value) || 1000;
+
+            const header = 'Nr.;Füllstand (mm);Füllstand (%);Volumen (m³);Volumen (l);Masse (kg);Masse (t)\r\n';
+            let rows = '';
+
+            for (let i = 0; i < N; i++) {
+                const level_mm = lrv + (N === 1 ? 0 : (i / (N - 1)) * (urv - lrv));
+                const level_m = level_mm / 1000;
+                const r = getVolumeAtLevel(level_m);
+                const pct = r.total > 0 ? (r.fill / r.total) * 100 : 0;
+                const massKg = r.fill * density;
+
+                rows +=
+                    (i + 1) + ';' +
+                    level_mm.toFixed(0) + ';' +
+                    pct.toFixed(2).replace('.', ',') + ';' +
+                    r.fill.toFixed(4).replace('.', ',') + ';' +
+                    (r.fill * 1000).toFixed(2).replace('.', ',') + ';' +
+                    massKg.toFixed(1).replace('.', ',') + ';' +
+                    (massKg / 1000).toFixed(4).replace('.', ',') + '\r\n';
             }
+
+            const bom = '﻿';
+            const blob = new Blob([bom + header + rows], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Linearisierungstabelle.csv';
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
         // ============ EVENTS ============
+
         document.querySelectorAll('input[type="number"]').forEach(el => {
             el.addEventListener('input', calc);
         });
         document.getElementById('rev_unit').addEventListener('change', calc);
+        document.getElementById('lin_n').addEventListener('change', calc);
 
-        // Init
         calc();
     </script>
 

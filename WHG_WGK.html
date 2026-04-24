@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WGK-Nachschlagewerk – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+    <style>
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; font-family: var(--font-sans); }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); }
+        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+        .section-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px 0; }
+
+        .search-bar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+        .search-input { flex: 1; min-width: 200px; }
+        .wgk-filter-btns { display: flex; gap: 6px; }
+        .wfb { padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; }
+        .wfb:hover { border-color: var(--accent-fg); color: var(--accent-fg); }
+        .wfb.active { background: var(--accent-emphasis); color: var(--text-on-emphasis); border-color: var(--accent-emphasis); }
+        .wfb.nwg.active  { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-default); }
+        .wfb.wgk1.active { background: #2ea043; color: #fff; border-color: #2ea043; }
+        .wfb.wgk2.active { background: #d29922; color: #fff; border-color: #d29922; }
+        .wfb.wgk3.active { background: #f85149; color: #fff; border-color: #f85149; }
+
+        .wgk-table-wrap { overflow-x: auto; border: 1px solid var(--border-default); border-radius: var(--radius-md); }
+        #wgk_table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        #wgk_table th { background: var(--bg-subtle); font-weight: 600; font-size: 11px; color: var(--text-secondary); padding: 8px 10px; border-bottom: 1px solid var(--border-default); text-align: left; cursor: pointer; user-select: none; white-space: nowrap; }
+        #wgk_table th:hover { color: var(--text-primary); }
+        #wgk_table th.sort-asc::after  { content: ' ↑'; }
+        #wgk_table th.sort-desc::after { content: ' ↓'; }
+        #wgk_table td { padding: 6px 10px; border-bottom: 1px solid var(--border-default); vertical-align: top; }
+        #wgk_table tr:last-child td { border-bottom: none; }
+        #wgk_table tr:hover td { background: var(--bg-subtle); }
+        .badge { display: inline-block; padding: 2px 9px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+        .badge-nwg { background: var(--bg-subtle); color: var(--text-secondary); border: 1px solid var(--border-default); }
+        .badge-1 { background: #d4f1c0; color: #1a6e2e; }
+        .badge-2 { background: #fff3cd; color: #916309; }
+        .badge-3 { background: #ffd7d5; color: #b91c1c; }
+        [data-theme="dark"] .badge-1 { background: #1a3d1f; color: #7ee787; }
+        [data-theme="dark"] .badge-2 { background: #3d2e00; color: #e3b341; }
+        [data-theme="dark"] .badge-3 { background: #3d0f0e; color: #ff7b72; }
+        .cas { font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary); }
+        .count-info { font-size: 12px; color: var(--text-tertiary); margin-bottom: 8px; }
+        .no-results { text-align: center; padding: 32px; color: var(--text-tertiary); font-size: 14px; }
+    </style>
+</head>
+<body data-tool-id="whg_wgk">
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle"><span id="themeIcon">🌙</span></button>
+        </div>
+    </header>
+    <div class="back-bar">
+        <a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a>
+    </div>
+
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="exportPagePDF('WGK-Nachschlagewerk')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+        </div>
+
+        <div class="description">📋 WGK-Nachschlagewerk für häufige Industrie-Stoffe nach AwSV Anhang 1 / UBA-Datenbank. Suchbar und filterbar nach Stoffname und WGK.</div>
+
+        <div class="search-bar">
+            <input class="input-field search-input" type="text" id="search" placeholder="Stoffname suchen…" oninput="renderTable()">
+            <div class="wgk-filter-btns">
+                <button class="wfb active" data-wgk="all" onclick="setFilter('all',this)">Alle</button>
+                <button class="wfb nwg"  data-wgk="0"   onclick="setFilter('0',this)">nwg</button>
+                <button class="wfb wgk1" data-wgk="1"   onclick="setFilter('1',this)">WGK 1</button>
+                <button class="wfb wgk2" data-wgk="2"   onclick="setFilter('2',this)">WGK 2</button>
+                <button class="wfb wgk3" data-wgk="3"   onclick="setFilter('3',this)">WGK 3</button>
+            </div>
+        </div>
+
+        <div class="count-info" id="count_info"></div>
+
+        <div class="wgk-table-wrap">
+            <table id="wgk_table">
+                <thead>
+                    <tr>
+                        <th onclick="sortBy('name')"    id="th_name">Stoffname</th>
+                        <th onclick="sortBy('cas')"     id="th_cas">CAS-Nr.</th>
+                        <th onclick="sortBy('wgk')"     id="th_wgk">WGK</th>
+                        <th onclick="sortBy('gruppe')"  id="th_gruppe">Gruppe / Verwendung</th>
+                        <th>Hinweis</th>
+                    </tr>
+                </thead>
+                <tbody id="wgk_body"></tbody>
+            </table>
+        </div>
+
+        <div style="background:var(--bg-subtle);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:12px 16px;margin-top:16px;font-size:12px;color:var(--text-tertiary);line-height:1.6;">
+            <strong style="color:var(--text-secondary);">Quelle &amp; Hinweis:</strong> WGK-Einstufungen nach AwSV Anhang 1 und UBA-Datenbank (Verwaltungsvorschrift wassergefährdende Stoffe). Die Einstufungen gelten für Reinstoffe; Gemische sind gesondert zu bewerten. Keine Rechtsberatung – verbindliche Einstufung beim Umweltbundesamt oder zuständiger Behörde einholen.
+        </div>
+
+        <div class="shortcuts-hint" style="margin-top:16px;">
+            <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+        </div>
+    </div></div>
+
+    <footer class="bottom-header">
+        <p>Keine Gewähr für Vollständigkeit. Maßgeblich ist die jeweils gültige AwSV und die UBA-Stoffdatenbank.</p>
+    </footer>
+
+    <script src="shared.js"></script>
+    <script>
+        // [Name, CAS, WGK (0=nwg), Gruppe, Hinweis]
+        const STOFFE = [
+            // Kraftstoffe / Mineralöl
+            ['Heizöl EL (Extraleicht)', '68476-34-6', 2, 'Kraftstoff/Mineralöl', 'Häufigster WHG-Fall im Heizungsbereich'],
+            ['Dieselkraftstoff', '68334-30-5', 2, 'Kraftstoff/Mineralöl', ''],
+            ['Ottokraftstoff (Benzin)', '86290-81-5', 2, 'Kraftstoff/Mineralöl', 'Leichtflüchtig, hohe Mobilität im Boden'],
+            ['Kerosin / Jet A-1', '8008-20-6', 2, 'Kraftstoff/Mineralöl', ''],
+            ['Schweröl / Heizöl S', '68476-33-5', 2, 'Kraftstoff/Mineralöl', ''],
+            ['Rohöl (Erdöl)', '8002-05-9', 2, 'Kraftstoff/Mineralöl', ''],
+            // Öle
+            ['Schmieröl (Mineralöl-Basis)', '64742-65-0', 2, 'Öle/Schmierstoffe', ''],
+            ['Hydrauliköl (Mineralöl-Basis)', '64742-46-7', 2, 'Öle/Schmierstoffe', ''],
+            ['Getriebeöl (Mineralöl-Basis)', '64742-54-7', 2, 'Öle/Schmierstoffe', ''],
+            ['Transformatorenöl', '64742-53-6', 2, 'Öle/Schmierstoffe', ''],
+            ['Pflanzenöl (Raps)', '120962-03-0', 1, 'Öle/Schmierstoffe', 'Biologisch abbaubar'],
+            ['Synthetisches Schmieröl (PAO)', '68037-01-4', 1, 'Öle/Schmierstoffe', ''],
+            ['Kühlschmierstoff (öl-wassergemischt)', '', 2, 'Öle/Schmierstoffe', 'Einstufung des Konzentrats maßgebend'],
+            // Lösemittel
+            ['Aceton', '67-64-1', 1, 'Lösemittel', ''],
+            ['Ethylacetat (Essigsäureethylester)', '141-78-6', 1, 'Lösemittel', ''],
+            ['Isopropanol (IPA)', '67-63-0', 1, 'Lösemittel', ''],
+            ['Ethanol (> 50 %)', '64-17-5', 1, 'Lösemittel/Alkohole', 'Unter 50 % nwg'],
+            ['Methanol', '67-56-1', 2, 'Lösemittel/Alkohole', 'Giftig, hohe Wasserlöslichkeit'],
+            ['Toluol', '108-88-3', 2, 'Lösemittel/Aromaten', ''],
+            ['Xylol (Gemisch)', '1330-20-7', 2, 'Lösemittel/Aromaten', ''],
+            ['Benzol', '71-43-2', 3, 'Lösemittel/Aromaten', 'Krebserzeugend, WGK 3'],
+            ['Dichlormethan', '75-09-2', 2, 'Lösemittel/Chloriert', ''],
+            ['Trichlorethen (Tri)', '79-01-6', 3, 'Lösemittel/Chloriert', 'Krebsverdächtig'],
+            ['Tetrachlorethen (Per)', '127-18-4', 3, 'Lösemittel/Chloriert', ''],
+            ['n-Hexan', '110-54-3', 2, 'Lösemittel/Aliphaten', ''],
+            ['Cyclohexan', '110-82-7', 2, 'Lösemittel/Aliphaten', ''],
+            // Säuren
+            ['Salzsäure (konz., 37 %)', '7647-01-0', 2, 'Säuren/Laugen', 'Konzentration beachten'],
+            ['Schwefelsäure (konz.)', '7664-93-9', 2, 'Säuren/Laugen', ''],
+            ['Salpetersäure (konz.)', '7697-37-2', 2, 'Säuren/Laugen', ''],
+            ['Phosphorsäure (85 %)', '7664-38-2', 1, 'Säuren/Laugen', ''],
+            ['Flusssäure (Fluorwasserstoffsäure)', '7664-39-3', 3, 'Säuren/Laugen', 'Sehr gefährlich'],
+            ['Essigsäure (> 25 %)', '64-19-7', 1, 'Säuren/Laugen', 'Unter 25 % nwg'],
+            ['Ameisensäure (> 25 %)', '64-18-6', 1, 'Säuren/Laugen', ''],
+            // Laugen
+            ['Natronlauge (NaOH)', '1310-73-2', 1, 'Säuren/Laugen', 'Wässrige Lösungen ≤ 2 % nwg'],
+            ['Kalilauge (KOH)', '1310-58-3', 1, 'Säuren/Laugen', ''],
+            ['Ammoniak (wässrig, > 10 %)', '7664-41-7', 2, 'Säuren/Laugen/Gase', 'Flüchtig'],
+            // Gase (verflüssigt)
+            ['Flüssiggas (LPG, Propan/Butan)', '68476-85-7', 2, 'Gase/Flüssiggas', 'Leichtflüchtig, bei Leckage gasförmig'],
+            ['Flüssigstickstoff', '7727-37-9', 0, 'Gase/Kryogen', 'nwg'],
+            ['Flüssigkohlendioxide (CO₂)', '124-38-9', 0, 'Gase/Kryogen', 'nwg'],
+            ['Chlor (flüssig)', '7782-50-5', 3, 'Gase', ''],
+            // Kühlmittel
+            ['Ethylenglykol', '107-21-1', 1, 'Kühlmittel/Frostschutz', ''],
+            ['Propylenglykol', '57-55-6', 0, 'Kühlmittel/Frostschutz', 'nwg – lebensmittelverträglich'],
+            ['Kühlmittel (Glykol-Wasser-Gemisch)', '', 1, 'Kühlmittel/Frostschutz', 'WGK des Konzentrats maßgebend'],
+            // Reiniger/Tensid
+            ['Natronlauge (Reiniger, 1–5 %)', '', 0, 'Reiniger', 'nwg bei niedrigen Konzentrationen'],
+            ['Tensid-Reiniger (anionic)', '', 1, 'Reiniger', 'Abhängig von Formulierung'],
+            ['Isopropanol-Reiniger (70 %)', '', 1, 'Reiniger/Desinfekt.', ''],
+            // Farben/Lacke
+            ['Lösemittelbasierter Lack', '', 2, 'Farben/Lacke', 'WGK des Lösemittels maßgebend'],
+            ['Wasserbasierter Lack (dispersion)', '', 1, 'Farben/Lacke', ''],
+            ['Epoxidharz (Komponente A)', '', 2, 'Farben/Lacke', ''],
+            ['Härter (Aminbasis)', '', 2, 'Farben/Lacke', ''],
+            // Chemikalien (allg.)
+            ['Wasserstoffperoxid (30 %)', '7722-84-1', 2, 'Chemikalien', ''],
+            ['Natriumhypochlorit (< 12 %)', '7681-52-9', 2, 'Chemikalien/Desinf.', ''],
+            ['Formaldehyd (> 5 %)', '50-00-0', 2, 'Chemikalien', 'Krebsverdächtig'],
+            ['Phenol', '108-95-2', 3, 'Chemikalien', ''],
+            ['Harnstoff', '57-13-6', 0, 'Chemikalien/Dünger', 'nwg'],
+            ['Ammoniumnitrat', '6484-52-2', 2, 'Chemikalien/Dünger', 'Oxidierend'],
+            ['Natriumchlorid (Sole)', '7647-14-5', 0, 'Chemikalien/Salze', 'nwg'],
+            ['PCB (Polychlorbiphenyle)', '1336-36-3', 3, 'Chemikalien/Altlasten', 'Altlast, verboten'],
+            // Wasser/Prozesswasser
+            ['Deionisiertes Wasser', '', 0, 'Wasser', 'nwg'],
+            ['Kondensatwasser (dampfbetrieben)', '', 0, 'Wasser', 'nwg, wenn keine Kontamination'],
+            ['Abwasser (unbehandelt)', '', 2, 'Wasser/Abwasser', 'Je nach Zusammensetzung WGK 1–3'],
+            // Lebensmittel
+            ['Ethanol (< 50 %, Getränke)', '64-17-5', 0, 'Lebensmittel', 'nwg bei ≤ 50 %'],
+            ['Pflanzenöl (Speiseöl)', '', 1, 'Lebensmittel', 'Biologisch abbaubar'],
+            ['Milch', '', 0, 'Lebensmittel', 'nwg, aber biologisch abbaubar'],
+            // Sonstige
+            ['Bitumen', '8052-42-4', 2, 'Baustoffe/Sonstiges', ''],
+            ['Teer (Straßenbau)', '', 3, 'Baustoffe/Sonstiges', ''],
+            ['Acetylacetat', '105-46-4', 1, 'Lösemittel', ''],
+        ];
+
+        let sortCol = 'name', sortDir = 1, filterWGK = 'all';
+
+        function setFilter(wgk, btn) {
+            filterWGK = wgk;
+            document.querySelectorAll('.wfb').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderTable();
+        }
+
+        function sortBy(col) {
+            if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
+            document.querySelectorAll('#wgk_table th').forEach(th => { th.classList.remove('sort-asc','sort-desc'); });
+            const th = document.getElementById('th_' + col);
+            if (th) th.classList.add(sortDir === 1 ? 'sort-asc' : 'sort-desc');
+            renderTable();
+        }
+
+        function badgeHTML(wgk) {
+            if (wgk === 0) return '<span class="badge badge-nwg">nwg</span>';
+            if (wgk === 1) return '<span class="badge badge-1">WGK 1</span>';
+            if (wgk === 2) return '<span class="badge badge-2">WGK 2</span>';
+            return '<span class="badge badge-3">WGK 3</span>';
+        }
+
+        function renderTable() {
+            const q = (document.getElementById('search').value || '').toLowerCase().trim();
+            const COL = { name:0, cas:1, wgk:2, gruppe:3 };
+
+            let rows = STOFFE.filter(r => {
+                const wgkMatch = filterWGK === 'all' || r[2] == filterWGK;
+                const textMatch = !q || r[0].toLowerCase().includes(q) || r[1].toLowerCase().includes(q) || r[3].toLowerCase().includes(q) || r[4].toLowerCase().includes(q);
+                return wgkMatch && textMatch;
+            });
+
+            const ci = COL[sortCol] !== undefined ? COL[sortCol] : 0;
+            rows.sort((a, b) => {
+                const av = a[ci], bv = b[ci];
+                return (av < bv ? -1 : av > bv ? 1 : 0) * sortDir;
+            });
+
+            document.getElementById('count_info').textContent = rows.length + ' von ' + STOFFE.length + ' Stoffen';
+
+            const tbody = document.getElementById('wgk_body');
+            if (rows.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="no-results">Keine Stoffe gefunden.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = rows.map(r =>
+                '<tr>' +
+                '<td><strong>' + r[0] + '</strong></td>' +
+                '<td class="cas">' + (r[1] || '–') + '</td>' +
+                '<td>' + badgeHTML(r[2]) + '</td>' +
+                '<td style="font-size:12px;color:var(--text-secondary)">' + r[3] + '</td>' +
+                '<td style="font-size:12px;color:var(--text-tertiary)">' + (r[4] || '') + '</td>' +
+                '</tr>'
+            ).join('');
+        }
+
+        renderTable();
+    </script>
+</body>
+</html>

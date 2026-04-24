@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WHG Gefährdungsstufe – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💧</text></svg>">
+    <style>
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; font-family: var(--font-sans); }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); }
+        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+        .section-divider { border: none; border-top: 1px solid var(--border-default); margin: 24px 0; }
+        .section-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px 0; }
+
+        .stufe-card { border-radius: var(--radius-md); border: 2px solid var(--border-default); padding: 18px 24px; margin-top: 14px; display: flex; align-items: center; gap: 24px; }
+        .stufe-letter { font-size: 48px; font-weight: 700; font-family: var(--font-mono); line-height: 1; min-width: 56px; text-align: center; }
+        .stufe-info { flex: 1; }
+        .stufe-name { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+        .stufe-desc { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+        .stufe-A { border-color: var(--color-success-border, #2ea043); background: var(--bg-success); }
+        .stufe-A .stufe-letter { color: var(--text-success); }
+        .stufe-B { border-color: var(--color-attention-border, #d29922); background: var(--bg-attention); }
+        .stufe-B .stufe-letter { color: var(--text-attention); }
+        .stufe-C { border-color: var(--color-danger-border, #f85149); background: var(--bg-danger); }
+        .stufe-C .stufe-letter { color: var(--text-danger); }
+        .stufe-D { border-color: var(--color-danger-border, #f85149); background: var(--bg-danger); }
+        .stufe-D .stufe-letter { color: var(--text-danger); }
+        .stufe-nwg { border-color: var(--border-default); background: var(--bg-subtle); }
+        .stufe-nwg .stufe-letter { color: var(--text-tertiary); font-size: 28px; }
+
+        .anf-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+        .anf-table th { background: var(--bg-subtle); font-weight: 600; font-size: 11px; color: var(--text-secondary); padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--border-default); }
+        .anf-table td { padding: 7px 10px; border-bottom: 1px solid var(--border-default); color: var(--text-primary); vertical-align: top; }
+        .anf-table tr:last-child td { border-bottom: none; }
+        .anf-table .anf-highlight { font-weight: 600; }
+
+        .behaelter-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .behaelter-table th { background: var(--bg-subtle); font-weight: 600; font-size: 11px; color: var(--text-secondary); padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--border-default); }
+        .behaelter-table td { padding: 5px 6px; border-bottom: 1px solid var(--border-default); }
+        .behaelter-table tr:last-child td { border-bottom: none; }
+        .behaelter-table .del-btn { background: none; border: none; cursor: pointer; color: var(--text-danger); font-size: 14px; padding: 2px 6px; border-radius: var(--radius-md); }
+        .behaelter-table .del-btn:hover { background: var(--bg-danger); }
+        .behaelter-table .stufe-cell { font-weight: 700; font-family: var(--font-mono); }
+        .sc-A { color: var(--text-success); } .sc-B { color: var(--text-attention); } .sc-C, .sc-D { color: var(--text-danger); }
+
+        .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 14px; }
+        .result-card { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 12px; text-align: center; }
+        .result-card-value { font-size: 18px; font-weight: 600; color: var(--text-primary); font-family: var(--font-mono); }
+        .result-card-label { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+
+        .status-line { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding: 10px 14px; border-radius: var(--radius-md); border: 1px solid var(--border-default); font-size: 13px; font-weight: 500; }
+        .status-line.ok { background: var(--bg-success); color: var(--text-success); border-color: var(--color-success-border, #2ea043); }
+        .status-line.warn { background: var(--bg-attention); color: var(--text-attention); border-color: var(--color-attention-border, #d29922); }
+        .status-line.error { background: var(--bg-danger); color: var(--text-danger); border-color: var(--color-danger-border, #f85149); }
+
+        .ref-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+        .ref-table th { background: var(--bg-subtle); font-weight: 600; font-size: 11px; color: var(--text-secondary); padding: 5px 8px; border-bottom: 1px solid var(--border-default); text-align: left; }
+        .ref-table td { padding: 4px 8px; border-bottom: 1px solid var(--border-default); color: var(--text-primary); }
+        .ref-table tr:last-child td { border-bottom: none; }
+        .wgk1 { color: var(--text-success); font-weight: 600; }
+        .wgk2 { color: var(--text-attention); font-weight: 600; }
+        .wgk3 { color: var(--text-danger); font-weight: 600; }
+    </style>
+</head>
+<body data-tool-id="whg_gefaehrdung">
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button>
+        </div>
+    </header>
+    <div class="back-bar">
+        <a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a>
+    </div>
+
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="exportPagePDF('WHG Gefährdungsstufe')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+            <button class="action-btn" onclick="resetFields()"><svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg> Zurücksetzen</button>
+        </div>
+
+        <div class="description">💧 Gefährdungsstufe nach AwSV § 39, Prüfanforderungen und Rückhaltevolumen für oberirdische Anlagen mit wassergefährdenden Stoffen.</div>
+
+        <!-- Schnellbestimmung -->
+        <p class="section-title">Gefährdungsstufe (Einzelanlage)</p>
+        <table>
+            <tr>
+                <td colspan="2">Wassergefährdungsklasse (WGK)</td>
+                <td colspan="4">
+                    <select class="input-field" id="wgk" onchange="calc()">
+                        <option value="0">nwg – nicht wassergefährdend</option>
+                        <option value="1">WGK 1 – schwach wassergefährdend</option>
+                        <option value="2" selected>WGK 2 – deutlich wassergefährdend</option>
+                        <option value="3">WGK 3 – stark wassergefährdend</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Gesamtvolumen der Anlage</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="vol" value="10" min="0" step="any" oninput="calc()">
+                    <select class="input-field" id="vol_unit" onchange="calc()" style="width:auto">
+                        <option value="m3">m³</option>
+                        <option value="l">Liter</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+
+        <div id="stufe_card" class="stufe-card stufe-B">
+            <div class="stufe-letter" id="stufe_letter">B</div>
+            <div class="stufe-info">
+                <div class="stufe-name" id="stufe_name">Gefährdungsstufe B</div>
+                <div class="stufe-desc" id="stufe_desc">Wiederkehrende Prüfung alle 5 Jahre durch SFK oder ZÜS</div>
+            </div>
+        </div>
+
+        <!-- Anforderungen -->
+        <hr class="section-divider">
+        <p class="section-title">Prüfanforderungen nach AwSV Anlage 5</p>
+        <table class="anf-table" id="anf_table">
+            <thead><tr><th>Kriterium</th><th>Anforderung</th></tr></thead>
+            <tbody id="anf_body"></tbody>
+        </table>
+
+        <!-- Behälterliste -->
+        <hr class="section-divider">
+        <p class="section-title">Anlagenliste – Rückhaltevolumen</p>
+        <table class="behaelter-table">
+            <thead>
+                <tr>
+                    <th>Bezeichnung</th>
+                    <th>WGK</th>
+                    <th>Volumen (m³)</th>
+                    <th>Stufe</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="behaelter_body"></tbody>
+        </table>
+        <button class="action-btn" style="margin-top:8px;" onclick="addRow()">+ Behälter hinzufügen</button>
+
+        <div class="result-grid" id="behaelter_results" style="display:none">
+            <div class="result-card"><div class="result-card-value" id="r_gesamt">—</div><div class="result-card-label">Gesamtvolumen (m³)</div></div>
+            <div class="result-card"><div class="result-card-value" id="r_groesster">—</div><div class="result-card-label">Größter Einzelbehälter (m³)</div></div>
+            <div class="result-card"><div class="result-card-value" id="r_erforderlich">—</div><div class="result-card-label">Erf. Rückhaltevolumen (m³)</div></div>
+            <div class="result-card"><div class="result-card-value" id="r_gesamt_stufe">—</div><div class="result-card-label">Höchste Gefährdungsstufe</div></div>
+        </div>
+
+        <!-- Rückhaltewanne-Check -->
+        <table style="margin-top:12px;" id="wanne_table" style="display:none">
+            <tr>
+                <td colspan="2">Vorhandenes Rückhaltevolumen (Wanne/Becken)</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="wanne_vol" value="0" min="0" step="any" oninput="calcBehaelter()"> m³
+                </td>
+            </tr>
+        </table>
+        <div id="wanne_status" class="status-line" style="display:none"></div>
+
+        <!-- WGK-Referenz -->
+        <hr class="section-divider">
+        <p class="section-title">WGK-Referenz – Häufige Stoffe</p>
+        <table class="ref-table">
+            <thead><tr><th>Stoff</th><th>WGK</th><th>Einstufung</th></tr></thead>
+            <tbody>
+                <tr><td>Heizöl EL, Diesel</td><td class="wgk2">2</td><td>deutlich wassergefährdend</td></tr>
+                <tr><td>Benzin, Ottokraftstoff</td><td class="wgk2">2</td><td>deutlich wassergefährdend</td></tr>
+                <tr><td>Schmieröl, Hydrauliköl</td><td class="wgk2">2</td><td>deutlich wassergefährdend</td></tr>
+                <tr><td>Salzsäure (konz.)</td><td class="wgk2">2</td><td>deutlich wassergefährdend</td></tr>
+                <tr><td>Schwefelsäure (konz.)</td><td class="wgk2">2</td><td>deutlich wassergefährdend</td></tr>
+                <tr><td>Natronlauge</td><td class="wgk1">1</td><td>schwach wassergefährdend</td></tr>
+                <tr><td>Methanol</td><td class="wgk2">2</td><td>deutlich wassergefährdend</td></tr>
+                <tr><td>Ethanol (&gt; 50%)</td><td class="wgk1">1</td><td>schwach wassergefährdend</td></tr>
+                <tr><td>Aceton</td><td class="wgk1">1</td><td>schwach wassergefährdend</td></tr>
+                <tr><td>Toluol, Xylol</td><td class="wgk2">2</td><td>deutlich wassergefährdend</td></tr>
+                <tr><td>PCB, Chlorphenole</td><td class="wgk3">3</td><td>stark wassergefährdend</td></tr>
+                <tr><td>Kühlmittel (Glykol-Basis)</td><td class="wgk1">1</td><td>schwach wassergefährdend</td></tr>
+                <tr><td>Ammoniak (wässrig)</td><td class="wgk2">2</td><td>deutlich wassergefährdend</td></tr>
+                <tr><td>Wasser (demineralisiert)</td><td>nwg</td><td>nicht wassergefährdend</td></tr>
+            </tbody>
+        </table>
+
+        <div style="background:var(--bg-subtle);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:12px 16px;margin-top:16px;font-size:12px;color:var(--text-tertiary);line-height:1.6;">
+            <strong style="color:var(--text-secondary);">Rechtsgrundlage:</strong> AwSV (BGBl. I S. 1261, 2017) – Verordnung über Anlagen zum Umgang mit wassergefährdenden Stoffen. § 39 Gefährdungsstufen, Anlage 5 Prüfzeiträume. Keine Rechtsberatung – Einzelfall durch zuständige Behörde prüfen lassen.
+        </div>
+
+        <div class="shortcuts-hint" style="margin-top:16px;">
+            <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+            <span><kbd>Esc</kbd> Zurücksetzen</span>
+        </div>
+    </div></div>
+
+    <footer class="bottom-header">
+        <p>Keine Gewähr für Vollständigkeit oder Rechtsverbindlichkeit. Maßgeblich ist die jeweils gültige Fassung der AwSV und landesspezifische Regelungen.</p>
+    </footer>
+
+    <script src="shared.js"></script>
+    <script>
+        // AwSV Tabelle 1 (§ 39 Abs. 1): [A_max, B_max, C_max] in m³
+        const SCHWELLEN = { 1: [1000, 10000, 100000], 2: [100, 1000, 10000], 3: [10, 100, 1000] };
+
+        const ANFORDERUNGEN = {
+            nwg: [
+                ['Gefährdungsstufe', 'Nicht zutreffend (nwg)'],
+                ['Prüfung vor IBN', 'Keine Pflichtprüfung nach AwSV'],
+                ['Wiederkehrende Prüfung', 'Keine AwSV-Pflicht'],
+                ['Prüforgan', '–'],
+                ['Rückhaltevermögen', 'Nicht zwingend erforderlich'],
+                ['Betriebstagebuch', 'Nicht erforderlich'],
+            ],
+            A: [
+                ['Gefährdungsstufe', 'A – Geringste Anforderungen'],
+                ['Prüfung vor IBN', 'Betreiber oder Sachkundiger (SFK)'],
+                ['Wiederkehrende Prüfung', 'Eigenkontrolle durch Betreiber'],
+                ['Prüforgan', 'Betreiber / SFK (keine ZÜS-Pflicht)'],
+                ['Rückhaltevermögen', 'Erforderlich (§ 18 AwSV)'],
+                ['Betriebstagebuch', 'Nicht erforderlich'],
+            ],
+            B: [
+                ['Gefährdungsstufe', 'B – Erhöhte Anforderungen'],
+                ['Prüfung vor IBN', 'Sachkundiger (SFK) oder ZÜS'],
+                ['Wiederkehrende Prüfung', 'Alle 5 Jahre'],
+                ['Prüforgan', 'SFK oder ZÜS (je nach Anlagentyp)'],
+                ['Rückhaltevermögen', 'Erforderlich (§ 18 AwSV)'],
+                ['Betriebstagebuch', 'Empfohlen'],
+            ],
+            C: [
+                ['Gefährdungsstufe', 'C – Hohe Anforderungen'],
+                ['Prüfung vor IBN', 'Zugelassene Überwachungsstelle (ZÜS)'],
+                ['Wiederkehrende Prüfung', 'Alle 2,5 Jahre'],
+                ['Prüforgan', 'ZÜS (z.B. TÜV, DEKRA, GTÜ)'],
+                ['Rückhaltevermögen', 'Erforderlich (§ 18 AwSV)'],
+                ['Betriebstagebuch', 'Erforderlich (§ 43 AwSV)'],
+            ],
+            D: [
+                ['Gefährdungsstufe', 'D – Höchste Anforderungen'],
+                ['Prüfung vor IBN', 'Zugelassene Überwachungsstelle (ZÜS)'],
+                ['Wiederkehrende Prüfung', 'Alle 2,5 Jahre'],
+                ['Prüforgan', 'ZÜS (z.B. TÜV, DEKRA, GTÜ)'],
+                ['Rückhaltevermögen', 'Erforderlich (§ 18 AwSV)'],
+                ['Betriebstagebuch', 'Erforderlich (§ 43 AwSV)'],
+            ]
+        };
+
+        function getStufe(wgk, volM3) {
+            if (wgk == 0) return 'nwg';
+            const t = SCHWELLEN[wgk];
+            if (volM3 <= t[0]) return 'A';
+            if (volM3 <= t[1]) return 'B';
+            if (volM3 <= t[2]) return 'C';
+            return 'D';
+        }
+
+        const STUFE_LABELS = {
+            nwg: { name: 'Nicht wassergefährdend', desc: 'Keine Einstufung nach AwSV erforderlich.' },
+            A: { name: 'Gefährdungsstufe A', desc: 'Eigenkontrolle durch Betreiber. Keine ZÜS-Pflichtprüfung.' },
+            B: { name: 'Gefährdungsstufe B', desc: 'Wiederkehrende Prüfung alle 5 Jahre durch SFK oder ZÜS.' },
+            C: { name: 'Gefährdungsstufe C', desc: 'Prüfung alle 2,5 Jahre durch ZÜS. Betriebstagebuch erforderlich.' },
+            D: { name: 'Gefährdungsstufe D', desc: 'Höchste Anforderungen. Prüfung alle 2,5 Jahre durch ZÜS. Betriebstagebuch erforderlich.' }
+        };
+
+        function calc() {
+            const wgk = parseInt(document.getElementById('wgk').value);
+            let vol = parseFloat(document.getElementById('vol').value) || 0;
+            if (document.getElementById('vol_unit').value === 'l') vol /= 1000;
+
+            const stufe = getStufe(wgk, vol);
+            const card = document.getElementById('stufe_card');
+            card.className = 'stufe-card stufe-' + stufe;
+            document.getElementById('stufe_letter').textContent = stufe;
+            document.getElementById('stufe_name').textContent = STUFE_LABELS[stufe].name;
+            document.getElementById('stufe_desc').textContent = STUFE_LABELS[stufe].desc;
+
+            const tbody = document.getElementById('anf_body');
+            tbody.innerHTML = '';
+            (ANFORDERUNGEN[stufe] || []).forEach(([k, v]) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = '<td>' + k + '</td><td class="anf-highlight">' + v + '</td>';
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ============ Behälterliste ============
+        let rowId = 0;
+        function addRow(bez, wgk, vol) {
+            rowId++;
+            const id = rowId;
+            const tr = document.createElement('tr');
+            tr.id = 'row_' + id;
+            tr.innerHTML =
+                '<td><input class="input-field" type="text" value="' + (bez || 'Behälter ' + id) + '" style="width:120px" oninput="calcBehaelter()"></td>' +
+                '<td><select class="input-field" style="width:auto" onchange="calcBehaelter()">' +
+                    '<option value="0">nwg</option>' +
+                    '<option value="1"' + (wgk==1?' selected':'') + '>WGK 1</option>' +
+                    '<option value="2"' + (!wgk||wgk==2?' selected':'') + '>WGK 2</option>' +
+                    '<option value="3"' + (wgk==3?' selected':'') + '>WGK 3</option>' +
+                '</select></td>' +
+                '<td><input class="input-field" type="number" value="' + (vol||1) + '" min="0" step="any" style="width:90px" oninput="calcBehaelter()"> m³</td>' +
+                '<td class="stufe-cell" id="sc_' + id + '">—</td>' +
+                '<td><button class="del-btn" onclick="delRow(' + id + ')">✕</button></td>';
+            document.getElementById('behaelter_body').appendChild(tr);
+            calcBehaelter();
+        }
+
+        function delRow(id) {
+            const el = document.getElementById('row_' + id);
+            if (el) el.remove();
+            calcBehaelter();
+        }
+
+        function calcBehaelter() {
+            const rows = document.querySelectorAll('#behaelter_body tr');
+            if (rows.length === 0) {
+                document.getElementById('behaelter_results').style.display = 'none';
+                document.getElementById('wanne_table').style.display = 'none';
+                document.getElementById('wanne_status').style.display = 'none';
+                return;
+            }
+
+            let total = 0, maxVol = 0, maxStufe = 'nwg';
+            const stufeOrder = ['nwg','A','B','C','D'];
+
+            rows.forEach(tr => {
+                const inputs = tr.querySelectorAll('input[type="number"]');
+                const selects = tr.querySelectorAll('select');
+                const vol = parseFloat(inputs[0].value) || 0;
+                const wgk = parseInt(selects[0].value);
+                const s = getStufe(wgk, vol);
+                const sc = tr.querySelector('[id^="sc_"]');
+                if (sc) { sc.textContent = s; sc.className = 'stufe-cell sc-' + s; }
+                total += vol;
+                if (vol > maxVol) maxVol = vol;
+                if (stufeOrder.indexOf(s) > stufeOrder.indexOf(maxStufe)) maxStufe = s;
+            });
+
+            document.getElementById('behaelter_results').style.display = 'grid';
+            document.getElementById('wanne_table').style.display = '';
+            document.getElementById('r_gesamt').textContent = total.toFixed(3);
+            document.getElementById('r_groesster').textContent = maxVol.toFixed(3);
+            document.getElementById('r_erforderlich').textContent = maxVol.toFixed(3);
+            document.getElementById('r_gesamt_stufe').textContent = maxStufe;
+
+            const wanneVol = parseFloat(document.getElementById('wanne_vol').value) || 0;
+            const statusEl = document.getElementById('wanne_status');
+            statusEl.style.display = 'flex';
+            if (wanneVol <= 0) {
+                statusEl.className = 'status-line warn';
+                statusEl.textContent = '⚠ Kein Rückhaltevolumen eingegeben.';
+            } else if (wanneVol >= maxVol) {
+                statusEl.className = 'status-line ok';
+                statusEl.textContent = '✓ Rückhaltewanne ausreichend: ' + wanneVol.toFixed(2) + ' m³ ≥ ' + maxVol.toFixed(2) + ' m³ (erforderlich).';
+            } else {
+                statusEl.className = 'status-line error';
+                statusEl.textContent = '✗ Rückhaltewanne zu klein: ' + wanneVol.toFixed(2) + ' m³ < ' + maxVol.toFixed(2) + ' m³ (Fehlvolumen: ' + (maxVol - wanneVol).toFixed(2) + ' m³).';
+            }
+        }
+
+        // Init
+        calc();
+        addRow('Lagertank 1', 2, 5);
+    </script>
+</body>
+</html>

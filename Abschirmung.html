@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abschirmungsrechner – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .action-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+        .action-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-size:13px;font-weight:500;border-radius:var(--radius-md);border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;transition:all .2s;box-shadow:none;font-family:var(--font-sans)}
+        .action-btn:hover{background:var(--bg-subtle);color:var(--text-primary);border-color:var(--border-muted);transform:none;box-shadow:none;filter:none}
+        .action-btn svg{width:14px;height:14px;fill:currentColor}
+        .status-bar{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:var(--radius-md);border:1px solid var(--border-default);margin-bottom:20px;font-size:14px;font-weight:500;transition:all .3s}
+        .status-bar.status-ok{background:var(--bg-success);color:var(--text-success);border-color:var(--text-success)}
+        .status-bar.status-warn{background:var(--bg-attention);color:var(--text-attention);border-color:var(--text-attention)}
+        .status-bar.status-idle{background:var(--bg-subtle);color:var(--text-tertiary)}
+        .status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+        .status-ok .status-dot{background:var(--text-success)}
+        .status-warn .status-dot{background:var(--text-attention)}
+        .status-idle .status-dot{background:var(--text-tertiary)}
+        .result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:16px 0}
+        .result-card{background:var(--bg-success);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:12px;text-align:center}
+        .result-card-value{font-size:18px;font-weight:600;color:var(--text-success);font-family:var(--font-mono)}
+        .result-card-label{font-size:11px;color:var(--text-tertiary);margin-top:2px}
+        .result-card-sub{font-size:10px;color:var(--text-tertiary)}
+        .info-box{background:var(--bg-subtle);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--text-secondary);line-height:1.6}
+        .info-box strong{color:var(--text-primary)}
+        .section-divider{border:none;border-top:1px solid var(--border-default);margin:24px 0}
+        .mat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:16px 0}
+        .mat-card{border:1px solid var(--border-default);border-radius:var(--radius-md);padding:14px;text-align:center;background:var(--bg-subtle)}
+        .mat-card-name{font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:8px}
+        .mat-card-thick{font-size:22px;font-weight:700;color:var(--accent-fg);font-family:var(--font-mono)}
+        .mat-card-sub{font-size:10px;color:var(--text-tertiary);margin-top:2px}
+        .mat-card-hvl{font-size:11px;color:var(--text-secondary);margin-top:4px}
+        .fill-bar{margin:4px 0}
+        .fill-bar-track{height:8px;background:var(--bg-default);border-radius:4px;border:1px solid var(--border-default);overflow:hidden}
+        .fill-bar-fill{height:100%;border-radius:3px;background:var(--accent-fg);transition:width .3s}
+    </style>
+</head>
+<body data-tool-id="abschirmung">
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right"><button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button></div>
+    </header>
+    <div class="back-bar"><a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a></div>
+
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="copyResults()"><svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg> Kopieren</button>
+            <button class="action-btn" onclick="resetFields()"><svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg> Zurücksetzen</button>
+            <button class="action-btn" onclick="exportPagePDF('Abschirmungsrechner')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+        </div>
+
+        <div class="description">🛡️ Abschirmungsrechner: Benötigte Materialdicke aus Halbwertschichten berechnen. Zeigt alle vier Standardmaterialien gleichzeitig. HVL-Werte aus der Frankfurter Tabelle.</div>
+
+        <div class="status-bar status-idle" id="statusBar">
+            <div class="status-dot"></div>
+            <span id="statusText">Werte eingeben</span>
+        </div>
+
+        <table>
+            <tr><th colspan="4">Nuklid</th></tr>
+            <tr>
+                <td colspan="2">Nuklid</td>
+                <td colspan="2">
+                    <select class="input-field" id="nuklid" style="max-width:220px" onchange="calc()">
+                        <option value="Cs-137">Cäsium-137</option>
+                        <option value="Co-60">Kobalt-60</option>
+                        <option value="Ir-192">Iridium-192</option>
+                        <option value="Se-75">Selen-75</option>
+                        <option value="Yb-169">Ytterbium-169</option>
+                        <option value="Am-241">Americium-241</option>
+                        <option value="Ra-226">Radium-226</option>
+                        <option value="Tm-170">Thulium-170</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+
+        <table>
+            <tr><th colspan="4">Dosisleistungen</th></tr>
+            <tr>
+                <td colspan="2">Dosisleistung ohne Abschirmung Ḣ₀</td>
+                <td colspan="2">
+                    <input class="input-field" type="number" id="h0" value="1000" min="0" step="any" style="max-width:120px">
+                    <select class="input-field" id="h0unit" style="max-width:100px">
+                        <option value="1">µSv/h</option>
+                        <option value="1000">mSv/h</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Ziel-Dosisleistung hinter Abschirmung Ḣ_ziel</td>
+                <td colspan="2">
+                    <input class="input-field" type="number" id="hziel" value="10" min="0" step="any" style="max-width:120px">
+                    <select class="input-field" id="hzielunit" style="max-width:100px">
+                        <option value="1">µSv/h</option>
+                        <option value="1000">mSv/h</option>
+                    </select>
+                    <span style="font-size:11px;color:var(--text-tertiary);margin-left:6px">(z.B. 10 µSv/h für Überwachungsbereichsgrenze)</span>
+                </td>
+            </tr>
+        </table>
+
+        <div class="result-grid" id="resultGrid" style="display:none">
+            <div class="result-card">
+                <div class="result-card-value" id="resN">—</div>
+                <div class="result-card-label">Benötigte Halbwertschichten</div>
+                <div class="result-card-sub">n = log₂(Ḣ₀ / Ḣ_ziel)</div>
+            </div>
+            <div class="result-card">
+                <div class="result-card-value" id="resReduktion">—</div>
+                <div class="result-card-label">Abschwächungsfaktor</div>
+                <div class="result-card-sub">Ḣ₀ / Ḣ_ziel</div>
+            </div>
+        </div>
+
+        <div id="matGrid" class="mat-grid" style="display:none"></div>
+
+        <hr class="section-divider">
+
+        <table id="hvlRefTable" style="display:none">
+            <thead><tr>
+                <th>Nuklid</th>
+                <th>HVL Blei [mm]</th>
+                <th>HVL Beton [mm]</th>
+                <th>HVL Eisen [mm]</th>
+                <th>HVL Wasser [mm]</th>
+            </tr></thead>
+            <tbody id="hvlBody"></tbody>
+        </table>
+
+        <div class="info-box" style="margin-top:16px">
+            <strong>Formel:</strong> d = n × HVL, wobei n = log₂(Ḣ₀ / Ḣ_ziel)<br>
+            <strong>Abschwächung:</strong> Ḣ = Ḣ₀ × (½)^(d / HVL)<br>
+            HVL (Halbwertschicht) = Dicke, bei der die Dosisleistung auf die Hälfte sinkt. Werte für Beton (Dichte 2,3 g/cm³). Gilt für <strong>einfallende Strahlung ohne Aufbaueffekte</strong> — reale Abschirmung kann aufgrund von Streuung dicker ausgelegt werden müssen. Ingenieuraufschlag von 10–20 % empfohlen.
+        </div>
+
+        <div class="shortcuts-hint">
+            <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+            <span><kbd>Esc</kbd> Zurücksetzen</span>
+            <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+        </div>
+    </div></div>
+
+    <footer class="bottom-header"><p>Keine Gewähr für die Genauigkeit oder Vollständigkeit. Nutzung auf eigenes Risiko.</p></footer>
+
+    <script src="shared.js"></script>
+    <script>
+        // HVL in mm
+        const HVL_DATA = {
+            'Cs-137': { Blei: 6.5,  Beton: 48, Eisen: 17, Wasser: 73 },
+            'Co-60':  { Blei: 12.5, Beton: 60, Eisen: 21, Wasser: 115 },
+            'Ir-192': { Blei: 4.8,  Beton: 43, Eisen: 12, Wasser: 65 },
+            'Se-75':  { Blei: 2.0,  Beton: 32, Eisen: 8,  Wasser: 50 },
+            'Yb-169': { Blei: 2.2,  Beton: 30, Eisen: 7,  Wasser: 45 },
+            'Am-241': { Blei: 0.2,  Beton: 14, Eisen: 2,  Wasser: 15 },
+            'Ra-226': { Blei: 12.0, Beton: 58, Eisen: 20, Wasser: 110 },
+            'Tm-170': { Blei: 0.3,  Beton: 15, Eisen: 3,  Wasser: 20 },
+        };
+
+        const MAT_ICONS = { Blei: '🔘', Beton: '🧱', Eisen: '⚙️', Wasser: '💧' };
+
+        function calc() {
+            const nuklid = document.getElementById('nuklid').value;
+            const h0raw = parseFloat(document.getElementById('h0').value);
+            const h0unit = parseFloat(document.getElementById('h0unit').value);
+            const hzielraw = parseFloat(document.getElementById('hziel').value);
+            const hzielunit = parseFloat(document.getElementById('hzielunit').value);
+
+            if (isNaN(h0raw) || h0raw <= 0 || isNaN(hzielraw) || hzielraw <= 0) {
+                document.getElementById('resultGrid').style.display = 'none';
+                document.getElementById('matGrid').style.display = 'none';
+                setStatus('idle', 'Werte eingeben');
+                return;
+            }
+
+            const h0 = h0raw * h0unit;
+            const hziel = hzielraw * hzielunit;
+
+            if (hziel >= h0) {
+                setStatus('ok', '✓ Zieldosisleistung ist bereits ohne Abschirmung erreicht.');
+                document.getElementById('resultGrid').style.display = 'none';
+                document.getElementById('matGrid').style.display = 'none';
+                return;
+            }
+
+            const n = Math.log2(h0 / hziel);
+            const reduktion = h0 / hziel;
+
+            document.getElementById('resN').textContent = n.toFixed(3);
+            document.getElementById('resReduktion').textContent = reduktion.toFixed(1) + '×';
+            document.getElementById('resultGrid').style.display = 'grid';
+
+            const hvls = HVL_DATA[nuklid];
+            const matGrid = document.getElementById('matGrid');
+            matGrid.innerHTML = Object.entries(hvls).map(([mat, hvl]) => {
+                const thick = n * hvl;
+                const pct = Math.min(100, (thick / (n * hvls.Wasser)) * 100);
+                return `<div class="mat-card">
+                    <div class="mat-card-name">${MAT_ICONS[mat]} ${mat}</div>
+                    <div class="mat-card-thick">${thick >= 10 ? thick.toFixed(0) : thick.toFixed(1)} mm</div>
+                    <div class="mat-card-sub">${thick >= 100 ? (thick / 10).toFixed(1) + ' cm' : ''}</div>
+                    <div class="mat-card-hvl">HVL = ${hvl} mm</div>
+                    <div class="fill-bar">
+                        <div class="fill-bar-track"><div class="fill-bar-fill" style="width:${pct}%"></div></div>
+                    </div>
+                </div>`;
+            }).join('');
+            matGrid.style.display = 'grid';
+
+            setStatus('ok', `✓ ${n.toFixed(2)} Halbwertschichten erforderlich — Blei: ${(n * hvls.Blei).toFixed(1)} mm, Beton: ${(n * hvls.Beton).toFixed(0)} mm`);
+
+            // Reference table for all nuclides
+            const tbody = document.getElementById('hvlBody');
+            tbody.innerHTML = Object.entries(HVL_DATA).map(([nuk, h]) =>
+                `<tr style="${nuk === nuklid ? 'background:var(--bg-accent);font-weight:600' : ''}">
+                    <td style="padding:5px 10px;font-size:12px">${nuk}</td>
+                    <td style="padding:5px 10px;font-size:12px;font-family:var(--font-mono);text-align:center">${h.Blei}</td>
+                    <td style="padding:5px 10px;font-size:12px;font-family:var(--font-mono);text-align:center">${h.Beton}</td>
+                    <td style="padding:5px 10px;font-size:12px;font-family:var(--font-mono);text-align:center">${h.Eisen}</td>
+                    <td style="padding:5px 10px;font-size:12px;font-family:var(--font-mono);text-align:center">${h.Wasser}</td>
+                </tr>`
+            ).join('');
+            document.getElementById('hvlRefTable').style.display = '';
+        }
+
+        function setStatus(type, msg) {
+            const bar = document.getElementById('statusBar');
+            bar.className = 'status-bar status-' + type;
+            document.getElementById('statusText').textContent = msg;
+        }
+
+        function resetFields() {
+            document.getElementById('nuklid').selectedIndex = 0;
+            document.getElementById('h0').value = '1000';
+            document.getElementById('h0unit').selectedIndex = 0;
+            document.getElementById('hziel').value = '10';
+            document.getElementById('hzielunit').selectedIndex = 0;
+            calc();
+        }
+
+        document.querySelectorAll('#nuklid,#h0,#h0unit,#hziel,#hzielunit').forEach(el => {
+            el.addEventListener('input', calc);
+            el.addEventListener('change', calc);
+        });
+
+        calc();
+    </script>
+</body>
+</html>

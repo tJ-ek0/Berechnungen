@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prozessanschlüsse – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔩</text></svg>">
+    <style>
+        .action-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+        .action-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-size:13px;font-weight:500;border-radius:var(--radius-md);border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;font-family:var(--font-sans)}
+        .action-btn:hover{background:var(--bg-subtle);color:var(--text-primary)}
+        .action-btn svg{width:14px;height:14px;fill:currentColor}
+        .section-divider{border:none;border-top:1px solid var(--border-default);margin:24px 0}
+        .section-title{font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin:0 0 10px 0}
+        .filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+        .ftag{padding:3px 12px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;font-family:var(--font-sans)}
+        .ftag.active{background:var(--accent-emphasis);color:var(--text-on-emphasis);border-color:var(--accent-emphasis)}
+        .ref-wrap{overflow-x:auto;border:1px solid var(--border-default);border-radius:var(--radius-md)}
+        .ref-table{width:100%;border-collapse:collapse;font-size:12px}
+        .ref-table th{background:var(--bg-subtle);font-size:11px;font-weight:600;color:var(--text-secondary);padding:6px 10px;border-bottom:1px solid var(--border-default);text-align:left;white-space:nowrap}
+        .ref-table td{padding:6px 10px;border-bottom:1px solid var(--border-default);text-align:left;font-size:12px;vertical-align:top}
+        .ref-table td:nth-child(3){font-family:var(--font-mono)}
+        .ref-table tr:last-child td{border-bottom:none}
+        .ref-table tr:hover td{background:var(--bg-subtle)}
+        .ref-table tr.hidden{display:none}
+        .badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:600}
+        .b-hyg{background:#d4edda;color:#155724}
+        .b-thr{background:#cce5ff;color:#004085}
+        .b-fla{background:#e2d9f3;color:#4a235a}
+        .b-spc{background:#fff3cd;color:#664d03}
+    </style>
+</head>
+<body data-tool-id="prozessanschluesse">
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right"><button class="theme-toggle" id="themeToggle"><span id="themeIcon">🌙</span></button></div>
+    </header>
+    <div class="back-bar"><a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a></div>
+
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="exportPagePDF('Prozessanschluesse')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+        </div>
+
+        <div class="description">🔩 Nachschlagewerk für Prozessanschlüsse: Hygienisch (Tri-Clamp, DIN 11851, SMS, Varivent), Gewindeanschlüsse (NPT, G/BSP) und Flansche (EN 1092-1, ASME B16.5). Normen, Größen und typische Anwendungen.</div>
+
+        <p class="section-title">Filter</p>
+        <div class="filter-row" id="filter_row">
+            <input class="input-field" type="text" id="search" placeholder="Suchen…" style="width:160px" oninput="renderTable()">
+        </div>
+
+        <div class="ref-wrap">
+            <table class="ref-table">
+                <thead><tr>
+                    <th>Anschlussart</th>
+                    <th>Norm / Standard</th>
+                    <th>Größen</th>
+                    <th>Dichtung / Prinzip</th>
+                    <th>Typische Anwendung</th>
+                    <th>Typ</th>
+                </tr></thead>
+                <tbody id="ref_tbody"></tbody>
+            </table>
+        </div>
+    </div></div>
+
+    <footer class="bottom-header"><p>Keine Gewähr. Maßgeblich sind die jeweiligen Normen und Herstellerangaben.</p></footer>
+    <script src="shared.js"></script>
+    <script>
+        const CONNECTIONS = [
+            // Hygienisch
+            { name: 'Tri-Clamp (Clamp)',       norm: 'ISO 2852 / DIN 32676',   sizes: 'DN 8–DN 200 (½"–8")',    seal: 'Einlegering (EPDM, PTFE, Silikon)',   app: 'Pharma, Biotech, Lebensmittel — weltweiter Hygienestandard', type: 'hyg' },
+            { name: 'DIN 11851 (Milch-Union)',  norm: 'DIN 11851',              sizes: 'DN 10–DN 100',           seal: 'Flachdichtung (EPDM, PTFE)',          app: 'Molkerei, Brauerei, Lebensmittel (D-A-CH)', type: 'hyg' },
+            { name: 'SMS 1145',                 norm: 'SMS 1145 (Skandinavien)',sizes: 'DN 40–DN 150',           seal: 'Flachdichtung',                       app: 'Molkerei/Lebensmittel, bes. Skandinavien', type: 'hyg' },
+            { name: 'Varivent (Typ N)',          norm: 'Herstellerstandard',     sizes: 'DN 50–DN 150',           seal: 'Snap-in, O-Ring',                     app: 'GEA/E+H Hygienetanks, werkzeuglos wechselbar', type: 'hyg' },
+            { name: 'DIN 11864-1 (Einschraub)', norm: 'DIN 11864-1 Form A/B',  sizes: 'DN 6–DN 100',            seal: 'O-Ring oder Flachdichtung',           app: 'Hygienische Einschraubanschlüsse', type: 'hyg' },
+            { name: 'Ingold M12×0.5',           norm: 'Herstellerstandard',     sizes: 'M12×0,5',                seal: 'O-Ring',                              app: 'Analytik-Sensoren (pH, O₂, Lf) – Standardanschluss E+H', type: 'hyg' },
+            { name: 'Ingold M20×1.5',           norm: 'Herstellerstandard',     sizes: 'M20×1,5',                seal: 'O-Ring',                              app: 'Analytik-Sensoren größere Bauform', type: 'hyg' },
+            { name: 'PG 13.5 (Analytik)',       norm: 'Herstellerstandard',     sizes: 'PG 13,5',                seal: 'O-Ring',                              app: 'Ältere pH/Redox-Armaturen', type: 'hyg' },
+            // Gewinde
+            { name: 'NPT (Kegelgewinde)',        norm: 'ASME/ANSI B1.20.1',     sizes: '1/8"–4" (und größer)',   seal: 'Kegelgewinde + PTFE-Band / Gewindepaste', app: 'Amerika, Asien — häufigster Messstellenanschluss weltweit', type: 'thr' },
+            { name: 'G (BSP parallel)',          norm: 'ISO 228-1',              sizes: 'G 1/8"–G 4"',            seal: 'Dichtkante / O-Ring (Parallelgewinde)', app: 'Europa, Asien — weit verbreitet bei Druck-/Temperatursensoren', type: 'thr' },
+            { name: 'Rc (BSPT Kegel)',           norm: 'ISO 7-1',                sizes: 'Rc 1/8"–Rc 4"',          seal: 'Kegelgewinde (ähnlich NPT, anderes Profil)', app: 'GB, Australien, Japan', type: 'thr' },
+            { name: 'M (Metrisch)',              norm: 'ISO 261',                sizes: 'M10×1 bis M60×2',        seal: 'O-Ring oder PTFE',                    app: 'Europäische Geräte, Drucktransmitter', type: 'thr' },
+            { name: 'Camlock (Schnellkupplung)', norm: 'MIL-C-27487 / DIN 2828',sizes: '1/2"–6"',                seal: 'O-Ring',                              app: 'Schläuche, mobile Verbindungen, Tankwagen', type: 'thr' },
+            // Flansch
+            { name: 'Flansch EN 1092-1',        norm: 'EN 1092-1',              sizes: 'DN 10–DN 4000',          seal: 'Flachdichtung, Spiralring, RTJ',      app: 'Europa — Standardflansch für alle Prozessindustrien', type: 'fla' },
+            { name: 'Flansch ASME B16.5',       norm: 'ASME B16.5',             sizes: 'NPS ½"–24" Cl.150–2500', seal: 'Flachdichtung, Spiralring, RTJ',      app: 'Amerika, petrochemische Industrie weltweit', type: 'fla' },
+            { name: 'Flansch JIS B2220',        norm: 'JIS B2220',              sizes: '5K–30K, DN 10–600',      seal: 'Flachdichtung',                       app: 'Japan und asiatische Anlagen', type: 'fla' },
+            { name: 'Hygieneflansch DIN 11853', norm: 'DIN 11853',              sizes: 'DN 25–DN 200',           seal: 'Flachdichtung EPDM/PTFE',             app: 'Hygienische Flanschverbindung Lebensmittel/Pharma', type: 'fla' },
+            // Spezial
+            { name: 'Weld-in (Einschweißstutzen)', norm: 'Herstellerstandard', sizes: 'DN 15–DN 100',            seal: 'Schweißverbindung',                   app: 'Permanenter Einbau in Rohr/Behälter', type: 'spc' },
+            { name: 'Victaulic (Nut-Kupplung)',  norm: 'AWWA C606',             sizes: 'DN 25–DN 600',           seal: 'O-Ring in Nut',                       app: 'Wasserversorgung, Feuerschutz, HLK', type: 'spc' },
+            { name: 'NEUMO BioConnect',          norm: 'Herstellerstandard',     sizes: 'DN 25–DN 100',           seal: 'O-Ring, werkzeuglos',                 app: 'Pharmahygiene, schnelle Demontage', type: 'spc' },
+            { name: 'Reinraum-Anschluss VCR/VCO', norm: 'Swagelok-Standard',   sizes: '1/8"–2"',                seal: 'Metallschneidring / O-Ring',          app: 'Hochreine Medien, Halbleiter, Gasanalytik', type: 'spc' },
+        ];
+
+        const TYPES = [
+            { key: 'all', label: 'Alle' },
+            { key: 'hyg', label: 'Hygienisch', cls: 'b-hyg' },
+            { key: 'thr', label: 'Gewinde', cls: 'b-thr' },
+            { key: 'fla', label: 'Flansch', cls: 'b-fla' },
+            { key: 'spc', label: 'Spezial', cls: 'b-spc' },
+        ];
+        const TYPE_BADGE = { hyg: 'b-hyg', thr: 'b-thr', fla: 'b-fla', spc: 'b-spc' };
+        const TYPE_LABEL = { hyg: 'Hygienisch', thr: 'Gewinde', fla: 'Flansch', spc: 'Spezial' };
+
+        let activeType = 'all';
+        const filterRow = document.getElementById('filter_row');
+        TYPES.forEach(t => {
+            const btn = document.createElement('button');
+            btn.className = 'ftag' + (t.key === 'all' ? ' active' : '');
+            btn.textContent = t.label;
+            btn.onclick = () => { activeType = t.key; filterRow.querySelectorAll('.ftag').forEach((b, i) => b.classList.toggle('active', TYPES[i].key === t.key)); renderTable(); };
+            filterRow.appendChild(btn);
+        });
+
+        function renderTable() {
+            const q = (document.getElementById('search').value || '').toLowerCase();
+            const tbody = document.getElementById('ref_tbody');
+            tbody.innerHTML = '';
+            CONNECTIONS.forEach(c => {
+                const visible = (activeType === 'all' || c.type === activeType) &&
+                    (!q || c.name.toLowerCase().includes(q) || c.norm.toLowerCase().includes(q) || c.app.toLowerCase().includes(q));
+                const tr = document.createElement('tr');
+                if (!visible) tr.className = 'hidden';
+                const bc = TYPE_BADGE[c.type], bl = TYPE_LABEL[c.type];
+                tr.innerHTML = '<td><strong>' + c.name + '</strong></td><td>' + c.norm + '</td><td>' + c.sizes + '</td><td>' + c.seal + '</td><td>' + c.app + '</td><td><span class="badge ' + bc + '">' + bl + '</span></td>';
+                tbody.appendChild(tr);
+            });
+        }
+
+        renderTable();
+    </script>
+</body>
+</html>
