@@ -16,8 +16,12 @@
         .status-bar { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-default); margin-bottom: 20px; font-size: 14px; font-weight: 500; transition: all 0.3s; }
         .status-bar.status-ok { background: var(--bg-success); color: var(--text-success); border-color: var(--text-success); }
         .status-bar.status-warn { background: var(--bg-attention); color: var(--text-attention); border-color: var(--text-attention); }
-        .status-bar.status-error { background: var(--bg-danger); color: var(--text-danger); border-color: var(--text-danger); }
+        .status-bar.status-error { background: var(--bg-danger); color: var(--text-danger); border-color: var(--text-danger); animation: limit-pulse 1.2s ease-in-out infinite; }
         .status-bar.status-idle { background: var(--bg-subtle); color: var(--text-tertiary); }
+        @keyframes limit-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(207,34,46,0.3); }
+            50%       { box-shadow: 0 0 0 6px rgba(207,34,46,0); }
+        }
         .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
         .status-ok .status-dot { background: var(--text-success); }
         .status-warn .status-dot { background: var(--text-attention); }
@@ -65,6 +69,10 @@
         .mp-ok { background: var(--text-success); }
         .mp-warn { background: var(--text-attention); }
         .mp-err { background: var(--text-danger); }
+        tr.mp-row-err { background: var(--bg-danger) !important; }
+        tr.mp-row-err td { color: var(--text-danger); font-weight: 600; }
+        tr.mp-row-warn { background: var(--bg-attention) !important; }
+        tr.mp-row-warn td { color: var(--text-attention); }
 
         /* Diagramm */
         .chart-wrap { border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 16px; margin-top: 16px; background: var(--bg-default); }
@@ -134,6 +142,7 @@
                 <button class="preset-btn" onclick="setPreset(1000,0.5,this)">Prowirl 70/200</button>
                 <button class="preset-btn" onclick="setPreset(1000,0.5,this)">SPS Standard-DI</button>
                 <button class="preset-btn" onclick="setPreset(10000,0.05,this)">SPS Schnell-Zähler</button>
+                <button class="preset-btn" onclick="setPreset(5,100,this)">SPS Langsam (100 ms)</button>
             </div>
 
             <!-- Geräte-Limits -->
@@ -690,7 +699,11 @@
             const w = Math.min(Math.max(freqPct, 0), 100);
             fill.style.width = w + '%';
             fill.className = 'freq-gauge-fill' + (freqPct > 100 ? ' error' : freqPct > 80 ? ' warn' : '');
-            label.textContent = isFinite(freqPct) ? freqPct.toFixed(1) + '%' : '—';
+            if (freqPct > 100) {
+                label.innerHTML = '<strong style="color:var(--text-danger)">⚠ LIMIT ÜBERSCHRITTEN (' + freqPct.toFixed(0) + '%)</strong>';
+            } else {
+                label.textContent = isFinite(freqPct) ? freqPct.toFixed(1) + '%' : '—';
+            }
         }
 
         // ============ BASIS → ANZEIGEEINHEIT ============
@@ -732,8 +745,10 @@
                 const statusText = overLimit ? 'Überlimit' : nearLimit ? 'Warnung' : 'OK';
                 const d_anzeige = vonBasis(d, de, typ);
                 const row = table.insertRow();
+                if (overLimit) row.className = 'mp-row-err';
+                else if (nearLimit) row.className = 'mp-row-warn';
                 row.innerHTML =
-                    '<td>' + pct + '% <span style="color:var(--text-tertiary);font-size:11px">(' + formatZahl(d_anzeige) + ' ' + de + ')</span></td>' +
+                    '<td>' + pct + '% <span style="font-size:11px;opacity:0.7">(' + formatZahl(d_anzeige) + ' ' + de + ')</span></td>' +
                     '<td>' + formatZahl(impSek) + ' Hz</td>' +
                     '<td>' + (isFinite(pb) ? formatZahl(pb) + ' ms' : '—') + '</td>' +
                     '<td><span class="mp-dot ' + dotClass + '"></span>' + statusText + '</td>';
