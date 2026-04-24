@@ -59,10 +59,19 @@
         .freq-gauge-fill.error { background: var(--text-danger); }
 
         /* Geräte-Vorlagen */
-        .preset-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
-        .preset-label { font-size: 12px; color: var(--text-tertiary); font-weight: 600; flex-shrink: 0; }
+        .preset-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; align-items: center; }
+        .preset-label { font-size: 12px; color: var(--text-tertiary); font-weight: 600; flex-shrink: 0; min-width: 90px; }
         .preset-btn { padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 20px; border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; font-family: var(--font-sans); white-space: nowrap; }
-        .preset-btn:hover, .preset-btn.active { background: var(--accent-emphasis); color: #fff; border-color: var(--accent-emphasis); }
+        .preset-btn:hover { background: var(--bg-subtle); }
+        .preset-btn.active-device { background: #0969da; color: #fff; border-color: #0969da; }
+        .preset-btn.active-sps { background: #8250df; color: #fff; border-color: #8250df; }
+        /* Effektives Systemlimit */
+        .effective-limit { margin-top: 10px; padding: 8px 12px; border-radius: var(--radius-md); background: var(--bg-subtle); border: 1px solid var(--border-default); font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+        .effective-limit b { color: var(--text-primary); }
+        .effective-limit .bottleneck { font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 10px; margin-left: 8px; }
+        .bottleneck-device { background: #fff8c5; color: #9a6700; }
+        .bottleneck-sps    { background: var(--bg-danger); color: var(--text-danger); }
+        [data-theme="dark"] .bottleneck-device { background: #2d2200; color: #d4a72c; }
 
         /* Messpunkt-Tabelle */
         .mp-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
@@ -136,24 +145,30 @@
 
             <!-- Geräte-Vorlagen -->
             <div class="preset-row">
-                <span class="preset-label">Vorlage:</span>
-                <button class="preset-btn" onclick="setPreset(10000,0.05,this)">Promag 50/300</button>
-                <button class="preset-btn" onclick="setPreset(10000,0.05,this)">Promass 80/300</button>
-                <button class="preset-btn" onclick="setPreset(1000,0.5,this)">Prowirl 70/200</button>
-                <button class="preset-btn" onclick="setPreset(1000,0.5,this)">SPS Standard-DI</button>
-                <button class="preset-btn" onclick="setPreset(10000,0.05,this)">SPS Schnell-Zähler</button>
-                <button class="preset-btn" onclick="setPreset(5,100,this)">SPS Langsam (100 ms)</button>
+                <span class="preset-label">Messgerät:</span>
+                <button class="preset-btn" onclick="setDevicePreset(10000,this)">Promag 50/300</button>
+                <button class="preset-btn" onclick="setDevicePreset(10000,this)">Promass 80/300</button>
+                <button class="preset-btn" onclick="setDevicePreset(1000,this)">Prowirl 70/200</button>
+            </div>
+            <div class="preset-row" style="margin-bottom:14px">
+                <span class="preset-label">SPS-Eingang:</span>
+                <button class="preset-btn active-sps" onclick="setSPSPreset(100,this)">Langsam (100 ms)</button>
+                <button class="preset-btn" onclick="setSPSPreset(0.5,this)">Standard (0,5 ms)</button>
+                <button class="preset-btn" onclick="setSPSPreset(0.05,this)">Schnell (0,05 ms)</button>
             </div>
 
             <!-- Geräte-Limits -->
             <div class="limits-box">
-                <h4>⚙ Geräte-Limits (optional)</h4>
+                <h4>⚙ Systemlimits (frei konfigurierbar)</h4>
                 <div class="limits-row">
-                    <label>Max. Frequenz:</label>
-                    <input class="input-field" type="number" id="max_freq" value="1000" step="0.1" style="max-width:100px"> <span style="font-size:13px;color:var(--text-secondary)">Hz (Imp/s)</span>
-                    <label style="margin-left:16px">Min. Impulsbreite:</label>
-                    <input class="input-field" type="number" id="min_pulsbreite" value="100" step="0.1" style="max-width:100px"> <span style="font-size:13px;color:var(--text-secondary)">ms</span>
+                    <label>Messgerät max. Freq.:</label>
+                    <input class="input-field" type="number" id="device_max_freq" value="10000" step="1" style="max-width:100px">
+                    <span style="font-size:13px;color:var(--text-secondary)">Hz</span>
+                    <label style="margin-left:16px">SPS min. Impulsbreite:</label>
+                    <input class="input-field" type="number" id="sps_min_pb" value="100" step="0.1" style="max-width:100px">
+                    <span style="font-size:13px;color:var(--text-secondary)">ms</span>
                 </div>
+                <div class="effective-limit" id="effectiveLimit">Effektives Systemlimit: —</div>
             </div>
 
             <!-- Frequenz-Auslastungsbalken -->
@@ -484,15 +499,15 @@
             updateTotalizer(imp_h, d_lh, typ);
 
             // Status-Ampel prüfen
-            const maxFreq2 = parseFloat(document.getElementById('max_freq').value) || 1000;
-            const minPuls2 = parseFloat(document.getElementById('min_pulsbreite').value) || 0.5;
             updateStatus(imp_sek, pulsbreite);
 
             // Gauge, Tabelle, Chart
-            const freqPct = maxFreq2 > 0 ? (imp_sek / maxFreq2) * 100 : 0;
+            const lim2 = getEffectiveLimits();
+            const freqPct = lim2.effMaxFreq > 0 ? (imp_sek / lim2.effMaxFreq) * 100 : 0;
             updateGauge(freqPct);
-            updateMesspunkte(d_lh, iw_basis, de, typ, maxFreq2, minPuls2);
-            updateChart(d_lh, iw_basis, imp_sek, maxFreq2);
+            updateEffectiveLimit();
+            updateMesspunkte(d_lh, iw_basis, de, typ, lim2.effMaxFreq, lim2.effMinPb);
+            updateChart(d_lh, iw_basis, imp_sek, lim2.effMaxFreq);
         }
 
         function clearResults() {
@@ -511,29 +526,28 @@
 
         // ============ STATUS-AMPEL ============
         function updateStatus(imp_sek, pulsbreite) {
-            const maxFreq = parseFloat(document.getElementById('max_freq').value) || 10;
-            const minPuls = parseFloat(document.getElementById('min_pulsbreite').value) || 0.5;
+            const lim = getEffectiveLimits();
             const bar = document.getElementById('statusBar');
             const text = document.getElementById('statusText');
-
-            const freqPct = (imp_sek / maxFreq) * 100;
-            const pulsOk = isFinite(pulsbreite) ? pulsbreite >= minPuls : true;
+            const freqPct = lim.effMaxFreq > 0 ? (imp_sek / lim.effMaxFreq) * 100 : 0;
+            const pulsOk = isFinite(pulsbreite) ? pulsbreite >= lim.effMinPb : true;
 
             if (imp_sek <= 0 || !isFinite(imp_sek)) {
                 bar.className = 'status-bar status-idle';
                 text.textContent = 'Werte eingeben um die Prüfung zu starten';
-            } else if (imp_sek > maxFreq) {
+            } else if (imp_sek > lim.effMaxFreq) {
                 bar.className = 'status-bar status-error';
-                text.textContent = '✕ Frequenz (' + formatZahl(imp_sek) + ' Hz) überschreitet das Geräte-Limit von ' + maxFreq + ' Hz';
+                const engpass = lim.bottleneck ? ' [Engpass: ' + lim.bottleneck + ']' : '';
+                text.textContent = '✕ Frequenz ' + formatZahl(imp_sek) + ' Hz > Limit ' + formatZahl(lim.effMaxFreq) + ' Hz' + engpass;
             } else if (!pulsOk) {
                 bar.className = 'status-bar status-error';
-                text.textContent = '✕ Impulsbreite (' + formatZahl(pulsbreite) + ' ms) unterschreitet die Mindestbreite von ' + minPuls + ' ms';
+                text.textContent = '✕ Impulsbreite ' + formatZahl(pulsbreite) + ' ms < Mindest ' + formatZahl(lim.effMinPb) + ' ms [Engpass: SPS]';
             } else if (freqPct > 80) {
                 bar.className = 'status-bar status-warn';
-                text.textContent = '⚠ Frequenz bei ' + Math.round(freqPct) + '% des Limits (' + formatZahl(imp_sek) + ' von ' + maxFreq + ' Hz)';
+                text.textContent = '⚠ ' + Math.round(freqPct) + '% vom Limit — ' + formatZahl(imp_sek) + ' Hz von max. ' + formatZahl(lim.effMaxFreq) + ' Hz';
             } else {
                 bar.className = 'status-bar status-ok';
-                text.textContent = '✓ Konfiguration OK — ' + formatZahl(imp_sek) + ' Hz (' + Math.round(freqPct) + '% vom Limit), Impulsbreite ' + formatZahl(pulsbreite) + ' ms';
+                text.textContent = '✓ OK — ' + formatZahl(imp_sek) + ' Hz (' + Math.round(freqPct) + '% vom Limit), Impulsbreite ' + formatZahl(pulsbreite) + ' ms';
             }
         }
 
@@ -683,13 +697,39 @@
             document.getElementById('rev_pulsbreite').innerText = isFinite(pb) ? formatZahl(pb) : '—';
         }
 
-        // ============ GERÄTE-VORLAGE ============
-        function setPreset(maxHz, minPb, btn) {
-            document.getElementById('max_freq').value = maxHz;
-            document.getElementById('min_pulsbreite').value = minPb;
-            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-            if (btn) btn.classList.add('active');
+        // ============ GERÄTE-VORLAGEN ============
+        function setDevicePreset(maxHz, btn) {
+            document.getElementById('device_max_freq').value = maxHz;
+            document.querySelectorAll('.preset-btn.active-device').forEach(b => b.classList.remove('active-device'));
+            if (btn) btn.classList.add('active-device');
+            updateEffectiveLimit();
             berechneImpulswertigkeit();
+        }
+        function setSPSPreset(minPb, btn) {
+            document.getElementById('sps_min_pb').value = minPb;
+            document.querySelectorAll('.preset-btn.active-sps').forEach(b => b.classList.remove('active-sps'));
+            if (btn) btn.classList.add('active-sps');
+            updateEffectiveLimit();
+            berechneImpulswertigkeit();
+        }
+
+        // ============ EFFEKTIVES LIMIT ============
+        function getEffectiveLimits() {
+            const deviceMaxFreq = parseFloat(document.getElementById('device_max_freq').value) || 10000;
+            const spsMinPb      = parseFloat(document.getElementById('sps_min_pb').value) || 100;
+            const spsMaxFreq    = spsMinPb > 0 ? 1000 / (2 * spsMinPb) : Infinity;
+            const effMaxFreq    = Math.min(deviceMaxFreq, spsMaxFreq);
+            const effMinPb      = Math.max(spsMinPb, deviceMaxFreq > 0 ? 1000 / (2 * deviceMaxFreq) : 0);
+            const bottleneck    = spsMaxFreq < deviceMaxFreq ? 'SPS' : deviceMaxFreq < spsMaxFreq ? 'Messgerät' : null;
+            return { deviceMaxFreq, spsMinPb, spsMaxFreq, effMaxFreq, effMinPb, bottleneck };
+        }
+        function updateEffectiveLimit() {
+            const lim = getEffectiveLimits();
+            const el  = document.getElementById('effectiveLimit');
+            const badge = lim.bottleneck
+                ? '<span class="bottleneck ' + (lim.bottleneck === 'SPS' ? 'bottleneck-sps' : 'bottleneck-device') + '">Engpass: ' + lim.bottleneck + '</span>'
+                : '';
+            el.innerHTML = 'Effektives Systemlimit: <b>' + formatZahl(lim.effMaxFreq) + ' Hz</b> / <b>' + formatZahl(lim.effMinPb) + ' ms</b>' + badge;
         }
 
         // ============ GAUGE ============
@@ -818,7 +858,7 @@
 
         // ============ EVENT LISTENERS ============
         // Hauptberechnung
-        document.querySelectorAll('#durchfluss, #impulswertigkeit, #durchfluss_einheit, #impulswertigkeit_einheit, #typ, #max_freq, #min_pulsbreite').forEach(el => {
+        document.querySelectorAll('#durchfluss, #impulswertigkeit, #durchfluss_einheit, #impulswertigkeit_einheit, #typ, #device_max_freq, #sps_min_pb').forEach(el => {
             el.addEventListener('input', berechneImpulswertigkeit);
             el.addEventListener('change', berechneImpulswertigkeit);
         });
@@ -846,6 +886,12 @@
             el.addEventListener('input', berechneMaxDurchfluss);
             el.addEventListener('change', berechneMaxDurchfluss);
         });
+
+        // Effektives Limit beim Start und bei Limit-Eingaben sofort anzeigen
+        document.querySelectorAll('#device_max_freq, #sps_min_pb').forEach(el => {
+            el.addEventListener('input', updateEffectiveLimit);
+        });
+        updateEffectiveLimit();
 
         document.getElementById('max_typ').addEventListener('change', function() {
             aendereMaxEinheiten(this.value);
