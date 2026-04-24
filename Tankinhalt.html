@@ -91,9 +91,26 @@
             <div class="param-section active" id="sec_vCyl">
                 <table>
                     <tr><th colspan="6">Stehender Zylinder</th></tr>
-                    <tr><td colspan="2">Durchmesser</td><td colspan="4"><input class="input-field" type="number" id="vCyl_d" value="2" min="0" step="0.01"> m</td></tr>
-                    <tr><td colspan="2">Gesamthöhe</td><td colspan="4"><input class="input-field" type="number" id="vCyl_h" value="5" min="0" step="0.01"> m</td></tr>
-                    <tr><td colspan="2">Füllstand</td><td colspan="4"><input class="input-field" type="number" id="vCyl_level" value="3" min="0" step="0.001"> m</td></tr>
+                    <tr><td colspan="2">Innendurchmesser</td><td colspan="4"><input class="input-field" type="number" id="vCyl_d" value="2" min="0" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Zylinderlänge (Naht–Naht)</td><td colspan="4"><input class="input-field" type="number" id="vCyl_lcyl" value="4" min="0" step="0.01"> m <span style="font-size:11px;color:var(--text-tertiary)">nur gerader Teil</span></td></tr>
+                    <tr><td colspan="2">Bodenart (unten)</td><td colspan="4">
+                        <select class="input-field" id="vCyl_botHead" onchange="calc()">
+                            <option value="flat">Flachboden</option>
+                            <option value="kloepperboden" selected>Klöpperboden DIN 28011</option>
+                            <option value="korbbogen">Korbbogenboden DIN 28013</option>
+                            <option value="hemisphere">Halbkugelboden</option>
+                        </select>
+                    </td></tr>
+                    <tr><td colspan="2">Deckelart (oben)</td><td colspan="4">
+                        <select class="input-field" id="vCyl_topHead" onchange="calc()">
+                            <option value="kloepperboden" selected>Klöpperboden DIN 28011</option>
+                            <option value="korbbogen">Korbbogenboden DIN 28013</option>
+                            <option value="hemisphere">Halbkugelboden</option>
+                            <option value="flat">Flachboden</option>
+                        </select>
+                    </td></tr>
+                    <tr><td colspan="2">Berechnete Gesamthöhe</td><td colspan="4" class="result-field" style="padding:6px 8px;"><span id="vCyl_totalH">—</span></td></tr>
+                    <tr><td colspan="2">Füllstand (ab Bodenspiegel)</td><td colspan="4"><input class="input-field" type="number" id="vCyl_level" value="3" min="0" step="0.001"> m</td></tr>
                 </table>
             </div>
 
@@ -101,8 +118,16 @@
             <div class="param-section" id="sec_hCyl">
                 <table>
                     <tr><th colspan="6">Liegender Zylinder</th></tr>
-                    <tr><td colspan="2">Durchmesser</td><td colspan="4"><input class="input-field" type="number" id="hCyl_d" value="2" min="0" step="0.01"> m</td></tr>
-                    <tr><td colspan="2">Länge</td><td colspan="4"><input class="input-field" type="number" id="hCyl_l" value="5" min="0" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Innendurchmesser</td><td colspan="4"><input class="input-field" type="number" id="hCyl_d" value="2" min="0" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Zylinderlänge (Naht–Naht)</td><td colspan="4"><input class="input-field" type="number" id="hCyl_lcyl" value="5" min="0" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Bodenart (Stirnseiten)</td><td colspan="4">
+                        <select class="input-field" id="hCyl_headType" onchange="calc()">
+                            <option value="flat">Flachboden</option>
+                            <option value="kloepperboden" selected>Klöpperboden DIN 28011</option>
+                            <option value="korbbogen">Korbbogenboden DIN 28013</option>
+                            <option value="hemisphere">Halbkugelboden</option>
+                        </select>
+                    </td></tr>
                     <tr><td colspan="2">Füllstand (vom Boden)</td><td colspan="4"><input class="input-field" type="number" id="hCyl_level" value="1" min="0" step="0.001"> m</td></tr>
                 </table>
             </div>
@@ -249,30 +274,110 @@
             calc();
         }
 
-        // ============ PURE VOLUME FUNCTIONS ============
+        // ============ HEAD / BODEN GEOMETRIE ============
+        // headType: 'flat' | 'kloepperboden' | 'korbbogen' | 'hemisphere'
 
-        function volVCyl(d, h, levelM) {
-            const r = d / 2;
-            const lv = Math.max(0, Math.min(levelM, h));
-            return { fill: Math.PI * r * r * lv, total: Math.PI * r * r * h, maxH: h };
+        function headParams(D, headType) {
+            if (headType === 'flat')       return { R: 0, r: 0, hb: 0 };
+            if (headType === 'hemisphere') return { R: D / 2, r: 0, hb: D / 2 };
+            let R, r;
+            if (headType === 'kloepperboden') { R = D;       r = 0.1   * D; } // DIN 28011
+            else                              { R = 0.8 * D; r = 0.154 * D; } // Korbbogen DIN 28013
+            const hb = R + r - Math.sqrt(Math.max(0, (R - r) * (R - r) - (D / 2 - r) * (D / 2 - r)));
+            return { R, r, hb };
         }
 
-        function volHCyl(d, l, levelM) {
-            const r = d / 2;
-            const lv = Math.max(0, Math.min(levelM, d));
-            if (r <= 0 || l <= 0) return { fill: 0, total: Math.PI * r * r * l, maxH: d };
-            const area = r * r * Math.acos((r - lv) / r) - (r - lv) * Math.sqrt(Math.max(0, 2 * r * lv - lv * lv));
-            return { fill: area * l, total: Math.PI * r * r * l, maxH: d };
+        // Innenradius des Bodens bei Höhe y vom Tiefpunkt (Scheitel)
+        function headRadiusAtY(y, D, headType) {
+            if (headType === 'flat') return D / 2;
+            const { R, r, hb } = headParams(D, headType);
+            if (hb <= 0 || y >= hb) return D / 2;
+            if (headType === 'hemisphere') return Math.sqrt(Math.max(0, D * y - y * y));
+            // Übergangshoehe Kalotte → Krempe
+            const yt = R * (hb - 2 * r) / (R - r);
+            if (y <= yt) {
+                return Math.sqrt(Math.max(0, 2 * R * y - y * y)); // Kalotte
+            } else {
+                const kcy = hb - r, kcx = D / 2 - r;
+                return kcx + Math.sqrt(Math.max(0, r * r - (y - kcy) * (y - kcy))); // Krempe
+            }
         }
 
-        function volSphere(d, levelM) {
-            const r = d / 2;
-            const lv = Math.max(0, Math.min(levelM, d));
-            if (r <= 0) return { fill: 0, total: 0, maxH: d };
+        // Teilvolumen eines Bodens von 0 bis fillH (trapez-Integration)
+        function headPartialVol(fillH, D, headType) {
+            if (headType === 'flat' || fillH <= 0) return 0;
+            const { hb } = headParams(D, headType);
+            const h = Math.min(fillH, hb);
+            const N = 80;
+            const dy = h / N;
+            let vol = 0, prevA = Math.PI * headRadiusAtY(0, D, headType) ** 2;
+            for (let i = 1; i <= N; i++) {
+                const a = Math.PI * headRadiusAtY(i * dy, D, headType) ** 2;
+                vol += (prevA + a) * 0.5 * dy;
+                prevA = a;
+            }
+            return vol;
+        }
+
+        function headTotalVol(D, headType) {
+            return headPartialVol(headParams(D, headType).hb, D, headType);
+        }
+
+        // ============ HILFE: Kreissegment-Fläche ============
+        function circleSegArea(R, h) {
+            if (h <= 0) return 0;
+            if (h >= 2 * R) return Math.PI * R * R;
+            return R * R * Math.acos((R - h) / R) - (R - h) * Math.sqrt(Math.max(0, 2 * R * h - h * h));
+        }
+
+        // ============ VOLUMEN-FUNKTIONEN ============
+
+        function volVCyl(D, Lcyl, botHead, topHead, levelM) {
+            const r = D / 2;
+            const hbot = headParams(D, botHead).hb;
+            const htop = headParams(D, topHead).hb;
+            const maxH = hbot + Lcyl + htop;
+            const total = headTotalVol(D, botHead) + Math.PI * r * r * Lcyl + headTotalVol(D, topHead);
+            const lv = Math.max(0, Math.min(levelM, maxH));
+            let fill;
+            if      (lv <= hbot)              fill = headPartialVol(lv, D, botHead);
+            else if (lv <= hbot + Lcyl)       fill = headTotalVol(D, botHead) + Math.PI * r * r * (lv - hbot);
+            else                              fill = headTotalVol(D, botHead) + Math.PI * r * r * Lcyl
+                                                   + headPartialVol(lv - hbot - Lcyl, D, topHead);
+            return { fill, total, maxH };
+        }
+
+        // Liegender Zylinder – Füllstand vom untersten Scheitelpunkt (Boden der Kreisfläche)
+        function volHCyl(D, Lcyl, headType, levelM) {
+            const r = D / 2;
+            const { hb } = headParams(D, headType);
+            const lv = Math.max(0, Math.min(levelM, D));
+            // Zylinderteil
+            const Vcyl = circleSegArea(r, lv) * Lcyl;
+            // Zwei Böden: Integration über axiale Position x (0..hb)
+            let Vheads = 0;
+            if (headType !== 'flat' && hb > 0) {
+                const N = 80, dx = hb / N;
+                let prevA = circleSegArea(headRadiusAtY(0, D, headType), lv);
+                for (let i = 1; i <= N; i++) {
+                    const a = circleSegArea(headRadiusAtY(i * dx, D, headType), lv);
+                    Vheads += (prevA + a) * 0.5 * dx;
+                    prevA = a;
+                }
+                Vheads *= 2;
+            }
+            const total = Math.PI * r * r * Lcyl + 2 * headTotalVol(D, headType);
+            return { fill: Vcyl + Vheads, total, maxH: D };
+        }
+
+        function volSphere(D, levelM) {
+            const r = D / 2;
+            const lv = Math.max(0, Math.min(levelM, D));
+            if (r <= 0) return { fill: 0, total: 0, maxH: D };
             return {
-                fill: Math.PI * lv * lv * (3 * r - lv) / 3,
+                fill:  Math.PI * lv * lv * (3 * r - lv) / 3,
                 total: (4 / 3) * Math.PI * r * r * r,
-                maxH: d
+                maxH:  D
             };
         }
 
@@ -289,11 +394,13 @@
 
         // ============ GEOMETRY READER ============
 
+        function sel(id) { const el = document.getElementById(id); return el ? el.value : 'flat'; }
+
         function getGeom() {
             function n(id) { return parseFloat(document.getElementById(id).value) || 0; }
             switch (activeShape) {
-                case 'vCyl':   return { d: n('vCyl_d'), h: n('vCyl_h'), level: n('vCyl_level') };
-                case 'hCyl':   return { d: n('hCyl_d'), l: n('hCyl_l'), level: n('hCyl_level') };
+                case 'vCyl':   return { d: n('vCyl_d'), lcyl: n('vCyl_lcyl'), botHead: sel('vCyl_botHead'), topHead: sel('vCyl_topHead'), level: n('vCyl_level') };
+                case 'hCyl':   return { d: n('hCyl_d'), lcyl: n('hCyl_lcyl'), headType: sel('hCyl_headType'), level: n('hCyl_level') };
                 case 'sphere': return { d: n('sph_d'), level: n('sph_level') };
                 case 'cone':   return { d1: n('cone_d1'), d2: n('cone_d2'), h: n('cone_h'), level: n('cone_level') };
             }
@@ -302,10 +409,22 @@
         function getVolumeAtLevel(levelM) {
             const g = getGeom();
             switch (activeShape) {
-                case 'vCyl':   return volVCyl(g.d, g.h, levelM);
-                case 'hCyl':   return volHCyl(g.d, g.l, levelM);
+                case 'vCyl':   return volVCyl(g.d, g.lcyl, g.botHead, g.topHead, levelM);
+                case 'hCyl':   return volHCyl(g.d, g.lcyl, g.headType, levelM);
                 case 'sphere': return volSphere(g.d, levelM);
                 case 'cone':   return volCone(g.d1, g.d2, g.h, levelM);
+            }
+        }
+
+        // Gesamthöhe des Tanks (für Anzeige und Stutzen-Berechnung)
+        function getTotalHeight() {
+            const g = getGeom();
+            switch (activeShape) {
+                case 'vCyl':   return headParams(g.d, g.botHead).hb + g.lcyl + headParams(g.d, g.topHead).hb;
+                case 'hCyl':   return g.d;
+                case 'sphere': return g.d;
+                case 'cone':   return g.h;
+                default:       return 0;
             }
         }
 
@@ -328,6 +447,13 @@
             const cp = Math.max(0, Math.min(100, pct));
             document.getElementById('fillBarFill').style.width = cp + '%';
             document.getElementById('fillPctLabel').textContent = cp.toFixed(1) + '%';
+
+            // Gesamthöhe anzeigen (stehender Zylinder)
+            const thEl = document.getElementById('vCyl_totalH');
+            if (thEl) {
+                const totalH = getTotalHeight();
+                thEl.textContent = totalH > 0 ? totalH.toFixed(3) + ' m' : '—';
+            }
 
             calcReverse(res);
             updateLinTable();
@@ -432,11 +558,8 @@
 
         // ============ EVENTS ============
 
-        document.querySelectorAll('input[type="number"]').forEach(el => {
-            el.addEventListener('input', calc);
-        });
-        document.getElementById('rev_unit').addEventListener('change', calc);
-        document.getElementById('lin_n').addEventListener('change', calc);
+        document.querySelectorAll('input[type="number"]').forEach(el => el.addEventListener('input', calc));
+        document.querySelectorAll('select').forEach(el => el.addEventListener('change', calc));
 
         calc();
     </script>
