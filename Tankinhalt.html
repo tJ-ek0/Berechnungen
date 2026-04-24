@@ -746,18 +746,20 @@
         }
 
         // Kopfprofil-Punkte: rechte Hälfte, von Schulter (t=0) → Scheitel (t=1)
+        // Profil-Punkte einer Hälfte des Bodens: pts[0]=Schulter (cx+r), pts[N]=Scheitel (cx)
         function headProfilePts(D, headType, scale, cx, yShoulderSvg, apexBelow) {
             const { hb } = headParams(D, headType);
-            if (hb <= 0) return [{ x: cx, y: yShoulderSvg }];
+            // Flachboden: nur die Schulter zurückgeben (kein Scheitel)
+            if (hb <= 0) return [{ x: cx + D / 2 * scale, y: yShoulderSvg }];
             const N = 20, dir = apexBelow ? 1 : -1;
             const pts = [];
             for (let i = 0; i <= N; i++) {
                 const t      = i / N;
-                const yLocal = (1 - t) * hb;            // Meter vom Scheitel (hb bei Schulter, 0 bei Scheitel)
+                const yLocal = (1 - t) * hb;   // hb bei Schulter (t=0), 0 beim Scheitel (t=1)
                 const r      = headRadiusAtY(yLocal, D, headType);
                 pts.push({ x: cx + r * scale, y: yShoulderSvg + dir * t * hb * scale });
             }
-            return pts; // pts[0]=Schulter, pts[N]=Scheitel
+            return pts; // pts[0]=Schulter (cx+r), pts[N]=Scheitel (cx)
         }
 
         function ptsToD(pts, close = true) {
@@ -767,27 +769,43 @@
         }
 
         function buildVerticalPath(D, Lcyl, botHead, topHead, scale, cx, yTopApex) {
-            const hbot = headParams(D, botHead).hb;
+            const r_px = D / 2 * scale;
             const htop = headParams(D, topHead).hb;
-            const r    = D / 2;
+            const hbot = headParams(D, botHead).hb;
             const yTopShoulder = yTopApex + htop * scale;
             const yBotShoulder = yTopShoulder + Lcyl * scale;
             const yBotApex     = yBotShoulder + hbot * scale;
 
-            const topPts = headProfilePts(D, topHead, scale, cx, yTopShoulder, false); // Schulter→Scheitel, nach oben
-            const botPts = headProfilePts(D, botHead, scale, cx, yBotShoulder, true);  // Schulter→Scheitel, nach unten
+            // pts[0]=Schulter(cx+r), pts[N]=Scheitel(cx) — für Flachboden nur 1 Punkt
+            const topPts = headProfilePts(D, topHead, scale, cx, yTopShoulder, false);
+            const botPts = headProfilePts(D, botHead, scale, cx, yBotShoulder, true);
 
             const all = [];
-            // Rechte Seite: Scheitel oben → Schulter → runter → Schulter unten → Scheitel unten
-            for (let i = topPts.length - 1; i >= 0; i--) all.push(topPts[i]);        // oben Scheitel→Schulter
-            all.push({ x: cx + r * scale, y: yBotShoulder });                         // rechte Wand
-            for (let i = 1; i < botPts.length; i++) all.push(botPts[i]);              // unten Schulter→Scheitel
-            // Linke Seite (gespiegelt)
-            for (let i = botPts.length - 2; i >= 0; i--) all.push({ x: cx - (botPts[i].x - cx), y: botPts[i].y });
-            all.push({ x: cx - r * scale, y: yTopShoulder });
-            for (let i = 1; i < topPts.length; i++) all.push({ x: cx - (topPts[i].x - cx), y: topPts[i].y });
 
-            return { d: ptsToD(all), yTopApex, yBotApex, yTopShoulder, yBotShoulder, r_px: r * scale };
+            // 1. Rechte Seite Deckel: von Scheitel/Ecke hinunter zur Schulter
+            for (let i = topPts.length - 1; i >= 0; i--) all.push(topPts[i]);
+
+            // 2. Rechte Zylinderwand
+            all.push({ x: cx + r_px, y: yBotShoulder });
+
+            // 3. Rechte Seite Boden: Schulter → Scheitel
+            for (let i = 1; i < botPts.length; i++) all.push(botPts[i]);
+
+            // 4. Linke Seite Boden: Scheitel → linke Schulter (gespiegelt)
+            //    Für Flachboden (1 Punkt): startIndex=0 → erzeugt linke untere Ecke
+            //    Für Gewölbt (N+1 Punkte): startIndex=N-1 → überspringt Scheitel-Duplikat
+            const botMirrorStart = botPts.length > 1 ? botPts.length - 2 : 0;
+            for (let i = botMirrorStart; i >= 0; i--)
+                all.push({ x: cx - (botPts[i].x - cx), y: botPts[i].y });
+
+            // 5. Linke Zylinderwand
+            all.push({ x: cx - r_px, y: yTopShoulder });
+
+            // 6. Linke Seite Deckel: linke Schulter → Scheitel (gespiegelt, Schulter bereits oben)
+            for (let i = 1; i < topPts.length; i++)
+                all.push({ x: cx - (topPts[i].x - cx), y: topPts[i].y });
+
+            return { d: ptsToD(all), yTopApex, yBotApex, yTopShoulder, yBotShoulder, r_px };
         }
 
         function drawTank() {
@@ -852,17 +870,37 @@
                     labelsGrp.appendChild(svgEl('text', { x: cx + r_px + 4, y: (yURV + 4).toFixed(1), class: 'svg-label' }, 'URV'));
                 }
 
-                // Füllstand-Linie
-                labelsGrp.appendChild(svgEl('line', { x1: (cx - r_px).toFixed(1), y1: yFill.toFixed(1), x2: (cx + r_px).toFixed(1), y2: yFill.toFixed(1), stroke: cFillB, 'stroke-width': '2' }));
+                // Füllstand-Linie (blau)
+                if ((g.level || 0) > 0 && yFill > yTopApex) {
+                    labelsGrp.appendChild(svgEl('line', { x1: (cx - r_px + 2).toFixed(1), y1: yFill.toFixed(1), x2: (cx + r_px - 2).toFixed(1), y2: yFill.toFixed(1), stroke: cFillB, 'stroke-width': '2' }));
+                }
 
-                // Maßpfeile links: Gesamthöhe & Füllstand
-                const xArr = cx - r_px - 14;
-                labelsGrp.appendChild(svgEl('line', { x1: xArr, y1: yTopApex.toFixed(1), x2: xArr, y2: yBotApex.toFixed(1), stroke: cStroke, 'stroke-width': 1 }));
-                labelsGrp.appendChild(svgEl('text', { x: xArr - 2, y: ((yTopApex + yBotApex) / 2).toFixed(1), class: 'svg-dim', transform: `rotate(-90 ${xArr - 2} ${((yTopApex + yBotApex) / 2).toFixed(1)})`, 'text-anchor': 'middle' }, totalH.toFixed(2) + ' m'));
+                // Füllgrad-Text mittig in der Flüssigkeit
+                const pct = res.total > 0 ? (res.fill / res.total * 100) : 0;
+                if (pct > 5) {
+                    const yTxt = yFill + Math.min((yBotApex - yFill) / 2 + 6, (yBotApex - yFill) * 0.6);
+                    labelsGrp.appendChild(svgEl('text', { x: cx, y: yTxt.toFixed(1), class: 'svg-val', 'text-anchor': 'middle' }, pct.toFixed(1) + ' %'));
+                }
+
+                // Maßpfeil links: Gesamthöhe
+                const xArr = Math.max(8, cx - r_px - 16);
+                labelsGrp.appendChild(svgEl('line', { x1: xArr, y1: yTopApex.toFixed(1), x2: xArr, y2: yBotApex.toFixed(1), stroke: cStroke, 'stroke-width': '1' }));
+                labelsGrp.appendChild(svgEl('line', { x1: (xArr - 3), y1: yTopApex.toFixed(1), x2: (xArr + 3), y2: yTopApex.toFixed(1), stroke: cStroke, 'stroke-width': '1' }));
+                labelsGrp.appendChild(svgEl('line', { x1: (xArr - 3), y1: yBotApex.toFixed(1), x2: (xArr + 3), y2: yBotApex.toFixed(1), stroke: cStroke, 'stroke-width': '1' }));
+                labelsGrp.appendChild(svgEl('text', { x: xArr - 3, y: ((yTopApex + yBotApex) / 2 + 4).toFixed(1), class: 'svg-dim', transform: `rotate(-90,${xArr - 3},${((yTopApex + yBotApex) / 2 + 4).toFixed(1)})`, 'text-anchor': 'middle' }, totalH.toFixed(2) + ' m'));
+
+                // Maßpfeil rechts: Füllstand
+                if ((g.level || 0) > 0) {
+                    const xArrR = Math.min(SVG_W - 6, cx + r_px + 16);
+                    labelsGrp.appendChild(svgEl('line', { x1: xArrR, y1: yFill.toFixed(1), x2: xArrR, y2: yBotApex.toFixed(1), stroke: cFillB, 'stroke-width': '1' }));
+                    labelsGrp.appendChild(svgEl('line', { x1: (xArrR - 3), y1: yFill.toFixed(1), x2: (xArrR + 3), y2: yFill.toFixed(1), stroke: cFillB, 'stroke-width': '1' }));
+                    labelsGrp.appendChild(svgEl('line', { x1: (xArrR - 3), y1: yBotApex.toFixed(1), x2: (xArrR + 3), y2: yBotApex.toFixed(1), stroke: cFillB, 'stroke-width': '1' }));
+                    labelsGrp.appendChild(svgEl('text', { x: xArrR + 3, y: ((yFill + yBotApex) / 2 + 4).toFixed(1), class: 'svg-val', transform: `rotate(-90,${xArrR + 3},${((yFill + yBotApex) / 2 + 4).toFixed(1)})`, 'text-anchor': 'middle' }, (g.level || 0).toFixed(2) + ' m'));
+                }
 
                 // Durchmesser unten
-                const yDimLine = yBotApex + 14;
-                labelsGrp.appendChild(svgEl('line', { x1: (cx - r_px).toFixed(1), y1: yDimLine, x2: (cx + r_px).toFixed(1), y2: yDimLine, stroke: cStroke, 'stroke-width': 1 }));
+                const yDimLine = Math.min(SVG_H - 16, yBotApex + 14);
+                labelsGrp.appendChild(svgEl('line', { x1: (cx - r_px).toFixed(1), y1: yDimLine, x2: (cx + r_px).toFixed(1), y2: yDimLine, stroke: cStroke, 'stroke-width': '1' }));
                 labelsGrp.appendChild(svgEl('text', { x: cx, y: yDimLine + 11, class: 'svg-dim', 'text-anchor': 'middle' }, 'Ø ' + g.d.toFixed(2) + ' m'));
 
                 // Stutzen zeichnen
@@ -922,29 +960,47 @@
                 }
 
             } else if (activeShape === 'hCyl' && g.d > 0) {
-                // Liegender Zylinder: Seitenansicht
+                // Liegender Zylinder: Seitenansicht mit Oval-Stirnflächen
                 const { hb } = headParams(g.d, g.headType);
                 const totalL  = g.lcyl + 2 * hb;
                 const scale   = Math.min(drawW / totalL, drawH / g.d);
-                const xLeft   = cx - totalL * scale / 2;
-                const xRight  = cx + totalL * scale / 2;
                 const r_px    = g.d / 2 * scale;
+                const hb_px   = Math.max(1, hb * scale);
+                const xCylL   = cx - totalL * scale / 2 + hb_px;
+                const xCylR   = cx + totalL * scale / 2 - hb_px;
+                const xLeft   = xCylL - hb_px;
+                const xRight  = xCylR + hb_px;
                 const yMid    = SVG_H / 2;
 
-                // Einfaches Rechteck + Bögen für Stirnflächen
-                const d = `M ${xLeft},${yMid - r_px} L ${xRight},${yMid - r_px} L ${xRight},${yMid + r_px} L ${xLeft},${yMid + r_px} Z`;
-                outline.setAttribute('d', d);
-                clipPath.setAttribute('d', d);
+                // Umriss: Rechteck-Mitte + Ellipsen-Hälften an den Enden
+                let hcylD;
+                if (hb <= 0) {
+                    hcylD = `M ${xLeft},${yMid - r_px} L ${xRight},${yMid - r_px} L ${xRight},${yMid + r_px} L ${xLeft},${yMid + r_px} Z`;
+                } else {
+                    hcylD = `M ${xCylL},${yMid - r_px} L ${xCylR},${yMid - r_px}`
+                          + ` A ${hb_px},${r_px} 0 0 1 ${xCylR},${yMid + r_px}`
+                          + ` L ${xCylL},${yMid + r_px}`
+                          + ` A ${hb_px},${r_px} 0 0 1 ${xCylL},${yMid - r_px} Z`;
+                }
+                outline.setAttribute('d', hcylD);
+                clipPath.setAttribute('d', hcylD);
 
                 const yFill = yMid + r_px - g.level * scale;
                 fillRect.setAttribute('fill', cFill);
-                fillRect.setAttribute('x', xLeft.toFixed(1));
+                fillRect.setAttribute('x', (xLeft - 2).toFixed(1));
                 fillRect.setAttribute('y', yFill.toFixed(1));
-                fillRect.setAttribute('width', (totalL * scale).toFixed(1));
+                fillRect.setAttribute('width', (xRight - xLeft + 4).toFixed(1));
                 fillRect.setAttribute('height', (g.level * scale + 5).toFixed(1));
 
-                labelsGrp.appendChild(svgEl('text', { x: cx, y: yMid + r_px + 18, class: 'svg-dim', 'text-anchor': 'middle' }, 'L = ' + totalL.toFixed(2) + ' m,  Ø ' + g.d.toFixed(2) + ' m'));
-                labelsGrp.appendChild(svgEl('line', { x1: xLeft.toFixed(1), y1: yFill.toFixed(1), x2: xRight.toFixed(1), y2: yFill.toFixed(1), stroke: cFillB, 'stroke-width': '2' }));
+                // Füllstand-Linie und %-Label
+                if ((g.level || 0) > 0) {
+                    labelsGrp.appendChild(svgEl('line', { x1: xLeft.toFixed(1), y1: yFill.toFixed(1), x2: xRight.toFixed(1), y2: yFill.toFixed(1), stroke: cFillB, 'stroke-width': '2' }));
+                    const pct = res.total > 0 ? res.fill / res.total * 100 : 0;
+                    if (pct > 5) {
+                        labelsGrp.appendChild(svgEl('text', { x: cx, y: (yFill + (yMid + r_px - yFill) * 0.6 + 5).toFixed(1), class: 'svg-val', 'text-anchor': 'middle' }, pct.toFixed(1) + ' %'));
+                    }
+                }
+                labelsGrp.appendChild(svgEl('text', { x: cx, y: Math.min(SVG_H - 4, yMid + r_px + 18), class: 'svg-dim', 'text-anchor': 'middle' }, 'L = ' + totalL.toFixed(2) + ' m,  Ø ' + g.d.toFixed(2) + ' m'));
 
             } else if (activeShape === 'sphere' && g.d > 0) {
                 const r = g.d / 2;
@@ -963,6 +1019,11 @@
                 fillRect.setAttribute('width', (2 * r_px + 4).toFixed(1));
                 fillRect.setAttribute('height', (g.level * scale + r_px + 5).toFixed(1));
                 labelsGrp.appendChild(svgEl('text', { x: cx, y: cy + r_px + 18, class: 'svg-dim', 'text-anchor': 'middle' }, 'Ø ' + g.d.toFixed(2) + ' m'));
+                const pctSph = res.total > 0 ? res.fill / res.total * 100 : 0;
+                if (pctSph > 5) {
+                    const yFillSph = cy + r_px - g.level * scale;
+                    labelsGrp.appendChild(svgEl('text', { x: cx, y: (yFillSph + (cy + r_px - yFillSph) * 0.55 + 5).toFixed(1), class: 'svg-val', 'text-anchor': 'middle' }, pctSph.toFixed(1) + ' %'));
+                }
 
             } else if (activeShape === 'cone' && g.h > 0) {
                 const maxD  = Math.max(g.d1, g.d2);
@@ -981,7 +1042,11 @@
                 fillRect.setAttribute('y', yFill.toFixed(1));
                 fillRect.setAttribute('width', '300');
                 fillRect.setAttribute('height', (g.level * scale + 5).toFixed(1));
-                labelsGrp.appendChild(svgEl('text', { x: cx, y: yBot + 16, class: 'svg-dim', 'text-anchor': 'middle' }, 'H = ' + g.h.toFixed(2) + ' m'));
+                labelsGrp.appendChild(svgEl('text', { x: cx, y: Math.min(SVG_H - 4, yBot + 16), class: 'svg-dim', 'text-anchor': 'middle' }, 'H = ' + g.h.toFixed(2) + ' m'));
+                const pctCone = res.total > 0 ? res.fill / res.total * 100 : 0;
+                if (pctCone > 3) {
+                    labelsGrp.appendChild(svgEl('text', { x: cx, y: (yBot - g.level * scale / 2).toFixed(1), class: 'svg-val', 'text-anchor': 'middle' }, pctCone.toFixed(1) + ' %'));
+                }
             }
         }
 
