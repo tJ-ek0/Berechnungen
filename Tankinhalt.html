@@ -49,6 +49,23 @@
 
         .lin-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
         .lin-controls label { font-size: 13px; color: var(--text-secondary); }
+
+        .device-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+        .device-badge.levelflex { background: #dbeafe; color: #1e40af; }
+        .device-badge.radar     { background: #dcfce7; color: #15803d; }
+        .device-badge.ultrasonic{ background: #fef9c3; color: #854d0e; }
+
+        .calib-box { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 10px 14px; margin: 10px 0; font-size: 13px; }
+        .calib-box .calib-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid var(--border-default); }
+        .calib-box .calib-row:last-child { border-bottom: none; }
+        .calib-box .calib-label { color: var(--text-secondary); }
+        .calib-box .calib-val { font-family: var(--font-mono); font-weight: 600; color: var(--text-primary); }
+        .calib-box .calib-hint { font-size: 11px; color: var(--text-tertiary); margin-top: 6px; }
+
+        .apply-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 600; border-radius: var(--radius-md); border: 1px solid var(--accent-fg); background: var(--bg-default); color: var(--accent-fg); cursor: pointer; transition: all 0.2s; font-family: var(--font-sans); }
+        .apply-btn:hover { background: var(--accent-fg); color: var(--text-on-emphasis); }
+
+        .hidden-row { display: none; }
     </style>
 </head>
 <body data-tool-id="tank">
@@ -152,9 +169,128 @@
                 </table>
             </div>
 
-            <!-- Messstellenkonfiguration -->
+            <!-- Stutzen-Konfiguration -->
             <hr class="section-divider">
-            <p class="section-title">Messstellenkonfiguration</p>
+            <p class="section-title">Stutzen &amp; Einbau</p>
+            <table>
+                <tr>
+                    <td colspan="2">Stutzen-Position</td>
+                    <td colspan="4">
+                        <select class="input-field" id="nozzle_pos" onchange="onNozzlePosChange()">
+                            <option value="top">Oben (Deckel/Kopf)</option>
+                            <option value="side">Seite (Mantelrohr)</option>
+                            <option value="bottom">Unten (Boden)</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr id="nozzle_height_row" class="hidden-row">
+                    <td colspan="2">Stutzen-Höhe über Tankboden</td>
+                    <td colspan="4"><input class="input-field" type="number" id="nozzle_height" value="0" min="0" step="1"> mm</td>
+                </tr>
+                <tr>
+                    <td colspan="2">Außenlänge (über Tank)</td>
+                    <td colspan="4"><input class="input-field" type="number" id="nozzle_outside" value="150" min="0" step="1"> mm</td>
+                </tr>
+                <tr>
+                    <td colspan="2">Tauchtiefe (in Tank)</td>
+                    <td colspan="4"><input class="input-field" type="number" id="nozzle_insertion" value="0" min="0" step="1"> mm <span style="font-size:11px;color:var(--text-tertiary)">für eingesch. Sonden</span></td>
+                </tr>
+                <tr>
+                    <td colspan="2">Neigungswinkel</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="tilt_angle" value="0" min="0" max="45" step="0.1" style="width:80px"> °
+                        <button class="action-btn" onclick="readTiltFromPhone()" title="Handy-Neigungssensor" style="margin-left:6px">📱 Handy-Sensor</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Sensor-Referenzhöhe (berechnet)</td>
+                    <td colspan="4" style="font-family:var(--font-mono);font-weight:600;color:var(--text-success);padding:6px 8px"><span id="h_sensor_display">—</span></td>
+                </tr>
+            </table>
+
+            <!-- E+H Messgerät -->
+            <hr class="section-divider">
+            <p class="section-title">Messgerät (E+H)</p>
+            <table>
+                <tr>
+                    <td colspan="2">Gerätetyp</td>
+                    <td colspan="4">
+                        <select class="input-field" id="device_sel" onchange="onDeviceChanged()">
+                            <option value="none">Kein / Manuell</option>
+                            <optgroup label="── Levelflex (Geführtes Mikrowellenradar) ──">
+                                <option value="fmp51">Levelflex FMP51</option>
+                                <option value="fmp52">Levelflex FMP52</option>
+                                <option value="fmp54">Levelflex FMP54 (beheizbar)</option>
+                                <option value="fmp55">Levelflex FMP55 (Hygiene)</option>
+                                <option value="fmp56">Levelflex FMP56 (Ex)</option>
+                            </optgroup>
+                            <optgroup label="── Micropilot (Freiraum-Radar) ──">
+                                <option value="fmr10">Micropilot FMR10 – 6 GHz, 10°</option>
+                                <option value="fmr20">Micropilot FMR20 – 26 GHz, 8°</option>
+                                <option value="fmr30">Micropilot FMR30 – 26 GHz, 4°</option>
+                                <option value="fmr50">Micropilot FMR50 – 76 GHz, 4°</option>
+                                <option value="fmr51">Micropilot FMR51 – 76 GHz, 3°</option>
+                                <option value="fmr54">Micropilot FMR54 – 76 GHz, 3°</option>
+                                <option value="fmr57">Micropilot FMR57 – 76 GHz, 4°</option>
+                            </optgroup>
+                            <optgroup label="── Prosonic (Ultraschall) ──">
+                                <option value="fmu41">Prosonic FMU41 – 12°</option>
+                                <option value="fmu42">Prosonic FMU42 – 12°</option>
+                                <option value="fmu43">Prosonic FMU43 – 8°</option>
+                                <option value="fmu44">Prosonic FMU44 – 8°</option>
+                            </optgroup>
+                        </select>
+                    </td>
+                </tr>
+                <!-- Levelflex: Sondenlänge -->
+                <tr id="probe_row" class="hidden-row">
+                    <td colspan="2">Sondenlänge</td>
+                    <td colspan="4"><input class="input-field" type="number" id="probe_length" value="3000" min="0" step="10"> mm</td>
+                </tr>
+                <!-- Sperrbereich oben (alle Geräte) -->
+                <tr id="bdt_row" class="hidden-row">
+                    <td colspan="2">Sperrbereich oben (BDT)</td>
+                    <td colspan="4"><input class="input-field" type="number" id="bdt_mm" value="0" min="0" step="1"> mm</td>
+                </tr>
+                <!-- Sperrbereich unten (Levelflex) -->
+                <tr id="bdb_row" class="hidden-row">
+                    <td colspan="2">Sperrbereich unten (BDB)</td>
+                    <td colspan="4"><input class="input-field" type="number" id="bdb_mm" value="0" min="0" step="1"> mm</td>
+                </tr>
+                <!-- Abstrahlwinkel (Radar/US) -->
+                <tr id="beam_row" class="hidden-row">
+                    <td colspan="2">Abstrahlwinkel</td>
+                    <td colspan="4"><input class="input-field" type="number" id="beam_angle" value="4" min="1" max="30" step="0.5"> °</td>
+                </tr>
+            </table>
+
+            <!-- Berechnete Abgleich-Werte -->
+            <div class="calib-box" id="calibBox" style="display:none">
+                <div class="calib-row">
+                    <span class="calib-label">E – Leerabgleich (4 mA-Abstand)</span>
+                    <span class="calib-val" id="e_calib">—</span>
+                </div>
+                <div class="calib-row">
+                    <span class="calib-label">F – Vollabgleich (20 mA-Abstand)</span>
+                    <span class="calib-val" id="f_calib">—</span>
+                </div>
+                <div class="calib-row">
+                    <span class="calib-label">Eff. LRV (Leer-Niveau)</span>
+                    <span class="calib-val" id="eff_lrv">—</span>
+                </div>
+                <div class="calib-row">
+                    <span class="calib-label">Eff. URV (Voll-Niveau)</span>
+                    <span class="calib-val" id="eff_urv">—</span>
+                </div>
+                <div class="calib-hint" id="tilt_hint" style="display:none"></div>
+                <div style="margin-top:10px">
+                    <button class="apply-btn" onclick="applyCalibToConfig()">↓ LRV / URV übernehmen</button>
+                </div>
+            </div>
+
+            <!-- Transmitter-Konfiguration -->
+            <hr class="section-divider">
+            <p class="section-title">Transmitter-Konfiguration</p>
             <table>
                 <tr>
                     <td colspan="2">Dichte des Mediums</td>
@@ -264,6 +400,152 @@
     <script src="shared.js"></script>
     <script>
         let activeShape = 'vCyl';
+
+        // ============ E+H GERÄTEDATENBANK ============
+        const EH_DEVICES = {
+            // Levelflex – Geführtes Mikrowellenradar
+            fmp51: { name:'Levelflex FMP51', type:'levelflex', bdt:100, bdb:100,  beam:null },
+            fmp52: { name:'Levelflex FMP52', type:'levelflex', bdt:100, bdb:100,  beam:null },
+            fmp54: { name:'Levelflex FMP54', type:'levelflex', bdt:200, bdb:150,  beam:null },
+            fmp55: { name:'Levelflex FMP55', type:'levelflex', bdt:100, bdb:100,  beam:null },
+            fmp56: { name:'Levelflex FMP56', type:'levelflex', bdt:100, bdb:100,  beam:null },
+            // Micropilot – Freiraum-Radar
+            fmr10: { name:'Micropilot FMR10', type:'radar',    bdt:300, bdb:0,    beam:10  },
+            fmr20: { name:'Micropilot FMR20', type:'radar',    bdt:300, bdb:0,    beam:8   },
+            fmr30: { name:'Micropilot FMR30', type:'radar',    bdt:300, bdb:0,    beam:4   },
+            fmr50: { name:'Micropilot FMR50', type:'radar',    bdt:500, bdb:0,    beam:4   },
+            fmr51: { name:'Micropilot FMR51', type:'radar',    bdt:500, bdb:0,    beam:3   },
+            fmr54: { name:'Micropilot FMR54', type:'radar',    bdt:500, bdb:0,    beam:3   },
+            fmr57: { name:'Micropilot FMR57', type:'radar',    bdt:400, bdb:0,    beam:4   },
+            // Prosonic – Ultraschall
+            fmu41: { name:'Prosonic FMU41',   type:'ultrasonic',bdt:250, bdb:0,   beam:12  },
+            fmu42: { name:'Prosonic FMU42',   type:'ultrasonic',bdt:250, bdb:0,   beam:12  },
+            fmu43: { name:'Prosonic FMU43',   type:'ultrasonic',bdt:250, bdb:0,   beam:8   },
+            fmu44: { name:'Prosonic FMU44',   type:'ultrasonic',bdt:250, bdb:0,   beam:8   },
+        };
+
+        // ============ STUTZEN UI ============
+        function onNozzlePosChange() {
+            const pos = document.getElementById('nozzle_pos').value;
+            document.getElementById('nozzle_height_row').classList.toggle('hidden-row', pos !== 'side');
+            calc();
+        }
+
+        // Sensor-Referenzhöhe berechnen (mm über Tankboden-Innenfläche)
+        function getSensorHeight() {
+            const pos     = document.getElementById('nozzle_pos').value;
+            const outside = parseFloat(document.getElementById('nozzle_outside').value) || 0;
+            const insert  = parseFloat(document.getElementById('nozzle_insertion').value) || 0;
+            const totalH_mm = getTotalHeight() * 1000;
+            if (pos === 'top')    return totalH_mm + outside - insert;
+            if (pos === 'side')   return parseFloat(document.getElementById('nozzle_height').value) || 0;
+            if (pos === 'bottom') return insert - outside; // negativ = unter Tankboden
+            return 0;
+        }
+
+        // ============ GERÄT UI ============
+        function onDeviceChanged() {
+            const key = document.getElementById('device_sel').value;
+            const dev = EH_DEVICES[key];
+
+            const isLevelflex   = dev && dev.type === 'levelflex';
+            const isRadarOrUS   = dev && (dev.type === 'radar' || dev.type === 'ultrasonic');
+            const hasDevice     = !!dev;
+
+            document.getElementById('probe_row').classList.toggle('hidden-row', !isLevelflex);
+            document.getElementById('bdb_row').classList.toggle('hidden-row', !isLevelflex);
+            document.getElementById('bdt_row').classList.toggle('hidden-row', !hasDevice);
+            document.getElementById('beam_row').classList.toggle('hidden-row', !isRadarOrUS);
+            document.getElementById('calibBox').style.display = hasDevice ? '' : 'none';
+
+            if (dev) {
+                document.getElementById('bdt_mm').value  = dev.bdt;
+                document.getElementById('bdb_mm').value  = dev.bdb;
+                if (dev.beam !== null) document.getElementById('beam_angle').value = dev.beam;
+            }
+            calc();
+        }
+
+        // Berechnete Abgleich-Werte ausgeben
+        function updateCalibBox() {
+            const key = document.getElementById('device_sel').value;
+            const dev = EH_DEVICES[key];
+            if (!dev) { document.getElementById('calibBox').style.display = 'none'; return; }
+
+            const hSensor = getSensorHeight();
+            const bdt     = parseFloat(document.getElementById('bdt_mm').value) || 0;
+            const bdb     = parseFloat(document.getElementById('bdb_mm').value) || 0;
+            const probe   = parseFloat(document.getElementById('probe_length').value) || 0;
+            const tilt    = parseFloat(document.getElementById('tilt_angle').value) || 0;
+            const cosCorr = tilt > 0 ? (1 / Math.cos(tilt * Math.PI / 180)) : 1;
+
+            let E_mm, F_mm;
+            if (dev.type === 'levelflex') {
+                F_mm = bdt;
+                E_mm = probe - bdb;
+            } else {
+                // Radar / Ultraschall – Sensor misst von oben nach unten
+                F_mm = bdt;
+                E_mm = hSensor; // bis zum Tankboden
+            }
+
+            const effLRV = Math.round(hSensor - E_mm);
+            const effURV = Math.round(hSensor - F_mm);
+            const E_corr = (E_mm * cosCorr).toFixed(0);
+            const F_corr = (F_mm * cosCorr).toFixed(0);
+
+            document.getElementById('e_calib').textContent = E_corr + ' mm';
+            document.getElementById('f_calib').textContent = F_corr + ' mm';
+            document.getElementById('eff_lrv').textContent = effLRV + ' mm';
+            document.getElementById('eff_urv').textContent = effURV + ' mm';
+
+            const tiltHint = document.getElementById('tilt_hint');
+            if (tilt > 0) {
+                tiltHint.style.display = '';
+                tiltHint.textContent = 'Neigungskorrektur ' + tilt.toFixed(1) + '° → Faktor '
+                    + cosCorr.toFixed(4) + '. E/F wurden um diesen Faktor verlängert.';
+            } else {
+                tiltHint.style.display = 'none';
+            }
+
+            document.getElementById('calibBox').style.display = '';
+        }
+
+        // Übernehmen-Button: berechnete Werte in LRV/URV eintragen
+        function applyCalibToConfig() {
+            const key = document.getElementById('device_sel').value;
+            const dev = EH_DEVICES[key];
+            if (!dev) return;
+            const hSensor = getSensorHeight();
+            const bdt     = parseFloat(document.getElementById('bdt_mm').value) || 0;
+            const bdb     = parseFloat(document.getElementById('bdb_mm').value) || 0;
+            const probe   = parseFloat(document.getElementById('probe_length').value) || 0;
+            let E_mm = dev.type === 'levelflex' ? probe - bdb : hSensor;
+            document.getElementById('cfg_lrv').value = Math.max(0, Math.round(hSensor - E_mm));
+            document.getElementById('cfg_urv').value = Math.max(0, Math.round(hSensor - bdt));
+            calc();
+        }
+
+        // ============ HANDY NEIGUNGSSENSOR ============
+        function readTiltFromPhone() {
+            if (!window.DeviceOrientationEvent) {
+                alert('Neigungssensor nicht verfügbar auf diesem Gerät.');
+                return;
+            }
+            const handler = (e) => {
+                const tilt = Math.sqrt((e.beta || 0) ** 2 + (e.gamma || 0) ** 2);
+                document.getElementById('tilt_angle').value = Math.min(45, tilt).toFixed(1);
+                window.removeEventListener('deviceorientation', handler);
+                calc();
+            };
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(r => { if (r === 'granted') window.addEventListener('deviceorientation', handler); })
+                    .catch(() => alert('Berechtigung verweigert.'));
+            } else {
+                window.addEventListener('deviceorientation', handler);
+            }
+        }
 
         function setShape(shape, btn) {
             activeShape = shape;
@@ -455,6 +737,12 @@
                 thEl.textContent = totalH > 0 ? totalH.toFixed(3) + ' m' : '—';
             }
 
+            // Sensor-Referenzhöhe anzeigen
+            const hSensor = getSensorHeight();
+            const hSensorEl = document.getElementById('h_sensor_display');
+            if (hSensorEl) hSensorEl.textContent = hSensor.toFixed(0) + ' mm';
+
+            updateCalibBox();
             calcReverse(res);
             updateLinTable();
         }
