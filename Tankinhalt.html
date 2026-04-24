@@ -66,6 +66,12 @@
         .apply-btn:hover { background: var(--accent-fg); color: var(--text-on-emphasis); }
 
         .hidden-row { display: none; }
+
+        .svg-wrapper { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 8px; margin-top: 16px; overflow: hidden; }
+        #tankSVG { display: block; width: 100%; height: auto; }
+        .svg-label { font-size: 11px; fill: var(--text-tertiary); font-family: var(--font-sans); }
+        .svg-dim   { font-size: 10px; fill: var(--accent-fg);     font-family: var(--font-mono); }
+        .svg-val   { font-size: 11px; fill: var(--text-success);  font-family: var(--font-mono); font-weight: 600; }
     </style>
 </head>
 <body data-tool-id="tank">
@@ -323,6 +329,26 @@
                 <div class="fill-bar-track"><div class="fill-bar-fill" id="fillBarFill" style="width:0%"></div></div>
             </div>
 
+            <!-- Tank-Visualisierung -->
+            <div class="svg-wrapper">
+                <p class="section-title" style="margin-bottom:6px">Tank-Visualisierung</p>
+                <svg id="tankSVG" viewBox="0 0 300 380" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <clipPath id="tankClip"><path id="tankClipPath"/></clipPath>
+                    </defs>
+                    <!-- Flüssigkeitsfüllung (geclippt auf Tankform) -->
+                    <rect id="svgFill" clip-path="url(#tankClip)" x="0" y="0" width="300" height="380" fill="none"/>
+                    <!-- Tankwand -->
+                    <path id="tankOutline" fill="none" stroke-width="2"/>
+                    <!-- Stutzen -->
+                    <g id="svgNozzle"></g>
+                    <!-- Messgerät (Sonde / Strahl) -->
+                    <g id="svgDevice"></g>
+                    <!-- Beschriftungen -->
+                    <g id="svgLabels"></g>
+                </svg>
+            </div>
+
             <hr class="section-divider">
 
             <!-- Rückrechnung -->
@@ -382,7 +408,7 @@
             </div>
 
             <div class="info-box" style="margin-top:16px;">
-                <strong>Hinweis:</strong> Alle Berechnungen gelten für ideale geometrische Formen ohne Einbauten oder gewölbte Böden (Klöpper-/Korbbogenböden). Füllstand % bezieht sich auf die Gesamtfüllhöhe des Tanks. LRV/URV definieren den Messbereich des Transmitters für die Linearisierungstabelle.
+                <strong>Hinweis:</strong> Klöpperboden nach DIN 28011 (R=D, r=0,1·D), Korbbogenboden nach DIN 28013 (R=0,8·D, r=0,154·D). Bodenvolumen per numerischer Integration. Kein Abzug für Einbauten. E+H Sperrbereich-Werte sind Richtwerte — die aktuellen Gerätedatenblätter prüfen. LRV/URV definieren den Linearisierungsbereich.
             </div>
 
             <div class="shortcuts-hint" style="margin-top:16px;">
@@ -710,6 +736,255 @@
             }
         }
 
+        // ============ SVG VISUALISIERUNG ============
+
+        function svgEl(tag, attrs = {}, text = '') {
+            const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+            Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+            if (text) el.textContent = text;
+            return el;
+        }
+
+        // Kopfprofil-Punkte: rechte Hälfte, von Schulter (t=0) → Scheitel (t=1)
+        function headProfilePts(D, headType, scale, cx, yShoulderSvg, apexBelow) {
+            const { hb } = headParams(D, headType);
+            if (hb <= 0) return [{ x: cx, y: yShoulderSvg }];
+            const N = 20, dir = apexBelow ? 1 : -1;
+            const pts = [];
+            for (let i = 0; i <= N; i++) {
+                const t      = i / N;
+                const yLocal = (1 - t) * hb;            // Meter vom Scheitel (hb bei Schulter, 0 bei Scheitel)
+                const r      = headRadiusAtY(yLocal, D, headType);
+                pts.push({ x: cx + r * scale, y: yShoulderSvg + dir * t * hb * scale });
+            }
+            return pts; // pts[0]=Schulter, pts[N]=Scheitel
+        }
+
+        function ptsToD(pts, close = true) {
+            let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+            for (let i = 1; i < pts.length; i++) d += ` L ${pts[i].x.toFixed(1)} ${pts[i].y.toFixed(1)}`;
+            return close ? d + ' Z' : d;
+        }
+
+        function buildVerticalPath(D, Lcyl, botHead, topHead, scale, cx, yTopApex) {
+            const hbot = headParams(D, botHead).hb;
+            const htop = headParams(D, topHead).hb;
+            const r    = D / 2;
+            const yTopShoulder = yTopApex + htop * scale;
+            const yBotShoulder = yTopShoulder + Lcyl * scale;
+            const yBotApex     = yBotShoulder + hbot * scale;
+
+            const topPts = headProfilePts(D, topHead, scale, cx, yTopShoulder, false); // Schulter→Scheitel, nach oben
+            const botPts = headProfilePts(D, botHead, scale, cx, yBotShoulder, true);  // Schulter→Scheitel, nach unten
+
+            const all = [];
+            // Rechte Seite: Scheitel oben → Schulter → runter → Schulter unten → Scheitel unten
+            for (let i = topPts.length - 1; i >= 0; i--) all.push(topPts[i]);        // oben Scheitel→Schulter
+            all.push({ x: cx + r * scale, y: yBotShoulder });                         // rechte Wand
+            for (let i = 1; i < botPts.length; i++) all.push(botPts[i]);              // unten Schulter→Scheitel
+            // Linke Seite (gespiegelt)
+            for (let i = botPts.length - 2; i >= 0; i--) all.push({ x: cx - (botPts[i].x - cx), y: botPts[i].y });
+            all.push({ x: cx - r * scale, y: yTopShoulder });
+            for (let i = 1; i < topPts.length; i++) all.push({ x: cx - (topPts[i].x - cx), y: topPts[i].y });
+
+            return { d: ptsToD(all), yTopApex, yBotApex, yTopShoulder, yBotShoulder, r_px: r * scale };
+        }
+
+        function drawTank() {
+            const SVG_W = 300, SVG_H = 380;
+            const MARGIN_X = 55, MARGIN_Y = 24;
+            const drawW = SVG_W - 2 * MARGIN_X;
+            const drawH = SVG_H - 2 * MARGIN_Y;
+            const cx = SVG_W / 2;
+            const g = getGeom();
+            const res = getVolumeAtLevel(g.level || 0);
+            const totalH = getTotalHeight();
+
+            // CSS-Farben aus aktuellem Theme
+            const isD  = document.documentElement.getAttribute('data-theme') === 'dark';
+            const cStroke = isD ? '#8b949e' : '#57606a';
+            const cFill   = isD ? '#1d4e89aa' : '#bfdbfe99';
+            const cFillB  = isD ? '#1d4e89'   : '#3b82f6';
+            const cNozzle = isD ? '#6e7681'   : '#8c959f';
+            const cLRV    = isD ? '#f59e0b88' : '#f59e0b66';
+            const cURV    = isD ? '#22c55e88' : '#16a34a66';
+            const cBeam   = isD ? '#f97316aa' : '#fb923c66';
+
+            const outline   = document.getElementById('tankOutline');
+            const clipPath  = document.getElementById('tankClipPath');
+            const fillRect  = document.getElementById('svgFill');
+            const nozzleGrp = document.getElementById('svgNozzle');
+            const deviceGrp = document.getElementById('svgDevice');
+            const labelsGrp = document.getElementById('svgLabels');
+            [nozzleGrp, deviceGrp, labelsGrp].forEach(g => { while (g.firstChild) g.removeChild(g.firstChild); });
+
+            outline.setAttribute('stroke', cStroke);
+
+            if (activeShape === 'vCyl' && g.d > 0) {
+                const scale = Math.min(drawW / g.d, drawH / (totalH || 1));
+                const yTop  = MARGIN_Y + (drawH - totalH * scale) / 2;
+                const { d, yTopApex, yBotApex, yTopShoulder, yBotShoulder, r_px } = buildVerticalPath(
+                    g.d, g.lcyl, g.botHead, g.topHead, scale, cx, yTop);
+
+                outline.setAttribute('d', d);
+                clipPath.setAttribute('d', d);
+
+                // Füllhöhe
+                const fillFrac = res.total > 0 ? res.fill / res.total : 0;
+                const yFill = yBotApex - (g.level || 0) * scale;
+                fillRect.setAttribute('fill', cFill);
+                fillRect.setAttribute('x', '0');
+                fillRect.setAttribute('y', yFill.toFixed(1));
+                fillRect.setAttribute('width', '300');
+                fillRect.setAttribute('height', (yBotApex - yFill + 5).toFixed(1));
+
+                // LRV / URV Linien
+                const lrv = parseFloat(document.getElementById('cfg_lrv').value) || 0;
+                const urv = parseFloat(document.getElementById('cfg_urv').value) || 0;
+                const yLRV = yBotApex - lrv / 1000 * scale;
+                const yURV = yBotApex - urv / 1000 * scale;
+                if (lrv > 0) {
+                    labelsGrp.appendChild(svgEl('line', { x1: cx - r_px - 2, y1: yLRV.toFixed(1), x2: cx + r_px + 2, y2: yLRV.toFixed(1), stroke: cLRV, 'stroke-width': '1.5', 'stroke-dasharray': '4,3' }));
+                    labelsGrp.appendChild(svgEl('text', { x: cx + r_px + 4, y: (yLRV + 4).toFixed(1), class: 'svg-label' }, 'LRV'));
+                }
+                if (urv > 0 && urv !== lrv) {
+                    labelsGrp.appendChild(svgEl('line', { x1: cx - r_px - 2, y1: yURV.toFixed(1), x2: cx + r_px + 2, y2: yURV.toFixed(1), stroke: cURV, 'stroke-width': '1.5', 'stroke-dasharray': '4,3' }));
+                    labelsGrp.appendChild(svgEl('text', { x: cx + r_px + 4, y: (yURV + 4).toFixed(1), class: 'svg-label' }, 'URV'));
+                }
+
+                // Füllstand-Linie
+                labelsGrp.appendChild(svgEl('line', { x1: (cx - r_px).toFixed(1), y1: yFill.toFixed(1), x2: (cx + r_px).toFixed(1), y2: yFill.toFixed(1), stroke: cFillB, 'stroke-width': '2' }));
+
+                // Maßpfeile links: Gesamthöhe & Füllstand
+                const xArr = cx - r_px - 14;
+                labelsGrp.appendChild(svgEl('line', { x1: xArr, y1: yTopApex.toFixed(1), x2: xArr, y2: yBotApex.toFixed(1), stroke: cStroke, 'stroke-width': 1 }));
+                labelsGrp.appendChild(svgEl('text', { x: xArr - 2, y: ((yTopApex + yBotApex) / 2).toFixed(1), class: 'svg-dim', transform: `rotate(-90 ${xArr - 2} ${((yTopApex + yBotApex) / 2).toFixed(1)})`, 'text-anchor': 'middle' }, totalH.toFixed(2) + ' m'));
+
+                // Durchmesser unten
+                const yDimLine = yBotApex + 14;
+                labelsGrp.appendChild(svgEl('line', { x1: (cx - r_px).toFixed(1), y1: yDimLine, x2: (cx + r_px).toFixed(1), y2: yDimLine, stroke: cStroke, 'stroke-width': 1 }));
+                labelsGrp.appendChild(svgEl('text', { x: cx, y: yDimLine + 11, class: 'svg-dim', 'text-anchor': 'middle' }, 'Ø ' + g.d.toFixed(2) + ' m'));
+
+                // Stutzen zeichnen
+                const pos   = document.getElementById('nozzle_pos').value;
+                const nOut  = (parseFloat(document.getElementById('nozzle_outside').value) || 0) / 1000 * scale;
+                const nIns  = (parseFloat(document.getElementById('nozzle_insertion').value) || 0) / 1000 * scale;
+                const nW    = Math.max(8, r_px * 0.18);
+
+                if (pos === 'top') {
+                    const yFlange = yTopApex - nOut;
+                    nozzleGrp.appendChild(svgEl('rect', { x: (cx - nW / 2).toFixed(1), y: yFlange.toFixed(1), width: nW.toFixed(1), height: (nOut + nIns + 1).toFixed(1), fill: cNozzle, rx: '2' }));
+                    nozzleGrp.appendChild(svgEl('text', { x: (cx + nW / 2 + 3).toFixed(1), y: (yFlange + 9).toFixed(1), class: 'svg-label' }, 'Stutzen'));
+                } else if (pos === 'side') {
+                    const nh_mm = parseFloat(document.getElementById('nozzle_height').value) || 0;
+                    const ySide = yBotApex - nh_mm / 1000 * scale;
+                    nozzleGrp.appendChild(svgEl('rect', { x: (cx + r_px).toFixed(1), y: (ySide - nW / 2).toFixed(1), width: nOut.toFixed(1), height: nW.toFixed(1), fill: cNozzle, rx: '2' }));
+                    nozzleGrp.appendChild(svgEl('text', { x: (cx + r_px + nOut + 3).toFixed(1), y: (ySide + 4).toFixed(1), class: 'svg-label' }, 'Stutzen'));
+                }
+
+                // Messgerät zeichnen
+                const devKey = document.getElementById('device_sel').value;
+                const dev    = EH_DEVICES[devKey];
+                if (dev && pos === 'top') {
+                    const yRef = yTopApex - nOut;  // Sensor-Referenz
+                    const bdt  = (parseFloat(document.getElementById('bdt_mm').value) || 0) / 1000 * scale;
+
+                    if (dev.type === 'levelflex') {
+                        const probePx = (parseFloat(document.getElementById('probe_length').value) || 0) / 1000 * scale;
+                        const bdb     = (parseFloat(document.getElementById('bdb_mm').value) || 0) / 1000 * scale;
+                        // Sperrzone oben (rot)
+                        deviceGrp.appendChild(svgEl('rect', { x: (cx - 3).toFixed(1), y: yRef.toFixed(1), width: '6', height: bdt.toFixed(1), fill: '#ef444466', rx: '2' }));
+                        // Sonde
+                        deviceGrp.appendChild(svgEl('line', { x1: cx, y1: yRef.toFixed(1), x2: cx, y2: (yRef + probePx).toFixed(1), stroke: '#6b7280', 'stroke-width': '3' }));
+                        // Sperrzone unten (rot)
+                        deviceGrp.appendChild(svgEl('rect', { x: (cx - 3).toFixed(1), y: (yRef + probePx - bdb).toFixed(1), width: '6', height: bdb.toFixed(1), fill: '#ef444466', rx: '2' }));
+                        // Sensor-Kopf
+                        deviceGrp.appendChild(svgEl('rect', { x: (cx - 7).toFixed(1), y: (yRef - 8).toFixed(1), width: '14', height: '8', fill: '#374151', rx: '2' }));
+                    } else {
+                        // Radar / Ultraschall: Abstrahlkegel
+                        const beamHalf = ((parseFloat(document.getElementById('beam_angle').value) || 4) / 2) * Math.PI / 180;
+                        const beamH    = yBotApex - yRef;
+                        const beamR    = beamH * Math.tan(beamHalf);
+                        const beamPts  = [
+                            { x: cx, y: yRef },
+                            { x: cx + Math.min(beamR, r_px * 0.95), y: yBotApex },
+                            { x: cx - Math.min(beamR, r_px * 0.95), y: yBotApex }
+                        ];
+                        deviceGrp.appendChild(svgEl('polygon', { points: beamPts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' '), fill: cBeam }));
+                        // BDT-Sperrzone
+                        deviceGrp.appendChild(svgEl('rect', { x: (cx - 8).toFixed(1), y: yRef.toFixed(1), width: '16', height: bdt.toFixed(1), fill: '#ef444488' }));
+                        // Sensor-Kopf
+                        deviceGrp.appendChild(svgEl('rect', { x: (cx - 10).toFixed(1), y: (yRef - 10).toFixed(1), width: '20', height: '10', fill: '#374151', rx: '3' }));
+                        // Abstrahlwinkel-Label
+                        const beamDeg = parseFloat(document.getElementById('beam_angle').value) || 4;
+                        labelsGrp.appendChild(svgEl('text', { x: (cx + Math.min(beamR, r_px * 0.95) + 3).toFixed(1), y: (yBotApex - 10).toFixed(1), class: 'svg-label' }, beamDeg + '°'));
+                    }
+                }
+
+            } else if (activeShape === 'hCyl' && g.d > 0) {
+                // Liegender Zylinder: Seitenansicht
+                const { hb } = headParams(g.d, g.headType);
+                const totalL  = g.lcyl + 2 * hb;
+                const scale   = Math.min(drawW / totalL, drawH / g.d);
+                const xLeft   = cx - totalL * scale / 2;
+                const xRight  = cx + totalL * scale / 2;
+                const r_px    = g.d / 2 * scale;
+                const yMid    = SVG_H / 2;
+
+                // Einfaches Rechteck + Bögen für Stirnflächen
+                const d = `M ${xLeft},${yMid - r_px} L ${xRight},${yMid - r_px} L ${xRight},${yMid + r_px} L ${xLeft},${yMid + r_px} Z`;
+                outline.setAttribute('d', d);
+                clipPath.setAttribute('d', d);
+
+                const yFill = yMid + r_px - g.level * scale;
+                fillRect.setAttribute('fill', cFill);
+                fillRect.setAttribute('x', xLeft.toFixed(1));
+                fillRect.setAttribute('y', yFill.toFixed(1));
+                fillRect.setAttribute('width', (totalL * scale).toFixed(1));
+                fillRect.setAttribute('height', (g.level * scale + 5).toFixed(1));
+
+                labelsGrp.appendChild(svgEl('text', { x: cx, y: yMid + r_px + 18, class: 'svg-dim', 'text-anchor': 'middle' }, 'L = ' + totalL.toFixed(2) + ' m,  Ø ' + g.d.toFixed(2) + ' m'));
+                labelsGrp.appendChild(svgEl('line', { x1: xLeft.toFixed(1), y1: yFill.toFixed(1), x2: xRight.toFixed(1), y2: yFill.toFixed(1), stroke: cFillB, 'stroke-width': '2' }));
+
+            } else if (activeShape === 'sphere' && g.d > 0) {
+                const r = g.d / 2;
+                const scale = Math.min(drawW / g.d, drawH / g.d);
+                const r_px  = r * scale;
+                const cy    = SVG_H / 2;
+
+                const circD = `M ${(cx - r_px).toFixed(1)} ${cy} A ${r_px.toFixed(1)} ${r_px.toFixed(1)} 0 1 1 ${(cx + r_px).toFixed(1)} ${cy} A ${r_px.toFixed(1)} ${r_px.toFixed(1)} 0 1 1 ${(cx - r_px).toFixed(1)} ${cy} Z`;
+                outline.setAttribute('d', circD);
+                clipPath.setAttribute('d', circD);
+
+                const yFill = cy + r_px - g.level * scale;
+                fillRect.setAttribute('fill', cFill);
+                fillRect.setAttribute('x', (cx - r_px - 2).toFixed(1));
+                fillRect.setAttribute('y', yFill.toFixed(1));
+                fillRect.setAttribute('width', (2 * r_px + 4).toFixed(1));
+                fillRect.setAttribute('height', (g.level * scale + r_px + 5).toFixed(1));
+                labelsGrp.appendChild(svgEl('text', { x: cx, y: cy + r_px + 18, class: 'svg-dim', 'text-anchor': 'middle' }, 'Ø ' + g.d.toFixed(2) + ' m'));
+
+            } else if (activeShape === 'cone' && g.h > 0) {
+                const maxD  = Math.max(g.d1, g.d2);
+                const scale = Math.min(drawW / maxD, drawH / g.h);
+                const yTop  = MARGIN_Y + (drawH - g.h * scale) / 2;
+                const yBot  = yTop + g.h * scale;
+                const r1 = g.d1 / 2 * scale, r2 = g.d2 / 2 * scale;
+
+                const coneD = `M ${(cx - r2).toFixed(1)} ${yTop.toFixed(1)} L ${(cx + r2).toFixed(1)} ${yTop.toFixed(1)} L ${(cx + r1).toFixed(1)} ${yBot.toFixed(1)} L ${(cx - r1).toFixed(1)} ${yBot.toFixed(1)} Z`;
+                outline.setAttribute('d', coneD);
+                clipPath.setAttribute('d', coneD);
+
+                const yFill = yBot - g.level * scale;
+                fillRect.setAttribute('fill', cFill);
+                fillRect.setAttribute('x', '0');
+                fillRect.setAttribute('y', yFill.toFixed(1));
+                fillRect.setAttribute('width', '300');
+                fillRect.setAttribute('height', (g.level * scale + 5).toFixed(1));
+                labelsGrp.appendChild(svgEl('text', { x: cx, y: yBot + 16, class: 'svg-dim', 'text-anchor': 'middle' }, 'H = ' + g.h.toFixed(2) + ' m'));
+            }
+        }
+
         // ============ MAIN CALC ============
 
         function calc() {
@@ -745,6 +1020,7 @@
             updateCalibBox();
             calcReverse(res);
             updateLinTable();
+            drawTank();
         }
 
         // ============ REVERSE: Volume → Level ============
@@ -848,6 +1124,9 @@
 
         document.querySelectorAll('input[type="number"]').forEach(el => el.addEventListener('input', calc));
         document.querySelectorAll('select').forEach(el => el.addEventListener('change', calc));
+
+        // SVG bei Theme-Wechsel neu zeichnen
+        onThemeChanged(drawTank);
 
         calc();
     </script>
