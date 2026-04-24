@@ -336,6 +336,134 @@ function initGermanFormat() {
     });
 }
 
+// ============ RELATED TOOLS ============
+const _TOOL_META = {
+    stromausgang:    { title: 'Stromausgangsberechnung', href: 'Stromausgang.html',      icon: '⚡' },
+    kalibrier:       { title: 'Kalibrierpunkte',         href: 'Kalibrierpunkte.html',   icon: '🎯' },
+    abweichung:      { title: 'Messwertabweichung',      href: 'Messwertabweichung.html',icon: '📏' },
+    burden:          { title: '4-20mA Bürdenrechner',    href: 'Buerdenrechner.html',    icon: '🔌' },
+    druck:           { title: 'Druckkalibrierung',       href: 'Druckkalibrierung.html', icon: '🔧' },
+    ph:              { title: 'pH Steilheit',            href: 'PHWert.html',            icon: '🧪' },
+    leitfaehigkeit:  { title: 'Leitfähigkeit',          href: 'Leitfaehigkeit.html',    icon: '💧' },
+    sauerstoff:      { title: 'Sauerstoff',              href: 'Sauerstoff.html',        icon: '🫧' },
+    tempsensor:      { title: 'Temperatursensor',        href: 'Temperatursensor.html',  icon: '🌡️' },
+    impuls:          { title: 'Impulswertigkeit',        href: 'Impulswertigkeit.html',  icon: '📊' },
+    fliess:          { title: 'Fließgeschwindigkeit',    href: 'Fliessgeschwindigkeit.html', icon: '🌊' },
+    einbau:          { title: 'Einlaufstrecken',         href: 'Einbaulaengen.html',     icon: '📏' },
+    blende:          { title: 'Blenden/DP-Durchfluss',  href: 'BlendeDP.html',          icon: '🔧' },
+    volmasse:        { title: 'Volumen-Masse',           href: 'VolumenMasse.html',      icon: '🔄' },
+    dichte:          { title: 'Dichteberechnung',        href: 'Dichteberechnung.html',  icon: '⚖️' },
+    dichtetab:       { title: 'Dichtetabelle',           href: 'Dichtetabelle.html',     icon: '⚖️' },
+    viskositaet:     { title: 'Viskosität',              href: 'Viskositaet.html',       icon: '💧' },
+    einheiten:       { title: 'Einheiten-Rechner',       href: 'Einheiten.html',         icon: '📐' },
+    tank:            { title: 'Tankinhalt-Rechner',      href: 'Tankinhalt.html',        icon: '🛢️' },
+    dampf:           { title: 'Dampftabelle',            href: 'Dampftabelle.html',      icon: '♨️' },
+    flansch:         { title: 'DN/Flansch-Tabelle',      href: 'Flansch.html',           icon: '🔩' },
+    dkwerte:         { title: 'DK-Werte',                href: 'DKWerte.html',           icon: '📡' },
+    schutzart:       { title: 'Schutzarten',             href: 'Schutzarten.html',       icon: '🛡️' },
+    abstandsquadrat: { title: 'Abstandsquadratgesetz',  href: 'Abstandsquadrat.html',   icon: '☢️' },
+    zerfall:         { title: 'Zerfallsrechner',         href: 'Zerfall.html',           icon: '⚛️' },
+    dosisleistung:   { title: 'Dosisleistung',           href: 'Dosisleistung.html',     icon: '📡' },
+    abschirmung:     { title: 'Abschirmungsrechner',     href: 'Abschirmung.html',       icon: '🛡️' },
+    aufenthaltszeit: { title: 'Aufenthaltszeit',         href: 'Aufenthaltszeit.html',   icon: '⏱️' },
+    isotopdaten:     { title: 'Isotopdaten-Tabelle',     href: 'Isotopdaten.html',       icon: '📋' },
+    whg_gefaehrdung: { title: 'WHG Gefährdungsstufe',   href: 'WHG_Gefaehrdungsstufe.html', icon: '💧' },
+    whg_rohrleitung: { title: 'Rohrleitungsinhalt',      href: 'WHG_Rohrleitungsinhalt.html', icon: '🔩' },
+    whg_auffangwanne:{ title: 'Auffangwanne',            href: 'WHG_Auffangwanne.html',  icon: '🛡️' },
+    whg_wgk:         { title: 'WGK-Nachschlagewerk',    href: 'WHG_WGK.html',           icon: '📋' },
+    elektro:         { title: 'Elektro-Grundlagen',     href: 'Elektro_Grundlagen.html',icon: '⚡' },
+    kabel:           { title: 'Kabelquerschnitt',        href: 'Kabelquerschnitt.html',  icon: '🔌' },
+    waerme:          { title: 'Wärmetechnik',            href: 'Waermetechnik.html',     icon: '🌡️' },
+    normdurchfluss:  { title: 'Normdurchfluss',          href: 'Normdurchfluss.html',    icon: '🌡️' },
+    taupunkt:        { title: 'Taupunkt & Feuchte',      href: 'Taupunkt.html',          icon: '💦' },
+    rohrklassen:     { title: 'Rohrklassen (ASME)',      href: 'Rohrklassen.html',       icon: '🔩' },
+    dp_durchfluss:   { title: 'DP-Durchfluss Skalierung',href: 'DPDurchfluss.html',      icon: '📊' },
+    konzentration:   { title: 'Konzentration aus Dichte',href: 'Konzentration.html',     icon: '🧪' },
+    mid_lf:          { title: 'MID Leitfähigkeit',       href: 'MID_Leitfaehigkeit.html',icon: '💧' },
+    schallgeschwindigkeit: { title: 'Schallgeschwindigkeit', href: 'Schallgeschwindigkeit.html', icon: '🔊' },
+    loop_diagnose:   { title: '4-20 mA Loop-Diagnose',  href: 'Loop_Diagnose.html',     icon: '🔌' },
+    sil_pfd:         { title: 'SIL / PFD Rechner',       href: 'SIL_PFD.html',           icon: '🛡️' },
+    prozessanschluesse: { title: 'Prozessanschlüsse',   href: 'Prozessanschluesse.html',icon: '🔧' },
+    eh_fehlercodes:  { title: 'E+H Fehlercodes',         href: 'EH_Fehlercodes.html',    icon: '⚠️' },
+    inbetriebnahme:  { title: 'Inbetriebnahme',          href: 'Inbetriebnahme.html',    icon: '📋' },
+    kalibrierprotokoll: { title: 'Kalibrierprotokoll',  href: 'Kalibrierprotokoll.html',icon: '📄' },
+    csv:             { title: 'CSV-Umwandler',           href: 'csv.html',               icon: '📄' },
+    csvvisu:         { title: 'CSV-Visualisierung',      href: 'csvauswertung.html',     icon: '📈' },
+};
+
+const _TOOL_RELATIONS = {
+    stromausgang:    ['kalibrier', 'abweichung', 'burden'],
+    kalibrier:       ['stromausgang', 'abweichung', 'druck'],
+    abweichung:      ['kalibrier', 'stromausgang', 'burden'],
+    burden:          ['stromausgang', 'kalibrier', 'einheiten'],
+    druck:           ['kalibrier', 'abweichung', 'einheiten'],
+    ph:              ['leitfaehigkeit', 'sauerstoff', 'tempsensor'],
+    leitfaehigkeit:  ['ph', 'sauerstoff', 'tempsensor'],
+    sauerstoff:      ['ph', 'leitfaehigkeit', 'tempsensor'],
+    tempsensor:      ['ph', 'leitfaehigkeit', 'einheiten'],
+    impuls:          ['fliess', 'blende', 'volmasse'],
+    fliess:          ['impuls', 'einbau', 'blende'],
+    einbau:          ['fliess', 'impuls', 'blende'],
+    blende:          ['fliess', 'impuls', 'einbau'],
+    volmasse:        ['dichte', 'einheiten', 'impuls'],
+    dichte:          ['volmasse', 'dichtetab', 'viskositaet'],
+    dichtetab:       ['dichte', 'viskositaet', 'dkwerte'],
+    viskositaet:     ['dichte', 'dichtetab', 'fliess'],
+    einheiten:       ['volmasse', 'druck', 'einheiten'],
+    tank:            ['volmasse', 'dichte', 'einheiten'],
+    dampf:           ['waerme', 'einheiten', 'druck'],
+    flansch:         ['whg_rohrleitung', 'fliess', 'einbau'],
+    dkwerte:         ['dichtetab', 'sauerstoff', 'leitfaehigkeit'],
+    schutzart:       ['isotopdaten', 'abstandsquadrat', 'flansch'],
+    abstandsquadrat: ['zerfall', 'dosisleistung', 'abschirmung'],
+    zerfall:         ['abstandsquadrat', 'dosisleistung', 'isotopdaten'],
+    dosisleistung:   ['abstandsquadrat', 'abschirmung', 'aufenthaltszeit'],
+    abschirmung:     ['dosisleistung', 'abstandsquadrat', 'aufenthaltszeit'],
+    aufenthaltszeit: ['dosisleistung', 'abschirmung', 'isotopdaten'],
+    isotopdaten:     ['zerfall', 'dosisleistung', 'abstandsquadrat'],
+    whg_gefaehrdung: ['whg_auffangwanne', 'whg_rohrleitung', 'whg_wgk'],
+    whg_rohrleitung: ['whg_auffangwanne', 'whg_gefaehrdung', 'flansch'],
+    whg_auffangwanne:['whg_gefaehrdung', 'whg_rohrleitung', 'whg_wgk'],
+    whg_wgk:         ['whg_gefaehrdung', 'whg_auffangwanne', 'dichtetab'],
+    elektro:         ['kabel', 'stromausgang', 'burden'],
+    kabel:           ['elektro', 'burden', 'stromausgang'],
+    waerme:          ['dampf', 'einheiten', 'volmasse'],
+};
+
+function injectRelatedTools(toolId) {
+    const related = _TOOL_RELATIONS[toolId];
+    if (!related || related.length === 0) return;
+
+    const style = document.createElement('style');
+    style.textContent = `
+        .related-section { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border-default); }
+        .related-title { font-size: 12px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 10px 0; }
+        .related-grid { display: flex; gap: 10px; flex-wrap: wrap; }
+        .related-card { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border: 1px solid var(--border-default); border-radius: var(--radius-md); background: var(--bg-default); text-decoration: none; color: var(--text-primary); font-size: 13px; font-weight: 500; transition: border-color 0.15s, background 0.15s; flex: 1; min-width: 160px; }
+        .related-card:hover { border-color: var(--accent-fg); background: var(--bg-subtle); }
+        .related-card-icon { font-size: 18px; flex-shrink: 0; }
+    `;
+    document.head.appendChild(style);
+
+    const section = document.createElement('div');
+    section.className = 'related-section';
+    section.innerHTML = '<p class="related-title">Verwandte Tools</p><div class="related-grid" id="relatedGrid"></div>';
+
+    const grid = section.querySelector('#relatedGrid');
+    related.forEach(id => {
+        const meta = _TOOL_META[id];
+        if (!meta) return;
+        const a = document.createElement('a');
+        a.className = 'related-card';
+        a.href = meta.href;
+        a.innerHTML = '<span class="related-card-icon">' + meta.icon + '</span><span>' + meta.title + '</span>';
+        grid.appendChild(a);
+    });
+
+    const container = document.querySelector('.container');
+    if (container) container.appendChild(section);
+}
+
 // ============ INIT ============
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
@@ -345,12 +473,65 @@ document.addEventListener('DOMContentLoaded', () => {
     loadFromShareLink();
     trackPageVisit();
 
+    // Auto-assign IDs to action buttons so showBtnFeedback works on all pages
+    document.querySelectorAll('button[onclick]').forEach(btn => {
+        if (!btn.id) {
+            const oc = btn.getAttribute('onclick') || '';
+            if (oc.includes('copyResults'))        btn.id = 'copyBtn';
+            else if (oc.includes('resetFields'))   btn.id = 'resetBtn';
+            else if (oc.includes('exportPagePDF')) btn.id = 'pdfBtn';
+            else if (oc.includes('generateShareLink')) btn.id = 'shareBtn';
+        }
+    });
+
+    // Mobile: numeric keyboard + suppress browser autocomplete on calculation inputs
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+        if (!input.hasAttribute('inputmode'))    input.setAttribute('inputmode', 'decimal');
+        if (!input.hasAttribute('autocomplete')) input.setAttribute('autocomplete', 'off');
+    });
+
     const toolId = document.body.dataset.toolId;
     if (toolId) {
+        document.body.classList.add('is-tool-page');
         trackToolUsage(toolId);
         loadUnitPresets(toolId);
+        injectRelatedTools(toolId);
         document.querySelectorAll('select').forEach(s => {
             s.addEventListener('change', () => saveUnitPresets(toolId));
         });
+
+        // Make header logo+title a home link on tool pages
+        const headerLeft = document.querySelector('.header-left');
+        if (headerLeft && !headerLeft.querySelector('a')) {
+            const a = document.createElement('a');
+            a.href = 'index.html';
+            a.className = 'header-home-link';
+            a.title = 'Zurück zur Übersicht';
+            while (headerLeft.firstChild) a.appendChild(headerLeft.firstChild);
+            headerLeft.appendChild(a);
+        }
+
+        // Mobile: show tool name in header instead of brand name
+        const toolMeta = _TOOL_META[toolId];
+        if (toolMeta) {
+            const titleEl = document.querySelector('.header-title');
+            if (titleEl) titleEl.setAttribute('data-tool', toolMeta.title);
+        }
+
+        // Mobile: collapsible description box (toggle)
+        const desc = document.querySelector('.description');
+        if (desc && window.innerWidth <= 768) {
+            desc.classList.add('desc-collapsed');
+            const hint = document.createElement('div');
+            hint.className = 'desc-expand-hint visible';
+            hint.textContent = '▼ Info einblenden';
+            desc.insertAdjacentElement('afterend', hint);
+            function toggleDesc() {
+                const collapsed = desc.classList.toggle('desc-collapsed');
+                hint.textContent = collapsed ? '▼ Info einblenden' : '▲ Info ausblenden';
+            }
+            hint.addEventListener('click', toggleDesc);
+            desc.addEventListener('click', toggleDesc);
+        }
     }
 });

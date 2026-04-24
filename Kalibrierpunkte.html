@@ -7,186 +7,277 @@
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
     <style>
-        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
-        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
-        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+        .action-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+        .action-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-size:13px;font-weight:500;border-radius:var(--radius-md);border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;transition:all .2s;box-shadow:none;font-family:var(--font-sans)}
+        .action-btn:hover{background:var(--bg-subtle);color:var(--text-primary);border-color:var(--border-muted);transform:none;box-shadow:none;filter:none}
+        .action-btn svg{width:14px;height:14px;fill:currentColor}
+        .status-bar{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:var(--radius-md);border:1px solid var(--border-default);margin-bottom:20px;font-size:14px;font-weight:500;transition:all .3s}
+        .status-bar.status-ok{background:var(--bg-success);color:var(--text-success);border-color:var(--text-success)}
+        .status-bar.status-error{background:var(--bg-danger);color:var(--text-danger);border-color:var(--text-danger)}
+        .status-bar.status-idle{background:var(--bg-subtle);color:var(--text-tertiary)}
+        .status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+        .status-ok .status-dot{background:var(--text-success)}
+        .status-error .status-dot{background:var(--text-danger)}
+        .status-idle .status-dot{background:var(--text-tertiary)}
+        .ist-kp-input{width:100%;max-width:120px}
+        .abw-ok{color:var(--text-success);font-weight:600;font-family:var(--font-mono)}
+        .abw-nio{color:var(--text-danger);font-weight:600;font-family:var(--font-mono)}
+        .abw-leer{color:var(--text-tertiary);font-family:var(--font-mono)}
+        .dir-up{color:var(--text-success)}
+        .dir-dn{color:var(--accent-fg)}
+        .custom-row{display:none}
     </style>
 </head>
 <body data-tool-id="kalibrier">
-
     <header>
         <div class="header-left">
-            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             <span class="header-title">Techniker Berechnungstools</span>
         </div>
-        <div class="header-right">
-            <button class="theme-toggle" id="themeToggle" title="Theme wechseln">
-                <span id="themeIcon">🌙</span>
-            </button>
-        </div>
+        <div class="header-right"><button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button></div>
     </header>
+    <div class="back-bar"><a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a></div>
 
-    <div class="back-bar">
-        <a href="index.html" class="back-link">
-            <svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg>
-            Zurück zur Übersicht
-        </a>
-    </div>
-
-    <div class="page-container">
-        <div class="container">
-            <div class="action-bar">
-                <button class="action-btn" id="copyBtn" onclick="copyResults()">
-                    <svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>
-                    Kopieren
-                </button>
-                <button class="action-btn" id="resetBtn" onclick="resetFields()">
-                    <svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg>
-                    Zurücksetzen
-                </button>
-                <button class="action-btn" id="pdfBtn" onclick="exportPagePDF('Kalibrierpunkte')">
-                    <svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
-                    PDF
-                </button>
-                <button class="action-btn" id="shareBtn" onclick="generateShareLink()">
-                    <svg viewBox="0 0 16 16"><path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0z"/></svg>
-                    Teilen
-                </button>
-            </div>
-
-            <div class="description">
-                🎯 Berechnet Kalibrierpunkte zur Überprüfung und Justierung von Messgeräten. Unterstützt 4–20 mA, 0–20 mA und 0–10 V. Die Tabelle startet bei 0% und verteilt die Punkte gleichmäßig bis 100%.
-            </div>
-
-            <table>
-                <tr><th colspan="6">Kalibrierpunkte Berechnung</th></tr>
-                <tr>
-                    <td colspan="2">Signalbereich</td>
-                    <td colspan="4">
-                        <select class="input-field" id="signalbereich">
-                            <option value="4-20mA">4–20 mA</option>
-                            <option value="0-20mA">0–20 mA</option>
-                            <option value="0-10V">0–10 V</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2">Messbereich</td>
-                    <td colspan="4">
-                        <input class="input-field" type="number" id="messbereich_min" value="0" style="max-width:120px">
-                        bis
-                        <input class="input-field" type="number" id="messbereich_max" value="100" style="max-width:120px">
-                        <select class="input-field" id="messbereich_einheit" style="max-width:100px">
-                            <option value="m³/h">m³/h</option>
-                            <option value="l/min">l/min</option>
-                            <option value="l/h">l/h</option>
-                            <option value="kg/h">kg/h</option>
-                            <option value="t/h">t/h</option>
-                            <option value="bar">bar</option>
-                            <option value="mbar">mbar</option>
-                            <option value="°C">°C</option>
-                            <option value="mm">mm</option>
-                            <option value="m">m</option>
-                            <option value="pH">pH</option>
-                            <option value="µS/cm">µS/cm</option>
-                            <option value="mS/cm">mS/cm</option>
-                            <option value="%">%</option>
-                            <option value="">ohne Einheit</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2">Anzahl Kalibrierpunkte</td>
-                    <td colspan="4">
-                        <input class="input-field" type="number" id="kalibrierpunkte" value="5" min="2" max="20">
-                    </td>
-                </tr>
-            </table>
-
-            <table id="kalibrierpunkte_tabelle">
-                <thead>
-                    <tr>
-                        <th>Punkt</th>
-                        <th>%</th>
-                        <th id="thSignal">Signal (mA)</th>
-                        <th id="thMesswert">Messwert</th>
-                    </tr>
-                </thead>
-                <tbody id="kalibrierpunkte_body"></tbody>
-            </table>
-
-            <div class="shortcuts-hint">
-                <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
-                <span><kbd>Esc</kbd> Zurücksetzen</span>
-                <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
-                <span><kbd>Ctrl</kbd>+<kbd>L</kbd> Teilen</span>
-            </div>
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="copyResults()"><svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg> Kopieren</button>
+            <button class="action-btn" onclick="resetFields()"><svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg> Zurücksetzen</button>
+            <button class="action-btn" onclick="exportPagePDF('Kalibrierpunkte')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+            <button class="action-btn" onclick="generateShareLink()"><svg viewBox="0 0 16 16"><path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0z"/></svg> Teilen</button>
         </div>
-    </div>
 
-    <footer class="bottom-header">
-        <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
-    </footer>
+        <div class="description">🎯 Kalibrierpunkte berechnen und Istwerte direkt eintragen. Live-Abweichungsprüfung gegen einstellbare Toleranz. Unterstützt 4–20 mA, 0–20 mA und 0–10 V.</div>
+
+        <div class="status-bar status-idle" id="statusBar">
+            <div class="status-dot"></div>
+            <span id="statusText">Istwerte eingeben um die Toleranzprüfung zu starten</span>
+        </div>
+
+        <table>
+            <tr><th colspan="6">Einstellungen</th></tr>
+            <tr>
+                <td colspan="2">Signalbereich</td>
+                <td colspan="4"><select class="input-field" id="signalbereich"><option value="4-20mA">4–20 mA</option><option value="0-20mA">0–20 mA</option><option value="0-10V">0–10 V</option></select></td>
+            </tr>
+            <tr>
+                <td colspan="2">Messbereich</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="messbereich_min" value="0" style="max-width:100px">
+                    bis
+                    <input class="input-field" type="number" id="messbereich_max" value="100" style="max-width:100px">
+                    <select class="input-field" id="messbereich_einheit" style="max-width:100px">
+                        <option value="m³/h">m³/h</option><option value="l/min">l/min</option><option value="l/h">l/h</option>
+                        <option value="kg/h">kg/h</option><option value="t/h">t/h</option>
+                        <option value="bar">bar</option><option value="mbar">mbar</option>
+                        <option value="°C">°C</option><option value="mm">mm</option><option value="m">m</option>
+                        <option value="pH">pH</option><option value="µS/cm">µS/cm</option><option value="mS/cm">mS/cm</option>
+                        <option value="%">%</option><option value="">ohne Einheit</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Verteilung</td>
+                <td colspan="4">
+                    <select class="input-field" id="verteilung" onchange="onVerteilungChange()">
+                        <option value="namur5">NAMUR 5-Punkt: 0 / 25 / 50 / 75 / 100 %</option>
+                        <option value="namur9">NAMUR 9-Punkt Hysterese: ↑ 0→100 ↓ 100→0</option>
+                        <option value="3punkt">3-Punkt: 0 / 50 / 100 %</option>
+                        <option value="linear">Linear gleichmäßig (n Punkte)</option>
+                        <option value="custom">Benutzerdefiniert</option>
+                    </select>
+                </td>
+            </tr>
+            <tr id="row_linear" style="display:none">
+                <td colspan="2">Anzahl Punkte</td>
+                <td colspan="4"><input class="input-field" type="number" id="kalibrierpunkte" value="5" min="2" max="20" style="max-width:80px"></td>
+            </tr>
+            <tr id="row_custom" style="display:none">
+                <td colspan="2">Punkte in %</td>
+                <td colspan="4">
+                    <input class="input-field" type="text" id="custom_pcts" value="0, 10, 25, 50, 75, 90, 100" style="max-width:280px" placeholder="z.B. 0, 10, 50, 90, 100">
+                    <span style="font-size:11px;color:var(--text-tertiary);margin-left:6px">Komma-getrennt</span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Toleranz</td>
+                <td colspan="4">
+                    ± <input class="input-field" type="number" id="grenzwert" value="0.5" min="0" step="0.01" style="max-width:80px"> % vom Messbereich
+                    <span style="font-size:11px;color:var(--text-tertiary);margin-left:8px" id="toleranzAbs"></span>
+                </td>
+            </tr>
+        </table>
+
+        <table id="kalibrierpunkte_tabelle">
+            <thead>
+                <tr>
+                    <th>Punkt</th>
+                    <th>%</th>
+                    <th id="thSignal">Signal (mA)</th>
+                    <th id="thSoll">Sollwert</th>
+                    <th id="thIstwert">Istwert (gemessen)</th>
+                    <th>Abweichung</th>
+                </tr>
+            </thead>
+            <tbody id="kalibrierpunkte_body"></tbody>
+        </table>
+
+        <div class="shortcuts-hint" style="margin-top:16px">
+            <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+            <span><kbd>Esc</kbd> Zurücksetzen</span>
+            <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+            <span><kbd>Ctrl</kbd>+<kbd>L</kbd> Teilen</span>
+        </div>
+    </div></div>
+
+    <footer class="bottom-header"><p>Keine Gewähr für die Genauigkeit oder Vollständigkeit. Nutzung auf eigenes Risiko.</p></footer>
 
     <script src="shared.js"></script>
     <script>
         function getSignalConfig() {
-            const sb = document.getElementById('signalbereich').value;
-            switch (sb) {
-                case '4-20mA': return { min: 4, max: 20, einheit: 'mA' };
-                case '0-20mA': return { min: 0, max: 20, einheit: 'mA' };
-                case '0-10V':  return { min: 0, max: 10, einheit: 'V' };
-                default:       return { min: 4, max: 20, einheit: 'mA' };
+            switch (document.getElementById('signalbereich').value) {
+                case '4-20mA': return { min: 4,  max: 20, einheit: 'mA' };
+                case '0-20mA': return { min: 0,  max: 20, einheit: 'mA' };
+                case '0-10V':  return { min: 0,  max: 10, einheit: 'V' };
+                default:       return { min: 4,  max: 20, einheit: 'mA' };
             }
         }
 
-        function updateHeaders() {
-            const cfg = getSignalConfig();
-            const einheit = document.getElementById('messbereich_einheit').value;
-            document.getElementById('thSignal').textContent = 'Signal (' + cfg.einheit + ')';
-            document.getElementById('thMesswert').textContent = 'Messwert' + (einheit ? ' (' + einheit + ')' : '');
+        function onVerteilungChange() {
+            const v = document.getElementById('verteilung').value;
+            document.getElementById('row_linear').style.display = v === 'linear' ? '' : 'none';
+            document.getElementById('row_custom').style.display = v === 'custom' ? '' : 'none';
+            berechneKalibrierpunkte();
+        }
+
+        function getPcts() {
+            const v = document.getElementById('verteilung').value;
+            if (v === 'namur5') return [0, 25, 50, 75, 100];
+            if (v === 'namur9') return [0, 25, 50, 75, 100, 75, 50, 25, 0];
+            if (v === '3punkt') return [0, 50, 100];
+            if (v === 'linear') {
+                const anz = Math.max(2, parseInt(document.getElementById('kalibrierpunkte').value) || 5);
+                return Array.from({length: anz}, (_, i) => (i / (anz - 1)) * 100);
+            }
+            if (v === 'custom') {
+                const raw = document.getElementById('custom_pcts').value;
+                return raw.split(/[,;\s]+/).map(s => parseFloat(s.trim())).filter(n => !isNaN(n) && n >= 0 && n <= 100);
+            }
+            return [0, 25, 50, 75, 100];
         }
 
         function berechneKalibrierpunkte() {
-            const mbMin = parseFloat(document.getElementById('messbereich_min').value);
-            const mbMax = parseFloat(document.getElementById('messbereich_max').value);
-            const anz = parseInt(document.getElementById('kalibrierpunkte').value);
-            const cfg = getSignalConfig();
-
-            if (!validateInput('kalibrierpunkte', { min: 2 })) return;
-
-            updateHeaders();
-
+            const mbMin   = parseFloat(document.getElementById('messbereich_min').value) || 0;
+            const mbMax   = parseFloat(document.getElementById('messbereich_max').value) || 0;
+            const grenz   = parseFloat(document.getElementById('grenzwert').value) || 0.5;
+            const cfg     = getSignalConfig();
+            const einheit = document.getElementById('messbereich_einheit').value;
             const mbSpanne = mbMax - mbMin;
-            const sigSpanne = cfg.max - cfg.min;
+            const pcts    = getPcts();
+            const isHyst  = document.getElementById('verteilung').value === 'namur9';
+
+            document.getElementById('thSignal').textContent  = 'Signal (' + cfg.einheit + ')';
+            document.getElementById('thSoll').textContent    = 'Sollwert' + (einheit ? ' (' + einheit + ')' : '');
+            document.getElementById('thIstwert').textContent = 'Istwert' + (einheit ? ' (' + einheit + ')' : '');
+
+            const toleranzAbsVal = Math.abs(mbSpanne) * grenz / 100;
+            document.getElementById('toleranzAbs').textContent =
+                '= ±' + toleranzAbsVal.toFixed(4) + (einheit ? ' ' + einheit : '');
+
+            const prev = Array.from(document.querySelectorAll('.ist-kp-input')).map(el => el.value);
             const tbody = document.getElementById('kalibrierpunkte_body');
             tbody.innerHTML = '';
 
-            // 0% bis 100% gleichmäßig verteilt
-            for (let i = 0; i < anz; i++) {
-                const pct = (i / (anz - 1)) * 100;
-                const signal = cfg.min + (sigSpanne * pct / 100);
-                const mw = mbMin + (mbSpanne * pct / 100);
+            pcts.forEach((pct, i) => {
+                const signal = cfg.min + ((cfg.max - cfg.min) * pct / 100);
+                const soll   = mbMin + (mbSpanne * pct / 100);
+                // Direction indicator for hysteresis
+                let dirHtml = '';
+                if (isHyst) {
+                    const up = i <= 4;
+                    dirHtml = ' <span class="' + (up ? 'dir-up' : 'dir-dn') + '">' + (up ? '↑' : '↓') + '</span>';
+                }
+                const tr = document.createElement('tr');
+                tr.dataset.soll  = soll;
+                tr.dataset.mb    = mbSpanne;
+                tr.dataset.grenz = grenz;
+                tr.innerHTML =
+                    '<td style="text-align:center">' + (i + 1) + '</td>' +
+                    '<td style="font-family:var(--font-mono)">' + pct.toFixed(1) + '%' + dirHtml + '</td>' +
+                    '<td style="font-family:var(--font-mono)">' + signal.toFixed(3) + ' ' + cfg.einheit + '</td>' +
+                    '<td style="font-family:var(--font-mono)">' + soll.toFixed(4) + '</td>' +
+                    '<td><input class="input-field ist-kp-input" type="number" step="any" placeholder="—" style="max-width:130px" oninput="pruefAbw(this)"></td>' +
+                    '<td class="abw-cell abw-leer">—</td>';
+                tbody.appendChild(tr);
 
-                tbody.innerHTML += '<tr>' +
-                    '<td>' + (i + 1) + '</td>' +
-                    '<td>' + pct.toFixed(1) + '%</td>' +
-                    '<td>' + signal.toFixed(2) + ' ' + cfg.einheit + '</td>' +
-                    '<td>' + mw.toFixed(2) + '</td>' +
-                    '</tr>';
+                if (prev[i] !== undefined && prev[i] !== '') {
+                    tr.querySelector('.ist-kp-input').value = prev[i];
+                    pruefAbw(tr.querySelector('.ist-kp-input'));
+                }
+            });
+
+            updateStatusBar();
+        }
+
+        function pruefAbw(input) {
+            const tr    = input.closest('tr');
+            const soll  = parseFloat(tr.dataset.soll);
+            const mb    = parseFloat(tr.dataset.mb);
+            const grenz = parseFloat(tr.dataset.grenz);
+            const ist   = parseFloat(input.value);
+            const cell  = tr.querySelector('.abw-cell');
+
+            if (isNaN(ist) || input.value === '') {
+                cell.textContent = '—';
+                cell.className = 'abw-cell abw-leer';
+            } else {
+                const abw = mb !== 0 ? ((ist - soll) / Math.abs(mb)) * 100 : 0;
+                cell.textContent = (abw >= 0 ? '+' : '') + abw.toFixed(3) + '%';
+                if (Math.abs(abw) <= grenz) {
+                    cell.className = 'abw-cell abw-ok';
+                } else {
+                    cell.className = 'abw-cell abw-nio';
+                }
+            }
+            updateStatusBar();
+        }
+
+        function updateStatusBar() {
+            const grenz = parseFloat(document.getElementById('grenzwert').value) || 0.5;
+            const cells = document.querySelectorAll('.abw-cell');
+            const filled = Array.from(cells).filter(c => c.textContent !== '—');
+            if (filled.length === 0) {
+                setStatus('idle', 'Istwerte eingeben um die Toleranzprüfung zu starten');
+                return;
+            }
+            const nio = Array.from(cells).filter(c => c.classList.contains('abw-nio')).length;
+            const ok  = Array.from(cells).filter(c => c.classList.contains('abw-ok')).length;
+            if (nio === 0) {
+                setStatus('ok', '✓ Alle ' + ok + ' geprüften Punkte innerhalb ±' + grenz + '% Toleranz — i.O.');
+            } else {
+                setStatus('error', '✕ ' + nio + ' Punkt' + (nio > 1 ? 'e' : '') + ' außerhalb ±' + grenz + '% Toleranz — n.i.O.');
             }
         }
 
-        document.querySelectorAll('#messbereich_min, #messbereich_max, #signalbereich, #kalibrierpunkte, #messbereich_einheit').forEach(el => {
+        function setStatus(type, msg) {
+            document.getElementById('statusBar').className = 'status-bar status-' + type;
+            document.getElementById('statusText').textContent = msg;
+        }
+
+        function resetFields() {
+            document.getElementById('signalbereich').selectedIndex = 0;
+            document.getElementById('messbereich_min').value = '0';
+            document.getElementById('messbereich_max').value = '100';
+            document.getElementById('kalibrierpunkte').value = '5';
+            document.getElementById('grenzwert').value = '0.5';
+            berechneKalibrierpunkte();
+        }
+
+        document.querySelectorAll('#messbereich_min,#messbereich_max,#signalbereich,#kalibrierpunkte,#messbereich_einheit,#grenzwert,#custom_pcts').forEach(el => {
             el.addEventListener('input', berechneKalibrierpunkte);
             el.addEventListener('change', berechneKalibrierpunkte);
         });
 
         berechneKalibrierpunkte();
     </script>
-
 </body>
 </html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Normdurchfluss – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌬️</text></svg>">
+    <style>
+        .action-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+        .action-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-size:13px;font-weight:500;border-radius:var(--radius-md);border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;font-family:var(--font-sans)}
+        .action-btn:hover{background:var(--bg-subtle);color:var(--text-primary)}
+        .action-btn svg{width:14px;height:14px;fill:currentColor}
+        .section-divider{border:none;border-top:1px solid var(--border-default);margin:24px 0}
+        .section-title{font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin:0 0 10px 0}
+        .result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin-top:14px}
+        .result-card{background:var(--bg-success);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:12px;text-align:center}
+        .result-card-value{font-size:18px;font-weight:600;color:var(--text-success);font-family:var(--font-mono)}
+        .result-card-label{font-size:11px;color:var(--text-tertiary);margin-top:2px}
+        .info-box{background:var(--bg-subtle);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:12px 16px;margin-top:14px;font-size:12px;color:var(--text-tertiary);line-height:1.6}
+        .info-box strong{color:var(--text-secondary)}
+    </style>
+</head>
+<body data-tool-id="normdurchfluss">
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right"><button class="theme-toggle" id="themeToggle"><span id="themeIcon">🌙</span></button></div>
+    </header>
+    <div class="back-bar"><a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a></div>
+
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="copyResults()"><svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg> Kopieren</button>
+            <button class="action-btn" onclick="resetFields()"><svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg> Zurücksetzen</button>
+            <button class="action-btn" onclick="exportPagePDF('Normdurchfluss')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+        </div>
+
+        <div class="description">🌬️ Betriebsvolumenstrom ↔ Normvolumenstrom für Gasmessungen umrechnen. Ideales Gasgesetz. Normzustände nach DIN 1343, ISO 13443 und kundenspezifisch.</div>
+
+        <p class="section-title">Betriebsbedingungen</p>
+        <table>
+            <tr><td colspan="2">Volumenstrom (Betrieb) Q<sub>b</sub></td>
+                <td colspan="4"><input class="input-field" type="number" id="qb" value="100" step="any" oninput="calc()">
+                <select class="input-field" id="qb_unit" onchange="calc()" style="width:auto">
+                    <option value="1">m³/h</option><option value="0.016667">m³/min</option>
+                    <option value="0.000278">m³/s</option><option value="0.001">l/s</option>
+                    <option value="3.6">km³/h (×1000 m³/h)</option>
+                </select></td></tr>
+            <tr><td colspan="2">Betriebsdruck p<sub>b</sub></td>
+                <td colspan="4"><input class="input-field" type="number" id="pb" value="3.0" step="any" oninput="calc()">
+                <select class="input-field" id="pb_unit" onchange="calc()" style="width:auto">
+                    <option value="100000">bar (abs)</option><option value="100000">bar (ü) → abs wird addiert</option>
+                    <option value="1000">mbar (abs)</option><option value="1">Pa</option>
+                    <option value="6894.76">psi (abs)</option>
+                </select></td></tr>
+            <tr><td colspan="2">Druckart</td>
+                <td colspan="4"><select class="input-field" id="pb_type" onchange="calc()" style="width:auto">
+                    <option value="abs">Absolutdruck</option>
+                    <option value="ue">Überdruck (+ atm)</option>
+                </select></td></tr>
+            <tr><td colspan="2">Betriebstemperatur T<sub>b</sub></td>
+                <td colspan="4"><input class="input-field" type="number" id="tb" value="20" step="any" oninput="calc()"> °C</td></tr>
+            <tr><td colspan="2">Kompressibilitätsfaktor Z</td>
+                <td colspan="4"><input class="input-field" type="number" id="z_factor" value="1.0" step="0.001" oninput="calc()">
+                <span style="font-size:11px;color:var(--text-tertiary)"> (1.0 = ideales Gas)</span></td></tr>
+        </table>
+
+        <hr class="section-divider">
+        <p class="section-title">Normzustand</p>
+        <table>
+            <tr><td colspan="2">Normzustand</td>
+                <td colspan="4"><select class="input-field" id="norm_preset" onchange="applyPreset()" style="width:auto">
+                    <option value="din">DIN 1343: 0 °C / 1,01325 bar</option>
+                    <option value="iso">ISO 13443: 15 °C / 1,01325 bar</option>
+                    <option value="us">US: 60 °F (15,6 °C) / 14,696 psi</option>
+                    <option value="custom">Benutzerdefiniert</option>
+                </select></td></tr>
+            <tr><td colspan="2">Normdruck p<sub>n</sub></td>
+                <td colspan="4"><input class="input-field" type="number" id="pn" value="1.01325" step="any" oninput="calc()"> bar (abs)</td></tr>
+            <tr><td colspan="2">Normtemperatur T<sub>n</sub></td>
+                <td colspan="4"><input class="input-field" type="number" id="tn" value="0" step="any" oninput="calc()"> °C</td></tr>
+        </table>
+
+        <div class="result-grid">
+            <div class="result-card"><div class="result-card-value" id="r_qn_m3h">—</div><div class="result-card-label">Normvolumenstrom (Nm³/h)</div></div>
+            <div class="result-card"><div class="result-card-value" id="r_qn_m3s">—</div><div class="result-card-label">Normvolumenstrom (Nm³/s)</div></div>
+            <div class="result-card"><div class="result-card-value" id="r_qb_show">—</div><div class="result-card-label">Betriebsvolumenstrom (m³/h)</div></div>
+            <div class="result-card"><div class="result-card-value" id="r_faktor">—</div><div class="result-card-label">Umrechnungsfaktor Qn/Qb</div></div>
+        </div>
+
+        <hr class="section-divider">
+        <p class="section-title">Rückrechnung: Normvolumenstrom → Betrieb</p>
+        <table>
+            <tr><td colspan="2">Normvolumenstrom Q<sub>n</sub></td>
+                <td colspan="4"><input class="input-field" type="number" id="qn_rev" value="" step="any" placeholder="Nm³/h eingeben" oninput="calcRev()"> Nm³/h</td></tr>
+            <tr><td colspan="2">Betriebsvolumenstrom</td>
+                <td colspan="4" class="result-field"><span id="r_qb_rev">—</span></td></tr>
+        </table>
+
+        <div class="info-box">
+            <strong>Formel (ideales Gas):</strong> Q<sub>n</sub> = Q<sub>b</sub> × (p<sub>b</sub> / p<sub>n</sub>) × (T<sub>n</sub> / T<sub>b</sub>) × (1/Z)<br>
+            Temperaturen in Kelvin (K = °C + 273,15). Drücke als Absolutdruck in Pa.
+            Bei realen Gasen (Erdgas, CO₂, H₂) Z-Faktor aus Datenblatt oder AGA8 verwenden.
+        </div>
+    </div></div>
+
+    <footer class="bottom-header"><p>Keine Gewähr. Nutzung auf eigenes Risiko.</p></footer>
+    <script src="shared.js"></script>
+    <script>
+        const PRESETS = {
+            din:    { pn: 1.01325, tn: 0 },
+            iso:    { pn: 1.01325, tn: 15 },
+            us:     { pn: 1.01325, tn: 15.6 },
+            custom: null
+        };
+
+        function applyPreset() {
+            const p = PRESETS[document.getElementById('norm_preset').value];
+            if (p) {
+                document.getElementById('pn').value = p.pn;
+                document.getElementById('tn').value = p.tn;
+            }
+            calc();
+        }
+
+        function getPbAbs() {
+            const val = parseFloat(document.getElementById('pb').value) || 0;
+            const unit = document.getElementById('pb_unit').value;
+            // unit is always bar-equivalent factor; but we read raw bar-equivalent
+            // simplification: pb is in bar (user sees bar), convert to Pa
+            const pbBar = val * parseFloat(unit) / 100000; // Pa → bar
+            // Actually: user types value, unit is Pa factor
+            const pbPa = val * parseFloat(unit);
+            const isUe = document.getElementById('pb_type').value === 'ue';
+            return isUe ? pbPa + 101325 : pbPa;
+        }
+
+        function calc() {
+            const qb_raw = parseFloat(document.getElementById('qb').value) || 0;
+            const qb_unit = parseFloat(document.getElementById('qb_unit').value) || 1;
+            const qb = qb_raw * qb_unit; // m³/h
+
+            const pb_val = parseFloat(document.getElementById('pb').value) || 0;
+            const pb_unit = parseFloat(document.getElementById('pb_unit').value) || 100000;
+            const pb_pa_raw = pb_val * pb_unit;
+            const isUe = document.getElementById('pb_type').value === 'ue';
+            const pb = isUe ? pb_pa_raw + 101325 : pb_pa_raw; // Pa abs
+
+            const tb = (parseFloat(document.getElementById('tb').value) || 0) + 273.15; // K
+            const pn = (parseFloat(document.getElementById('pn').value) || 1.01325) * 1e5; // Pa
+            const tn = (parseFloat(document.getElementById('tn').value) || 0) + 273.15; // K
+            const z  = parseFloat(document.getElementById('z_factor').value) || 1;
+
+            if (qb <= 0 || pb <= 0) return;
+
+            const qn = qb * (pb / pn) * (tn / tb) * (1 / z);
+            const faktor = qn / qb;
+
+            document.getElementById('r_qn_m3h').textContent  = qn.toFixed(3);
+            document.getElementById('r_qn_m3s').textContent  = (qn / 3600).toFixed(5);
+            document.getElementById('r_qb_show').textContent = qb.toFixed(3);
+            document.getElementById('r_faktor').textContent  = faktor.toFixed(4);
+
+            calcRev();
+        }
+
+        function calcRev() {
+            const qn_in = parseFloat(document.getElementById('qn_rev').value);
+            if (isNaN(qn_in) || qn_in <= 0) { document.getElementById('r_qb_rev').textContent = '—'; return; }
+
+            const pb_val = parseFloat(document.getElementById('pb').value) || 0;
+            const pb_unit = parseFloat(document.getElementById('pb_unit').value) || 100000;
+            const pb_pa_raw = pb_val * pb_unit;
+            const isUe = document.getElementById('pb_type').value === 'ue';
+            const pb = isUe ? pb_pa_raw + 101325 : pb_pa_raw;
+            const tb = (parseFloat(document.getElementById('tb').value) || 0) + 273.15;
+            const pn = (parseFloat(document.getElementById('pn').value) || 1.01325) * 1e5;
+            const tn = (parseFloat(document.getElementById('tn').value) || 0) + 273.15;
+            const z  = parseFloat(document.getElementById('z_factor').value) || 1;
+
+            const qb = qn_in / (pb / pn) / (tn / tb) * z;
+            document.getElementById('r_qb_rev').textContent = qb.toFixed(3) + ' m³/h';
+        }
+
+        calc();
+    </script>
+</body>
+</html>

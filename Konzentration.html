@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konzentration – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧪</text></svg>">
+    <style>
+        .action-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+        .action-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-size:13px;font-weight:500;border-radius:var(--radius-md);border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;font-family:var(--font-sans)}
+        .action-btn:hover{background:var(--bg-subtle);color:var(--text-primary)}
+        .action-btn svg{width:14px;height:14px;fill:currentColor}
+        .section-divider{border:none;border-top:1px solid var(--border-default);margin:24px 0}
+        .section-title{font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin:0 0 10px 0}
+        .result-big{background:var(--bg-success);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:20px;text-align:center;margin-top:14px}
+        .result-big-value{font-size:32px;font-weight:700;color:var(--text-success);font-family:var(--font-mono)}
+        .result-big-label{font-size:13px;color:var(--text-secondary);margin-top:4px}
+        .result-big.error{background:var(--bg-danger)}
+        .result-big.error .result-big-value{color:var(--text-danger)}
+        .ref-table{width:100%;border-collapse:collapse;font-size:12px}
+        .ref-table th{background:var(--bg-subtle);font-size:11px;font-weight:600;color:var(--text-secondary);padding:5px 10px;border-bottom:1px solid var(--border-default);text-align:right}
+        .ref-table th:first-child{text-align:left}
+        .ref-table td{padding:4px 10px;border-bottom:1px solid var(--border-default);text-align:right;font-family:var(--font-mono);font-size:12px}
+        .ref-table td:first-child{text-align:left;font-family:var(--font-sans)}
+        .ref-table tr:last-child td{border-bottom:none}
+        .ref-table tr:hover td{background:var(--bg-subtle)}
+        .ref-table tr.highlight td{background:var(--bg-success)}
+        .medium-sel{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+        .med-btn{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;font-family:var(--font-sans)}
+        .med-btn.active{background:var(--accent-emphasis);color:var(--text-on-emphasis);border-color:var(--accent-emphasis)}
+    </style>
+</head>
+<body data-tool-id="konzentration">
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right"><button class="theme-toggle" id="themeToggle"><span id="themeIcon">🌙</span></button></div>
+    </header>
+    <div class="back-bar"><a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a></div>
+
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="copyResults()"><svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg> Kopieren</button>
+            <button class="action-btn" onclick="resetFields()"><svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg> Zurücksetzen</button>
+            <button class="action-btn" onclick="exportPagePDF('Konzentration')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+        </div>
+
+        <div class="description">🧪 Konzentration aus Dichte berechnen (Coriolis-Dichtemessung). Interpolation aus Referenztabellen für H₂SO₄, NaOH, HCl, Ethanol und Saccharose/Brix bei 20 °C.</div>
+
+        <p class="section-title">Medium</p>
+        <div class="medium-sel" id="med_sel"></div>
+        <div id="med_note" style="font-size:11px;color:var(--text-tertiary);margin-bottom:10px"></div>
+
+        <table>
+            <tr>
+                <td colspan="2">Gemessene Dichte</td>
+                <td colspan="2"><input class="input-field" type="number" id="inp_dens" value="" step="0.001" placeholder="z.B. 1.200" oninput="calc()"></td>
+                <td>g/cm³</td>
+            </tr>
+        </table>
+
+        <div id="result_box" class="result-big" style="display:none">
+            <div class="result-big-value" id="r_conc">—</div>
+            <div class="result-big-label" id="r_label">Konzentration</div>
+        </div>
+
+        <hr class="section-divider">
+        <p class="section-title">Referenztabelle (20 °C)</p>
+        <div style="overflow-x:auto;border:1px solid var(--border-default);border-radius:var(--radius-md)">
+            <table class="ref-table">
+                <thead id="ref_head"></thead>
+                <tbody id="ref_body"></tbody>
+            </table>
+        </div>
+    </div></div>
+
+    <footer class="bottom-header"><p>Keine Gewähr. Tabellenwerte gelten für 20 °C. Abweichende Prozesstemperaturen verfälschen das Ergebnis.</p></footer>
+    <script src="shared.js"></script>
+    <script>
+        // [concentration, density g/cm³] at 20°C
+        const MEDIA = {
+            h2so4: {
+                name: 'H₂SO₄ (Schwefelsäure)',
+                unit: 'Masse-%',
+                note: 'Referenz: Perry\'s/CRC. Oberhalb ~96 % nimmt die Dichte ab → Messung uneindeutig.',
+                data: [[0,0.9982],[5,1.0300],[10,1.0661],[15,1.1020],[20,1.1394],[25,1.1783],[30,1.2185],[35,1.2599],[40,1.3028],[45,1.3476],[50,1.3951],[55,1.4453],[60,1.4983],[65,1.5533],[70,1.6105],[75,1.6692],[80,1.7272],[85,1.7796],[90,1.8144],[93,1.8310],[96,1.8354]]
+            },
+            naoh: {
+                name: 'NaOH (Natronlauge)',
+                unit: 'Masse-%',
+                note: 'Referenz: CRC Handbook, 20 °C.',
+                data: [[0,0.9982],[5,1.0538],[10,1.1089],[15,1.1658],[20,1.2191],[25,1.2685],[30,1.3279],[35,1.3798],[40,1.4300],[45,1.4813],[50,1.5253]]
+            },
+            hcl: {
+                name: 'HCl (Salzsäure)',
+                unit: 'Masse-%',
+                note: 'Konzentrierte Salzsäure (rauchend) max. ~38 Masse-%.',
+                data: [[0,0.9982],[5,1.0224],[10,1.0474],[15,1.0727],[20,1.0980],[25,1.1235],[30,1.1491],[35,1.1741],[38,1.1895]]
+            },
+            ethanol: {
+                name: 'Ethanol (C₂H₅OH)',
+                unit: 'Masse-%',
+                note: 'Ethanol-Wasser-Gemisch, 20 °C. Für Vol-% Umrechnung mit mittlerer Dichte beachten.',
+                data: [[0,0.9982],[5,0.9894],[10,0.9820],[15,0.9755],[20,0.9686],[25,0.9614],[30,0.9539],[40,0.9375],[50,0.9184],[60,0.8976],[70,0.8762],[80,0.8548],[90,0.8338],[100,0.7893]]
+            },
+            brix: {
+                name: 'Saccharose (Brix)',
+                unit: '°Brix',
+                note: 'Saccharose-Wasser, 20 °C nach ICUMSA. °Brix = g Saccharose pro 100 g Lösung.',
+                data: [[0,0.9982],[5,1.0178],[10,1.0381],[15,1.0591],[20,1.0810],[25,1.1036],[30,1.1270],[35,1.1513],[40,1.1764],[45,1.2024],[50,1.2295],[55,1.2576],[60,1.2869],[65,1.3172],[70,1.3489],[75,1.3818],[80,1.4162]]
+            }
+        };
+
+        let activeMed = 'h2so4';
+
+        // Build medium selector
+        const medSel = document.getElementById('med_sel');
+        Object.keys(MEDIA).forEach(key => {
+            const btn = document.createElement('button');
+            btn.className = 'med-btn' + (key === activeMed ? ' active' : '');
+            btn.textContent = MEDIA[key].name;
+            btn.onclick = () => {
+                activeMed = key;
+                medSel.querySelectorAll('.med-btn').forEach((b, i) => b.classList.toggle('active', Object.keys(MEDIA)[i] === key));
+                renderTable();
+                calc();
+            };
+            medSel.appendChild(btn);
+        });
+
+        function interpolate(data, density) {
+            if (density < data[0][1] || density > data[data.length - 1][1]) return null;
+            for (let i = 0; i < data.length - 1; i++) {
+                const [c1, d1] = data[i];
+                const [c2, d2] = data[i + 1];
+                if (density >= d1 && density <= d2) {
+                    const t = (density - d1) / (d2 - d1);
+                    return c1 + t * (c2 - c1);
+                }
+            }
+            return null;
+        }
+
+        function calc() {
+            const dens = parseFloat(document.getElementById('inp_dens').value);
+            const med = MEDIA[activeMed];
+            const box = document.getElementById('result_box');
+            const rConc = document.getElementById('r_conc');
+            const rLabel = document.getElementById('r_label');
+
+            if (isNaN(dens)) { box.style.display = 'none'; renderTable(); return; }
+
+            const conc = interpolate(med.data, dens);
+            box.style.display = '';
+
+            if (conc === null) {
+                box.className = 'result-big error';
+                rConc.textContent = 'Außerhalb';
+                rLabel.textContent = 'Dichte ' + dens.toFixed(4) + ' g/cm³ außerhalb Tabellenbereich';
+            } else {
+                box.className = 'result-big';
+                rConc.textContent = conc.toFixed(1) + ' ' + med.unit;
+                rLabel.textContent = 'bei Dichte ' + dens.toFixed(4) + ' g/cm³ (' + med.name + ', 20 °C)';
+            }
+            renderTable(dens);
+        }
+
+        function renderTable(highlightDens) {
+            const med = MEDIA[activeMed];
+            document.getElementById('med_note').textContent = med.note;
+            document.getElementById('ref_head').innerHTML =
+                '<tr><th style="text-align:left">' + med.unit + '</th><th>Dichte (g/cm³)</th></tr>';
+
+            const tbody = document.getElementById('ref_body');
+            tbody.innerHTML = '';
+            med.data.forEach(([c, d]) => {
+                const tr = document.createElement('tr');
+                const isClose = highlightDens !== undefined && Math.abs(d - highlightDens) < 0.005;
+                if (isClose) tr.className = 'highlight';
+                tr.innerHTML = '<td>' + c + '</td><td>' + d.toFixed(4) + '</td>';
+                tbody.appendChild(tr);
+            });
+        }
+
+        renderTable();
+    </script>
+</body>
+</html>

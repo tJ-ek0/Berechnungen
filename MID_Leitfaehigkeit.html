@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MID Leitfähigkeit – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💧</text></svg>">
+    <style>
+        .action-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+        .action-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-size:13px;font-weight:500;border-radius:var(--radius-md);border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;font-family:var(--font-sans)}
+        .action-btn:hover{background:var(--bg-subtle);color:var(--text-primary)}
+        .action-btn svg{width:14px;height:14px;fill:currentColor}
+        .section-divider{border:none;border-top:1px solid var(--border-default);margin:24px 0}
+        .section-title{font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin:0 0 10px 0}
+        .status-line{display:flex;align-items:center;gap:8px;margin-top:14px;padding:12px 16px;border-radius:var(--radius-md);border:1px solid;font-size:13px;font-weight:600}
+        .status-line.ok{background:var(--bg-success);color:var(--text-success);border-color:#2ea043}
+        .status-line.warn{background:var(--bg-attention);color:var(--text-attention);border-color:#d29922}
+        .status-line.error{background:var(--bg-danger);color:var(--text-danger);border-color:#f85149}
+        .ref-table{width:100%;border-collapse:collapse;font-size:12px}
+        .ref-table th{background:var(--bg-subtle);font-size:11px;font-weight:600;color:var(--text-secondary);padding:6px 10px;border-bottom:1px solid var(--border-default);text-align:right;white-space:nowrap}
+        .ref-table th:first-child{text-align:left}
+        .ref-table td{padding:5px 10px;border-bottom:1px solid var(--border-default);text-align:right;font-family:var(--font-mono);font-size:12px}
+        .ref-table td:first-child{text-align:left;font-family:var(--font-sans)}
+        .ref-table tr:last-child td{border-bottom:none}
+        .ref-table tr:hover td{background:var(--bg-subtle)}
+        .ref-table tr.ok-row td{background:var(--bg-success)}
+        .ref-table tr.warn-row td{background:var(--bg-attention)}
+        .ref-table tr.err-row td{background:var(--bg-danger)}
+        .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;margin-left:4px}
+        .badge-ok{background:#d4edda;color:#155724}
+        .badge-warn{background:#fff3cd;color:#856404}
+        .badge-err{background:#f8d7da;color:#721c24}
+        .device-sel{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+        .dev-btn{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;font-family:var(--font-sans)}
+        .dev-btn.active{background:var(--accent-emphasis);color:var(--text-on-emphasis);border-color:var(--accent-emphasis)}
+    </style>
+</head>
+<body data-tool-id="mid_lf">
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right"><button class="theme-toggle" id="themeToggle"><span id="themeIcon">🌙</span></button></div>
+    </header>
+    <div class="back-bar"><a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a></div>
+
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="exportPagePDF('MID-Leitfaehigkeit')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+        </div>
+
+        <div class="description">💧 Mindestleitfähigkeit für magnetisch-induktive Durchflussmesser (MID/EMF) prüfen. Referenztabelle mit Leitfähigkeitsbereichen für typische Prozessmedien.</div>
+
+        <p class="section-title">Gerätetyp / Mindestleitfähigkeit</p>
+        <div class="device-sel" id="dev_sel"></div>
+
+        <table>
+            <tr>
+                <td colspan="2">Leitfähigkeit des Mediums</td>
+                <td colspan="2"><input class="input-field" type="number" id="inp_lf" value="" step="0.1" placeholder="z.B. 500" oninput="check()"></td>
+                <td>µS/cm</td>
+            </tr>
+        </table>
+
+        <div id="status_box" style="display:none" class="status-line"></div>
+
+        <hr class="section-divider">
+        <p class="section-title">Leitfähigkeit typischer Medien</p>
+        <div style="overflow-x:auto;border:1px solid var(--border-default);border-radius:var(--radius-md)">
+            <table class="ref-table">
+                <thead>
+                    <tr>
+                        <th style="text-align:left">Medium</th>
+                        <th>Min (µS/cm)</th>
+                        <th>Max (µS/cm)</th>
+                        <th style="text-align:left">Eignung (Standard 5 µS/cm)</th>
+                    </tr>
+                </thead>
+                <tbody id="ref_tbody"></tbody>
+            </table>
+        </div>
+
+        <div style="background:var(--bg-subtle);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:12px 16px;margin-top:14px;font-size:12px;color:var(--text-tertiary);line-height:1.6">
+            <strong style="color:var(--text-secondary)">Hinweis:</strong> Der MID benötigt eine leitfähige Flüssigkeit. Nicht-leitende Medien wie Öle, Kohlenwasserstoffe oder reine organische Lösemittel sind <strong>nicht messbar</strong>. Bei Leitfähigkeit nahe der Mindestanforderung können Messfehler durch Belagsbildung an den Elektroden auftreten. Angaben gelten für das Medium bei Betriebstemperatur.
+        </div>
+    </div></div>
+
+    <footer class="bottom-header"><p>Keine Gewähr. Leitfähigkeitswerte können je nach Temperatur, Konzentration und Verunreinigung stark abweichen.</p></footer>
+    <script src="shared.js"></script>
+    <script>
+        const DEVICES = [
+            { id: 'std', name: 'Standard MID', min: 5, desc: 'Promag 10/50/53/W/H/P (Standard-Elektroden)' },
+            { id: 'lo',  name: 'Niedrigleitfähigkeit', min: 1, desc: 'Promag L, Spezialausführungen für gering-leitfähige Medien' },
+            { id: 'hi',  name: 'Hochrein (Prozesswasser)', min: 0.05, desc: 'Spezielle Ausführungen für Reinstwasser / Kondensatanwendungen' }
+        ];
+
+        const REF_MEDIA = [
+            ['Reinstwasser / VE-Wasser', 0.05, 0.5],
+            ['Kesselspeisewasser', 0.5, 10],
+            ['Destilliertes Wasser', 0.5, 5],
+            ['Regenwasser', 10, 50],
+            ['Trinkwasser / Leitungswasser', 200, 1500],
+            ['Brunnenwasser', 300, 2000],
+            ['Flusswasser', 100, 1000],
+            ['Heizungswasser (behandelt)', 100, 500],
+            ['Kühlwasser (Umlauf)', 500, 2000],
+            ['Brauchwasser', 100, 2000],
+            ['Abwasser (kommunal)', 500, 5000],
+            ['Abwasser (industriell)', 1000, 100000],
+            ['Meerwasser', 40000, 60000],
+            ['Milch', 4000, 5500],
+            ['Bier', 1000, 3000],
+            ['Fruchtsaft', 1000, 5000],
+            ['Wein', 1000, 3000],
+            ['Zuckerlösung (rein)', 0.01, 20],
+            ['Natronlauge 10%', 100000, 250000],
+            ['Schwefelsäure 5%', 150000, 250000],
+            ['Salzsäure 5%', 300000, 600000],
+            ['Klärschlamm', 1000, 10000],
+            ['Papierpulpe (Stoff)', 100, 5000],
+            ['Ethanol (rein)', 0.001, 0.01],
+            ['Kühlmittel / Frostschutz', 10, 1000],
+        ];
+
+        let activeDevice = DEVICES[0];
+
+        const devSel = document.getElementById('dev_sel');
+        DEVICES.forEach((d, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'dev-btn' + (idx === 0 ? ' active' : '');
+            btn.textContent = d.name + ' (≥ ' + d.min + ' µS/cm)';
+            btn.title = d.desc;
+            btn.onclick = () => {
+                activeDevice = d;
+                devSel.querySelectorAll('.dev-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+                renderTable();
+                check();
+            };
+            devSel.appendChild(btn);
+        });
+
+        function check() {
+            const lf = parseFloat(document.getElementById('inp_lf').value);
+            const box = document.getElementById('status_box');
+            if (isNaN(lf)) { box.style.display = 'none'; renderTable(); return; }
+            const min = activeDevice.min;
+            box.style.display = 'flex';
+            if (lf < min) {
+                box.className = 'status-line error';
+                box.textContent = '✗ Nicht geeignet: ' + lf + ' µS/cm liegt unter der Mindestleitfähigkeit von ' + min + ' µS/cm (' + activeDevice.name + ')';
+            } else if (lf < min * 3) {
+                box.className = 'status-line warn';
+                box.textContent = '⚠ Grenzbereich: ' + lf + ' µS/cm ist nah an der Mindestleitfähigkeit (' + min + ' µS/cm). Elektrodenbelag kann Probleme verursachen.';
+            } else {
+                box.className = 'status-line ok';
+                box.textContent = '✓ Geeignet: ' + lf + ' µS/cm überschreitet die Mindestleitfähigkeit von ' + min + ' µS/cm ausreichend.';
+            }
+            renderTable(lf);
+        }
+
+        function renderTable(inputLf) {
+            const min = activeDevice.min;
+            const tbody = document.getElementById('ref_tbody');
+            tbody.innerHTML = '';
+            REF_MEDIA.forEach(([name, lo, hi]) => {
+                const tr = document.createElement('tr');
+                let badge, rowClass = '';
+                if (hi < min) {
+                    badge = '<span class="badge badge-err">Nicht geeignet</span>';
+                    rowClass = 'err-row';
+                } else if (lo < min && hi >= min) {
+                    badge = '<span class="badge badge-warn">Grenzbereich</span>';
+                    rowClass = 'warn-row';
+                } else {
+                    badge = '<span class="badge badge-ok">Geeignet</span>';
+                    rowClass = 'ok-row';
+                }
+                if (inputLf !== undefined && inputLf >= lo && inputLf <= hi) rowClass = 'ok-row';
+                tr.className = rowClass;
+                const loStr = lo < 1 ? lo.toFixed(3) : lo.toFixed(0);
+                const hiStr = hi < 1 ? hi.toFixed(3) : hi.toFixed(0);
+                tr.innerHTML = '<td>' + name + '</td><td>' + loStr + '</td><td>' + hiStr + '</td><td>' + badge + '</td>';
+                tbody.appendChild(tr);
+            });
+        }
+
+        renderTable();
+    </script>
+</body>
+</html>

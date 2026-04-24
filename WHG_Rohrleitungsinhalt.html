@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rohrleitungsinhalt – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; font-family: var(--font-sans); }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); }
+        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+        .section-divider { border: none; border-top: 1px solid var(--border-default); margin: 24px 0; }
+        .section-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px 0; }
+
+        .pipe-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .pipe-table th { background: var(--bg-subtle); font-weight: 600; font-size: 11px; color: var(--text-secondary); padding: 7px 8px; text-align: left; border-bottom: 1px solid var(--border-default); white-space: nowrap; }
+        .pipe-table td { padding: 4px 5px; border-bottom: 1px solid var(--border-default); vertical-align: middle; }
+        .pipe-table tr:last-child td { border-bottom: none; }
+        .pipe-table .vol-cell { font-family: var(--font-mono); color: var(--text-primary); font-weight: 500; }
+        .pipe-table .del-btn { background: none; border: none; cursor: pointer; color: var(--text-danger); font-size: 14px; padding: 2px 6px; border-radius: var(--radius-md); }
+        .pipe-table .del-btn:hover { background: var(--bg-danger); }
+        .pipe-table tfoot td { background: var(--bg-subtle); font-weight: 700; border-top: 2px solid var(--border-default); padding: 8px; font-family: var(--font-mono); }
+
+        .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 14px 0; }
+        .result-card { background: var(--bg-success); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 12px; text-align: center; }
+        .result-card-value { font-size: 20px; font-weight: 600; color: var(--text-success); font-family: var(--font-mono); }
+        .result-card-label { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+
+        .ref-wrap { overflow-x: auto; }
+        .ref-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .ref-table th { background: var(--bg-subtle); font-weight: 600; font-size: 11px; color: var(--text-secondary); padding: 5px 8px; border-bottom: 1px solid var(--border-default); text-align: right; }
+        .ref-table th:first-child { text-align: left; }
+        .ref-table td { padding: 4px 8px; border-bottom: 1px solid var(--border-default); text-align: right; font-family: var(--font-mono); font-size: 12px; }
+        .ref-table td:first-child { text-align: left; font-family: var(--font-sans); font-weight: 600; }
+        .ref-table tr:last-child td { border-bottom: none; }
+        .ref-table tr:hover td { background: var(--bg-subtle); }
+    </style>
+</head>
+<body data-tool-id="whg_rohrleitung">
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button>
+        </div>
+    </header>
+    <div class="back-bar">
+        <a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a>
+    </div>
+
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="exportPagePDF('Rohrleitungsinhalt')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+            <button class="action-btn" onclick="exportCSV()"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> CSV</button>
+            <button class="action-btn" onclick="resetFields()"><svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg> Zurücksetzen</button>
+        </div>
+
+        <div class="description">🔧 Rohrleitungsinhalt berechnen – ideal für WHG/AwSV-Nachweise. Mehrere Teilstücke mit DN-Auswahl oder manuellem Innendurchmesser. CSV-Export für Dokumentation.</div>
+
+        <!-- Rohrleitungstabelle -->
+        <p class="section-title">Rohrleitungsabschnitte</p>
+        <div style="overflow-x:auto">
+            <table class="pipe-table">
+                <thead>
+                    <tr>
+                        <th>Bezeichnung</th>
+                        <th>DN</th>
+                        <th>di (mm)</th>
+                        <th>Länge (m)</th>
+                        <th>Anzahl</th>
+                        <th>Volumen (l)</th>
+                        <th>Volumen (m³)</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="pipe_body"></tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="5" style="font-size:12px;color:var(--text-secondary);font-family:var(--font-sans);font-weight:600;">Gesamt</td>
+                        <td id="total_l" class="vol-cell">—</td>
+                        <td id="total_m3" class="vol-cell">—</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <button class="action-btn" style="margin-top:8px;" onclick="addRow()">+ Abschnitt hinzufügen</button>
+
+        <div class="result-grid" style="margin-top:16px;">
+            <div class="result-card"><div class="result-card-value" id="res_l">—</div><div class="result-card-label">Gesamtvolumen (Liter)</div></div>
+            <div class="result-card"><div class="result-card-value" id="res_m3">—</div><div class="result-card-label">Gesamtvolumen (m³)</div></div>
+            <div class="result-card"><div class="result-card-value" id="res_abschnitte">0</div><div class="result-card-label">Abschnitte</div></div>
+        </div>
+
+        <!-- DN-Referenztabelle -->
+        <hr class="section-divider">
+        <p class="section-title">DN-Referenz – Innendurchmesser Stahlrohr (DIN EN 10255, mittlere Reihe)</p>
+        <div class="ref-wrap">
+            <table class="ref-table">
+                <thead>
+                    <tr><th>DN</th><th>da (mm)</th><th>Wanddicke (mm)</th><th>di (mm)</th><th>Vol./m (l/m)</th></tr>
+                </thead>
+                <tbody id="ref_body"></tbody>
+            </table>
+        </div>
+
+        <div style="background:var(--bg-subtle);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:12px 16px;margin-top:16px;font-size:12px;color:var(--text-tertiary);line-height:1.6;">
+            <strong style="color:var(--text-secondary);">Hinweis WHG/AwSV:</strong> Der Rohrleitungsinhalt ist bei der Ermittlung des Rückhaltevolumens nach AwSV § 18 zu berücksichtigen. Die Wanddicken gelten für Stahlrohre (DIN EN 10255 mittlere Reihe). Für andere Werkstoffe (Edelstahl, PE, PP) abweichende Wanddicken beachten.
+        </div>
+
+        <div class="shortcuts-hint" style="margin-top:16px;">
+            <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+            <span><kbd>Esc</kbd> Zurücksetzen</span>
+        </div>
+    </div></div>
+
+    <footer class="bottom-header">
+        <p>Keine Gewähr für die Genauigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+    </footer>
+
+    <script src="shared.js"></script>
+    <script>
+        // DIN EN 10255 mittlere Reihe: [DN, da_mm, wand_mm]
+        const DN_DATA = [
+            [8,  13.5, 2.3],
+            [10, 17.2, 2.3],
+            [15, 21.3, 2.6],
+            [20, 26.9, 2.6],
+            [25, 33.7, 3.2],
+            [32, 42.4, 3.2],
+            [40, 48.3, 3.2],
+            [50, 60.3, 3.6],
+            [65, 76.1, 3.6],
+            [80, 88.9, 4.0],
+            [100,114.3,4.5],
+            [125,139.7,5.0],
+            [150,168.3,5.0],
+            [200,219.1,6.3],
+            [250,273.0,6.3],
+            [300,323.9,7.1],
+            [350,355.6,8.0],
+            [400,406.4,8.8],
+            [500,508.0,11.0],
+            [600,610.0,12.5],
+        ];
+
+        const DN_MAP = {};
+        DN_DATA.forEach(([dn, da, w]) => { DN_MAP[dn] = da - 2 * w; });
+
+        // Build reference table
+        const refBody = document.getElementById('ref_body');
+        DN_DATA.forEach(([dn, da, w]) => {
+            const di = da - 2 * w;
+            const volPerM = Math.PI / 4 * (di / 1000) * (di / 1000) * 1000;
+            const tr = document.createElement('tr');
+            tr.innerHTML =
+                '<td>DN ' + dn + '</td>' +
+                '<td>' + da.toFixed(1) + '</td>' +
+                '<td>' + w.toFixed(1) + '</td>' +
+                '<td>' + di.toFixed(1) + '</td>' +
+                '<td>' + volPerM.toFixed(3) + '</td>';
+            refBody.appendChild(tr);
+        });
+
+        // ============ Pipe rows ============
+        let rowId = 0;
+
+        function dnOptions(selected) {
+            let o = '<option value="0">– manuell –</option>';
+            DN_DATA.forEach(([dn]) => {
+                o += '<option value="' + dn + '"' + (dn == selected ? ' selected' : '') + '>DN ' + dn + '</option>';
+            });
+            return o;
+        }
+
+        function addRow(bez, dn, di, len, count) {
+            rowId++;
+            const id = rowId;
+            const tr = document.createElement('tr');
+            tr.id = 'pr_' + id;
+            const diVal = di || (dn ? DN_MAP[dn].toFixed(1) : '');
+            tr.innerHTML =
+                '<td><input class="input-field" type="text" value="' + (bez || 'Leitung ' + id) + '" style="width:100px" oninput="calcRows()"></td>' +
+                '<td><select class="input-field" style="width:80px" id="dn_' + id + '" onchange="onDnChange(' + id + ')">' + dnOptions(dn || 0) + '</select></td>' +
+                '<td><input class="input-field" type="number" value="' + (diVal || '') + '" min="0" step="0.1" id="di_' + id + '" style="width:72px" oninput="calcRows()" placeholder="mm"> </td>' +
+                '<td><input class="input-field" type="number" value="' + (len || 10) + '" min="0" step="0.1" style="width:72px" oninput="calcRows()"> </td>' +
+                '<td><input class="input-field" type="number" value="' + (count || 1) + '" min="1" step="1" style="width:55px" oninput="calcRows()"></td>' +
+                '<td class="vol-cell" id="vl_' + id + '">—</td>' +
+                '<td class="vol-cell" id="vm_' + id + '">—</td>' +
+                '<td><button class="del-btn" onclick="delRow(' + id + ')">✕</button></td>';
+            document.getElementById('pipe_body').appendChild(tr);
+            calcRows();
+        }
+
+        function onDnChange(id) {
+            const sel = document.getElementById('dn_' + id);
+            const dn = parseInt(sel.value);
+            const diInput = document.getElementById('di_' + id);
+            if (dn > 0 && DN_MAP[dn] !== undefined) {
+                diInput.value = DN_MAP[dn].toFixed(1);
+                diInput.readOnly = true;
+                diInput.style.color = 'var(--text-tertiary)';
+            } else {
+                diInput.readOnly = false;
+                diInput.style.color = '';
+                diInput.value = '';
+                diInput.focus();
+            }
+            calcRows();
+        }
+
+        function delRow(id) {
+            const el = document.getElementById('pr_' + id);
+            if (el) el.remove();
+            calcRows();
+        }
+
+        function calcRows() {
+            const rows = document.querySelectorAll('#pipe_body tr');
+            let totalL = 0;
+            rows.forEach(tr => {
+                const inputs = tr.querySelectorAll('input[type="number"]');
+                const di = parseFloat(inputs[0].value) || 0;
+                const len = parseFloat(inputs[1].value) || 0;
+                const cnt = parseFloat(inputs[2].value) || 1;
+                const volM3 = Math.PI / 4 * Math.pow(di / 1000, 2) * len * cnt;
+                const volL = volM3 * 1000;
+                totalL += volL;
+                const id = tr.id.replace('pr_', '');
+                const vl = document.getElementById('vl_' + id);
+                const vm = document.getElementById('vm_' + id);
+                if (vl) vl.textContent = volL.toFixed(3);
+                if (vm) vm.textContent = volM3.toFixed(5);
+            });
+            const totalM3 = totalL / 1000;
+            document.getElementById('total_l').textContent = totalL.toFixed(3);
+            document.getElementById('total_m3').textContent = totalM3.toFixed(5);
+            document.getElementById('res_l').textContent = totalL.toFixed(2);
+            document.getElementById('res_m3').textContent = totalM3.toFixed(4);
+            document.getElementById('res_abschnitte').textContent = rows.length;
+        }
+
+        function exportCSV() {
+            const rows = document.querySelectorAll('#pipe_body tr');
+            let csv = '﻿Bezeichnung;DN;di (mm);Länge (m);Anzahl;Volumen (l);Volumen (m³)\r\n';
+            rows.forEach(tr => {
+                const texts = tr.querySelectorAll('input[type="text"]');
+                const nums = tr.querySelectorAll('input[type="number"]');
+                const sels = tr.querySelectorAll('select');
+                const bez = texts[0] ? texts[0].value : '';
+                const dn = sels[0] ? sels[0].options[sels[0].selectedIndex].text : '';
+                const di = parseFloat(nums[0].value) || 0;
+                const len = parseFloat(nums[1].value) || 0;
+                const cnt = parseFloat(nums[2].value) || 1;
+                const volL = Math.PI / 4 * Math.pow(di / 1000, 2) * len * cnt * 1000;
+                csv += [bez, dn, di.toFixed(1).replace('.',','), len.toFixed(1).replace('.',','), cnt,
+                         volL.toFixed(3).replace('.',','), (volL/1000).toFixed(5).replace('.',',')].join(';') + '\r\n';
+            });
+            const total = parseFloat(document.getElementById('res_l').textContent) || 0;
+            csv += ';;;;;;;\r\nGesamt;;;;' + total.toFixed(3).replace('.',',') + ';' + (total/1000).toFixed(5).replace('.',',') + '\r\n';
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+            a.download = 'Rohrleitungsinhalt.csv'; a.click();
+        }
+
+        // Init
+        addRow('Zuleitung DN 50', 50, null, 25, 1);
+        addRow('Verteiler DN 25', 25, null, 12, 3);
+    </script>
+</body>
+</html>

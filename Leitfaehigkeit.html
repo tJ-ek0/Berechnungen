@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leitfähigkeit – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+    <style>
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
+        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+
+        .result-row { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 14px 18px; margin-top: 12px; font-family: var(--font-mono); font-size: 15px; color: var(--accent-fg); font-weight: 600; }
+        .section-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin: 24px 0 8px; }
+
+        .ref-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+        .ref-table th { background: var(--bg-subtle); font-weight: 600; color: var(--text-secondary); padding: 8px 12px; text-align: left; border-bottom: 2px solid var(--border-default); }
+        .ref-table td { padding: 6px 12px; border-bottom: 1px solid var(--border-default); color: var(--text-primary); }
+        .ref-table td:last-child { font-family: var(--font-mono); font-size: 12px; }
+        .ref-table tr:last-child td { border-bottom: none; }
+        .ref-table tr:hover td { background: var(--bg-subtle); }
+    </style>
+</head>
+<body data-tool-id="leitfaehigkeit">
+
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle" title="Theme wechseln"><span id="themeIcon">🌙</span></button>
+        </div>
+    </header>
+
+    <div class="back-bar">
+        <a href="index.html" class="back-link">
+            <svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg>
+            Zurück zur Übersicht
+        </a>
+    </div>
+
+    <div class="page-container">
+        <div class="container">
+            <div class="action-bar">
+                <button class="action-btn" onclick="copyResults()">
+                    <svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>
+                    Kopieren
+                </button>
+                <button class="action-btn" onclick="exportPagePDF('Leitfähigkeit')">
+                    <svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
+                    PDF
+                </button>
+            </div>
+
+            <div class="description">
+                💧 Zellkonstante berechnen, Temperaturkompensation auf 25 °C, TDS-Umrechnung und Referenzwerte typischer Medien.
+            </div>
+
+            <!-- 1. Zellkonstante -->
+            <div class="section-title">Zellkonstante</div>
+            <table>
+                <tr><th colspan="6">K<sub>cell</sub> = R · κ  |  κ = K<sub>cell</sub> / R</th></tr>
+                <tr>
+                    <td colspan="2">Gemessener Widerstand R</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="cell_R" value="" step="any" placeholder="z.B. 1000" style="max-width:130px"> Ω
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Leitfähigkeit κ (bekannt)</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="cell_kappa" value="" step="any" placeholder="z.B. 1413" style="max-width:130px"> µS/cm
+                        <span style="font-size:12px;color:var(--text-tertiary);margin-left:6px;">(z.B. Referenzlösung)</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Zellkonstante K<sub>cell</sub> (bekannt)</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="cell_K" value="" step="any" placeholder="z.B. 1.0" style="max-width:130px"> cm⁻¹
+                    </td>
+                </tr>
+            </table>
+            <div class="result-row" id="cell_result">Werte eingeben um zu berechnen</div>
+
+            <!-- 2. Temperaturkompensation -->
+            <div class="section-title">Temperaturkompensation (auf 25 °C)</div>
+            <table>
+                <tr><th colspan="6">κ<sub>25</sub> = κ<sub>T</sub> / (1 + α · (T − 25))</th></tr>
+                <tr>
+                    <td colspan="2">Gemessene Leitfähigkeit κ<sub>T</sub></td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="tc_kappa_t" value="" step="any" placeholder="µS/cm oder mS/cm" style="max-width:140px">
+                        <select class="input-field" id="tc_unit" style="max-width:90px">
+                            <option value="us">µS/cm</option>
+                            <option value="ms">mS/cm</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Temperatur T</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="tc_temp" value="20" step="0.1" style="max-width:100px"> °C
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Temperaturkoeffizient α</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="tc_alpha" value="2.0" step="0.1" style="max-width:100px"> %/°C
+                        <span style="font-size:12px;color:var(--text-tertiary);margin-left:6px;">Wasser≈2,0 · Säuren≈1,6 · Laugen≈1,9</span>
+                    </td>
+                </tr>
+            </table>
+            <div class="result-row" id="tc_result">Werte eingeben um zu berechnen</div>
+
+            <!-- 3. TDS -->
+            <div class="section-title">TDS-Umrechnung (Leitfähigkeit → gelöste Stoffe)</div>
+            <table>
+                <tr><th colspan="6">TDS (mg/l) ≈ κ (µS/cm) · f</th></tr>
+                <tr>
+                    <td colspan="2">Leitfähigkeit κ</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="tds_kappa" value="" step="any" placeholder="µS/cm" style="max-width:130px"> µS/cm
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Umrechnungsfaktor f</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="tds_f" value="0.5" step="0.01" style="max-width:100px">
+                        <span style="font-size:12px;color:var(--text-tertiary);margin-left:6px;">RO-Wasser≈0,50 · Leitungswasser≈0,64 · allg.≈0,67</span>
+                    </td>
+                </tr>
+            </table>
+            <div class="result-row" id="tds_result">Werte eingeben um zu berechnen</div>
+
+            <!-- 4. Referenztabelle -->
+            <div class="section-title">Referenzwerte typischer Medien (bei 25 °C)</div>
+            <table class="ref-table">
+                <tr><th>Medium</th><th>Leitfähigkeit</th><th>TDS (ca.)</th></tr>
+                <tr><td>Reinstwasser (theoret.)</td><td>0,055 µS/cm</td><td>&lt; 0,03 mg/l</td></tr>
+                <tr><td>VE-Wasser / deionisiert</td><td>0,1–1 µS/cm</td><td>&lt; 1 mg/l</td></tr>
+                <tr><td>Regenwasser</td><td>50–200 µS/cm</td><td>25–100 mg/l</td></tr>
+                <tr><td>Trinkwasser (DE)</td><td>200–800 µS/cm</td><td>100–500 mg/l</td></tr>
+                <tr><td>Flusswasser</td><td>100–500 µS/cm</td><td>50–300 mg/l</td></tr>
+                <tr><td>Meerwasser</td><td>~50 000 µS/cm</td><td>~35 000 mg/l</td></tr>
+                <tr><td>KCl-Puffer 0,01 mol/l</td><td>1 413 µS/cm</td><td>—</td></tr>
+                <tr><td>KCl-Puffer 0,1 mol/l</td><td>12 880 µS/cm</td><td>—</td></tr>
+                <tr><td>KCl-Puffer 1 mol/l</td><td>~111 900 µS/cm</td><td>—</td></tr>
+                <tr><td>NaOH 5 %</td><td>~200 000 µS/cm</td><td>—</td></tr>
+                <tr><td>H₂SO₄ 5 %</td><td>~200 000 µS/cm</td><td>—</td></tr>
+            </table>
+
+            <div class="shortcuts-hint">
+                <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+                <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bottom-header">
+        <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+    </footer>
+
+    <script src="shared.js"></script>
+    <script>
+        function calcCell() {
+            const R = parseFloat(document.getElementById('cell_R').value);
+            const kappa = parseFloat(document.getElementById('cell_kappa').value);
+            const K = parseFloat(document.getElementById('cell_K').value);
+            const el = document.getElementById('cell_result');
+
+            const parts = [];
+            if (!isNaN(R) && !isNaN(kappa)) {
+                const K_calc = R * (kappa / 1e6) * 100;
+                parts.push('Kₓₑₗₗ = ' + K_calc.toFixed(4) + ' cm⁻¹  (aus R\xD7κ)');
+            }
+            if (!isNaN(R) && !isNaN(K)) {
+                const kappa_calc = (K / R) * 1e6 / 100;
+                parts.push('κ = ' + kappa_calc.toFixed(2) + ' µS/cm  (aus Kₓₑₗₗ/R)');
+            }
+            if (!isNaN(kappa) && !isNaN(K)) {
+                const R_calc = (K / kappa) * 1e4;
+                parts.push('R = ' + R_calc.toFixed(2) + ' Ω  (aus Kₓₑₗₗ/κ)');
+            }
+            el.textContent = parts.length ? parts.join('   │   ') : 'Mindestens zwei Werte eingeben';
+        }
+
+        function calcTC() {
+            const kT = parseFloat(document.getElementById('tc_kappa_t').value);
+            const T = parseFloat(document.getElementById('tc_temp').value);
+            const alpha = parseFloat(document.getElementById('tc_alpha').value) / 100;
+            const unit = document.getElementById('tc_unit').value;
+            const el = document.getElementById('tc_result');
+            if (isNaN(kT) || isNaN(T) || isNaN(alpha)) { el.textContent = 'Werte eingeben'; return; }
+            const denom = 1 + alpha * (T - 25);
+            if (denom === 0) { el.textContent = 'Ungültige Werte'; return; }
+            const k25 = kT / denom;
+            const unitLabel = unit === 'us' ? ' µS/cm' : ' mS/cm';
+            el.textContent = 'κ₂₅ = ' + k25.toFixed(4) + unitLabel + '  (bei T = ' + T + ' °C, α = ' + (alpha*100).toFixed(1) + ' %/°C)';
+        }
+
+        function calcTDS() {
+            const kappa = parseFloat(document.getElementById('tds_kappa').value);
+            const f = parseFloat(document.getElementById('tds_f').value);
+            const el = document.getElementById('tds_result');
+            if (isNaN(kappa) || isNaN(f)) { el.textContent = 'Werte eingeben'; return; }
+            const tds = kappa * f;
+            el.textContent = 'TDS ≈ ' + tds.toFixed(1) + ' mg/l  (f = ' + f.toFixed(2) + ')';
+        }
+
+        ['cell_R','cell_kappa','cell_K'].forEach(id => document.getElementById(id).addEventListener('input', calcCell));
+        ['tc_kappa_t','tc_temp','tc_alpha','tc_unit'].forEach(id => {
+            document.getElementById(id).addEventListener('input', calcTC);
+            document.getElementById(id).addEventListener('change', calcTC);
+        });
+        ['tds_kappa','tds_f'].forEach(id => document.getElementById(id).addEventListener('input', calcTDS));
+    </script>
+</body>
+</html>

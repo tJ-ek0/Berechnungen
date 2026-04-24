@@ -16,8 +16,12 @@
         .status-bar { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-default); margin-bottom: 20px; font-size: 14px; font-weight: 500; transition: all 0.3s; }
         .status-bar.status-ok { background: var(--bg-success); color: var(--text-success); border-color: var(--text-success); }
         .status-bar.status-warn { background: var(--bg-attention); color: var(--text-attention); border-color: var(--text-attention); }
-        .status-bar.status-error { background: var(--bg-danger); color: var(--text-danger); border-color: var(--text-danger); }
+        .status-bar.status-error { background: var(--bg-danger); color: var(--text-danger); border-color: var(--text-danger); animation: limit-pulse 1.2s ease-in-out infinite; }
         .status-bar.status-idle { background: var(--bg-subtle); color: var(--text-tertiary); }
+        @keyframes limit-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(207,34,46,0.3); }
+            50%       { box-shadow: 0 0 0 6px rgba(207,34,46,0); }
+        }
         .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
         .status-ok .status-dot { background: var(--text-success); }
         .status-warn .status-dot { background: var(--text-attention); }
@@ -45,6 +49,43 @@
         /* Reverse calc section */
         .reverse-section { margin-top: 4px; }
         .reverse-section table { margin-bottom: 0; }
+
+        /* Frequenz-Auslastungsbalken */
+        .freq-gauge { margin: -8px 0 20px; }
+        .freq-gauge-top { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-tertiary); margin-bottom: 4px; }
+        .freq-gauge-track { height: 8px; background: var(--bg-subtle); border-radius: 4px; overflow: hidden; }
+        .freq-gauge-fill { height: 100%; border-radius: 4px; transition: width .4s ease, background .3s; background: var(--text-success); }
+        .freq-gauge-fill.warn { background: var(--text-attention); }
+        .freq-gauge-fill.error { background: var(--text-danger); }
+
+        /* Geräte-Vorlagen */
+        .preset-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; align-items: center; }
+        .preset-label { font-size: 12px; color: var(--text-tertiary); font-weight: 600; flex-shrink: 0; min-width: 90px; }
+        .preset-btn { padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 20px; border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; font-family: var(--font-sans); white-space: nowrap; }
+        .preset-btn:hover { background: var(--bg-subtle); }
+        .preset-btn.active-device { background: #0969da; color: #fff; border-color: #0969da; }
+        .preset-btn.active-sps { background: #8250df; color: #fff; border-color: #8250df; }
+        /* Effektives Systemlimit */
+        .effective-limit { margin-top: 10px; padding: 8px 12px; border-radius: var(--radius-md); background: var(--bg-subtle); border: 1px solid var(--border-default); font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+        .effective-limit b { color: var(--text-primary); }
+        .effective-limit .bottleneck { font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 10px; margin-left: 8px; }
+        .bottleneck-device { background: #fff8c5; color: #9a6700; }
+        .bottleneck-sps    { background: var(--bg-danger); color: var(--text-danger); }
+        [data-theme="dark"] .bottleneck-device { background: #2d2200; color: #d4a72c; }
+
+        /* Messpunkt-Tabelle */
+        .mp-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+        .mp-ok { background: var(--text-success); }
+        .mp-warn { background: var(--text-attention); }
+        .mp-err { background: var(--text-danger); }
+        tr.mp-row-err { background: var(--bg-danger) !important; }
+        tr.mp-row-err td { color: var(--text-danger); font-weight: 600; }
+        tr.mp-row-warn { background: var(--bg-attention) !important; }
+        tr.mp-row-warn td { color: var(--text-attention); }
+
+        /* Diagramm */
+        .chart-wrap { border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 16px; margin-top: 16px; background: var(--bg-default); }
+        .chart-wrap canvas { max-height: 220px; }
     </style>
 </head>
 <body data-tool-id="impuls">
@@ -102,14 +143,42 @@
                 <span id="statusText">Werte eingeben um die Prüfung zu starten</span>
             </div>
 
+            <!-- Geräte-Vorlagen -->
+            <div class="preset-row">
+                <span class="preset-label">Messgerät:</span>
+                <button class="preset-btn" onclick="setDevicePreset(10000,this)">Promag 50/300</button>
+                <button class="preset-btn" onclick="setDevicePreset(10000,this)">Promass 80/300</button>
+                <button class="preset-btn" onclick="setDevicePreset(1000,this)">Prowirl 70/200</button>
+            </div>
+            <div class="preset-row" style="margin-bottom:14px">
+                <span class="preset-label">SPS-Eingang:</span>
+                <button class="preset-btn active-sps" onclick="setSPSPreset(100,this)">Langsam (100 ms)</button>
+                <button class="preset-btn" onclick="setSPSPreset(0.5,this)">Standard (0,5 ms)</button>
+                <button class="preset-btn" onclick="setSPSPreset(0.05,this)">Schnell (0,05 ms)</button>
+            </div>
+
             <!-- Geräte-Limits -->
             <div class="limits-box">
-                <h4>⚙ Geräte-Limits (optional)</h4>
+                <h4>⚙ Systemlimits (frei konfigurierbar)</h4>
                 <div class="limits-row">
-                    <label>Max. Frequenz:</label>
-                    <input class="input-field" type="number" id="max_freq" value="1000" step="0.1" style="max-width:100px"> <span style="font-size:13px;color:var(--text-secondary)">Hz (Imp/s)</span>
-                    <label style="margin-left:16px">Min. Impulsbreite:</label>
-                    <input class="input-field" type="number" id="min_pulsbreite" value="100" step="0.1" style="max-width:100px"> <span style="font-size:13px;color:var(--text-secondary)">ms</span>
+                    <label>Messgerät max. Freq.:</label>
+                    <input class="input-field" type="number" id="device_max_freq" value="10000" step="1" style="max-width:100px">
+                    <span style="font-size:13px;color:var(--text-secondary)">Hz</span>
+                    <label style="margin-left:16px">SPS min. Impulsbreite:</label>
+                    <input class="input-field" type="number" id="sps_min_pb" value="100" step="0.1" style="max-width:100px">
+                    <span style="font-size:13px;color:var(--text-secondary)">ms</span>
+                </div>
+                <div class="effective-limit" id="effectiveLimit">Effektives Systemlimit: —</div>
+            </div>
+
+            <!-- Frequenz-Auslastungsbalken -->
+            <div class="freq-gauge">
+                <div class="freq-gauge-top">
+                    <span>Frequenz-Auslastung</span>
+                    <span id="gaugeLabel">—</span>
+                </div>
+                <div class="freq-gauge-track">
+                    <div class="freq-gauge-fill" id="gaugeFill" style="width:0%"></div>
                 </div>
             </div>
 
@@ -292,6 +361,24 @@
                 </table>
             </div>
 
+            <hr class="section-divider">
+
+            <!-- Messpunkt-Tabelle -->
+            <table id="mpTable" style="display:none">
+                <tr><th colspan="4">Frequenz &amp; Impulsbreite nach Durchfluss-Anteil</th></tr>
+                <tr id="mpHeader">
+                    <td style="font-weight:600;font-size:12px">Durchfluss</td>
+                    <td style="font-weight:600;font-size:12px">Frequenz</td>
+                    <td style="font-weight:600;font-size:12px">Impulsbreite</td>
+                    <td style="font-weight:600;font-size:12px">Status</td>
+                </tr>
+            </table>
+
+            <!-- Diagramm -->
+            <div class="chart-wrap" id="chartWrap" style="display:none">
+                <canvas id="freqChart"></canvas>
+            </div>
+
             <div class="shortcuts-hint">
                 <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
                 <span><kbd>Esc</kbd> Zurücksetzen</span>
@@ -305,6 +392,7 @@
         <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="shared.js"></script>
     <script>
         // ============ EINHEITEN WECHSELN ============
@@ -412,6 +500,14 @@
 
             // Status-Ampel prüfen
             updateStatus(imp_sek, pulsbreite);
+
+            // Gauge, Tabelle, Chart
+            const lim2 = getEffectiveLimits();
+            const freqPct = lim2.effMaxFreq > 0 ? (imp_sek / lim2.effMaxFreq) * 100 : 0;
+            updateGauge(freqPct);
+            updateEffectiveLimit();
+            updateMesspunkte(d_lh, iw_basis, de, typ, lim2.effMaxFreq, lim2.effMinPb);
+            updateChart(d_lh, iw_basis, imp_sek, lim2.effMaxFreq);
         }
 
         function clearResults() {
@@ -419,6 +515,10 @@
                 document.getElementById(id).innerText = '';
             });
             document.getElementById('totalizerBox').style.display = 'none';
+            document.getElementById('mpTable').style.display = 'none';
+            document.getElementById('chartWrap').style.display = 'none';
+            document.getElementById('gaugeFill').style.width = '0%';
+            document.getElementById('gaugeLabel').textContent = '—';
             const bar = document.getElementById('statusBar');
             bar.className = 'status-bar status-idle';
             document.getElementById('statusText').textContent = 'Werte eingeben um die Prüfung zu starten';
@@ -426,29 +526,28 @@
 
         // ============ STATUS-AMPEL ============
         function updateStatus(imp_sek, pulsbreite) {
-            const maxFreq = parseFloat(document.getElementById('max_freq').value) || 10;
-            const minPuls = parseFloat(document.getElementById('min_pulsbreite').value) || 0.5;
+            const lim = getEffectiveLimits();
             const bar = document.getElementById('statusBar');
             const text = document.getElementById('statusText');
-
-            const freqPct = (imp_sek / maxFreq) * 100;
-            const pulsOk = isFinite(pulsbreite) ? pulsbreite >= minPuls : true;
+            const freqPct = lim.effMaxFreq > 0 ? (imp_sek / lim.effMaxFreq) * 100 : 0;
+            const pulsOk = isFinite(pulsbreite) ? pulsbreite >= lim.effMinPb : true;
 
             if (imp_sek <= 0 || !isFinite(imp_sek)) {
                 bar.className = 'status-bar status-idle';
                 text.textContent = 'Werte eingeben um die Prüfung zu starten';
-            } else if (imp_sek > maxFreq) {
+            } else if (imp_sek > lim.effMaxFreq) {
                 bar.className = 'status-bar status-error';
-                text.textContent = '✕ Frequenz (' + formatZahl(imp_sek) + ' Hz) überschreitet das Geräte-Limit von ' + maxFreq + ' Hz';
+                const engpass = lim.bottleneck ? ' [Engpass: ' + lim.bottleneck + ']' : '';
+                text.textContent = '✕ Frequenz ' + formatZahl(imp_sek) + ' Hz > Limit ' + formatZahl(lim.effMaxFreq) + ' Hz' + engpass;
             } else if (!pulsOk) {
                 bar.className = 'status-bar status-error';
-                text.textContent = '✕ Impulsbreite (' + formatZahl(pulsbreite) + ' ms) unterschreitet die Mindestbreite von ' + minPuls + ' ms';
+                text.textContent = '✕ Impulsbreite ' + formatZahl(pulsbreite) + ' ms < Mindest ' + formatZahl(lim.effMinPb) + ' ms [Engpass: SPS]';
             } else if (freqPct > 80) {
                 bar.className = 'status-bar status-warn';
-                text.textContent = '⚠ Frequenz bei ' + Math.round(freqPct) + '% des Limits (' + formatZahl(imp_sek) + ' von ' + maxFreq + ' Hz)';
+                text.textContent = '⚠ ' + Math.round(freqPct) + '% vom Limit — ' + formatZahl(imp_sek) + ' Hz von max. ' + formatZahl(lim.effMaxFreq) + ' Hz';
             } else {
                 bar.className = 'status-bar status-ok';
-                text.textContent = '✓ Konfiguration OK — ' + formatZahl(imp_sek) + ' Hz (' + Math.round(freqPct) + '% vom Limit), Impulsbreite ' + formatZahl(pulsbreite) + ' ms';
+                text.textContent = '✓ OK — ' + formatZahl(imp_sek) + ' Hz (' + Math.round(freqPct) + '% vom Limit), Impulsbreite ' + formatZahl(pulsbreite) + ' ms';
             }
         }
 
@@ -598,9 +697,168 @@
             document.getElementById('rev_pulsbreite').innerText = isFinite(pb) ? formatZahl(pb) : '—';
         }
 
+        // ============ GERÄTE-VORLAGEN ============
+        function setDevicePreset(maxHz, btn) {
+            document.getElementById('device_max_freq').value = maxHz;
+            document.querySelectorAll('.preset-btn.active-device').forEach(b => b.classList.remove('active-device'));
+            if (btn) btn.classList.add('active-device');
+            updateEffectiveLimit();
+            berechneImpulswertigkeit();
+        }
+        function setSPSPreset(minPb, btn) {
+            document.getElementById('sps_min_pb').value = minPb;
+            document.querySelectorAll('.preset-btn.active-sps').forEach(b => b.classList.remove('active-sps'));
+            if (btn) btn.classList.add('active-sps');
+            updateEffectiveLimit();
+            berechneImpulswertigkeit();
+        }
+
+        // ============ EFFEKTIVES LIMIT ============
+        function getEffectiveLimits() {
+            const deviceMaxFreq = parseFloat(document.getElementById('device_max_freq').value) || 10000;
+            const spsMinPb      = parseFloat(document.getElementById('sps_min_pb').value) || 100;
+            const spsMaxFreq    = spsMinPb > 0 ? 1000 / (2 * spsMinPb) : Infinity;
+            const effMaxFreq    = Math.min(deviceMaxFreq, spsMaxFreq);
+            const effMinPb      = Math.max(spsMinPb, deviceMaxFreq > 0 ? 1000 / (2 * deviceMaxFreq) : 0);
+            const bottleneck    = spsMaxFreq < deviceMaxFreq ? 'SPS' : deviceMaxFreq < spsMaxFreq ? 'Messgerät' : null;
+            return { deviceMaxFreq, spsMinPb, spsMaxFreq, effMaxFreq, effMinPb, bottleneck };
+        }
+        function updateEffectiveLimit() {
+            const lim = getEffectiveLimits();
+            const el  = document.getElementById('effectiveLimit');
+            const badge = lim.bottleneck
+                ? '<span class="bottleneck ' + (lim.bottleneck === 'SPS' ? 'bottleneck-sps' : 'bottleneck-device') + '">Engpass: ' + lim.bottleneck + '</span>'
+                : '';
+            el.innerHTML = 'Effektives Systemlimit: <b>' + formatZahl(lim.effMaxFreq) + ' Hz</b> / <b>' + formatZahl(lim.effMinPb) + ' ms</b>' + badge;
+        }
+
+        // ============ GAUGE ============
+        function updateGauge(freqPct) {
+            const fill = document.getElementById('gaugeFill');
+            const label = document.getElementById('gaugeLabel');
+            const w = Math.min(Math.max(freqPct, 0), 100);
+            fill.style.width = w + '%';
+            fill.className = 'freq-gauge-fill' + (freqPct > 100 ? ' error' : freqPct > 80 ? ' warn' : '');
+            if (freqPct > 100) {
+                label.innerHTML = '<strong style="color:var(--text-danger)">⚠ LIMIT ÜBERSCHRITTEN (' + freqPct.toFixed(0) + '%)</strong>';
+            } else {
+                label.textContent = isFinite(freqPct) ? freqPct.toFixed(1) + '%' : '—';
+            }
+        }
+
+        // ============ BASIS → ANZEIGEEINHEIT ============
+        function vonBasis(d_lh, einheit, typ) {
+            if (typ === 'volumen') {
+                if (einheit === 'm³/h')   return d_lh / 1000;
+                if (einheit === 'ltr/h')  return d_lh;
+                if (einheit === 'm³/min') return d_lh / 60000;
+                if (einheit === 'ltr/min')return d_lh / 60;
+                if (einheit === 'm³/sek') return d_lh / 3600000;
+                if (einheit === 'ltr/sek')return d_lh / 3600;
+            } else {
+                if (einheit === 't/h')    return d_lh / 1000;
+                if (einheit === 'kg/h')   return d_lh;
+                if (einheit === 't/min')  return d_lh / 60000;
+                if (einheit === 'kg/min') return d_lh / 60;
+                if (einheit === 't/sek')  return d_lh / 3600000;
+                if (einheit === 'kg/sek') return d_lh / 3600;
+            }
+            return d_lh;
+        }
+
+        // ============ MESSPUNKT-TABELLE ============
+        function updateMesspunkte(d_lh_100, iw_basis, de, typ, maxFreq, minPuls) {
+            const table = document.getElementById('mpTable');
+            table.style.display = '';
+            // Alle Zeilen außer den zwei Header-Zeilen entfernen
+            while (table.rows.length > 2) table.deleteRow(2);
+
+            const pcts = [10, 25, 50, 75, 100, 110];
+            pcts.forEach(pct => {
+                const d = d_lh_100 * pct / 100;
+                const impH = d / iw_basis;
+                const impSek = impH / 3600;
+                const pb = impSek > 0 ? 1000 / (impSek * 2) : Infinity;
+                const overLimit = impSek > maxFreq;
+                const nearLimit = !overLimit && (impSek / maxFreq) > 0.8;
+                const dotClass = overLimit ? 'mp-err' : nearLimit ? 'mp-warn' : 'mp-ok';
+                const statusText = overLimit ? 'Überlimit' : nearLimit ? 'Warnung' : 'OK';
+                const d_anzeige = vonBasis(d, de, typ);
+                const row = table.insertRow();
+                if (overLimit) row.className = 'mp-row-err';
+                else if (nearLimit) row.className = 'mp-row-warn';
+                row.innerHTML =
+                    '<td>' + pct + '% <span style="font-size:11px;opacity:0.7">(' + formatZahl(d_anzeige) + ' ' + de + ')</span></td>' +
+                    '<td>' + formatZahl(impSek) + ' Hz</td>' +
+                    '<td>' + (isFinite(pb) ? formatZahl(pb) + ' ms' : '—') + '</td>' +
+                    '<td><span class="mp-dot ' + dotClass + '"></span>' + statusText + '</td>';
+            });
+        }
+
+        // ============ DIAGRAMM ============
+        let _chart = null;
+        function updateChart(d_lh_100, iw_basis, impSek100, maxFreq) {
+            const wrap = document.getElementById('chartWrap');
+            wrap.style.display = '';
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const gridCol = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)';
+            const txtCol  = isDark ? '#8b949e' : '#57606a';
+            const pcts = [0,10,20,30,40,50,60,70,80,90,100,110,120];
+            const freqData  = pcts.map(p => impSek100 * p / 100);
+            const limitData = pcts.map(() => maxFreq);
+            const labels = pcts.map(p => p + '%');
+
+            if (_chart) {
+                _chart.data.labels = labels;
+                _chart.data.datasets[0].data = freqData;
+                _chart.data.datasets[1].data = limitData;
+                _chart.options.scales.x.ticks.color = txtCol;
+                _chart.options.scales.y.ticks.color = txtCol;
+                _chart.options.scales.x.grid.color = gridCol;
+                _chart.options.scales.y.grid.color = gridCol;
+                _chart.update();
+                return;
+            }
+            _chart = new Chart(document.getElementById('freqChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Ausgangsfrequenz',
+                            data: freqData,
+                            borderColor: '#0969da',
+                            backgroundColor: 'rgba(9,105,218,0.08)',
+                            borderWidth: 2, fill: true, tension: 0,
+                            pointRadius: pcts.map(p => p === 100 ? 6 : 0),
+                            pointBackgroundColor: '#0969da'
+                        },
+                        {
+                            label: 'Limit',
+                            data: limitData,
+                            borderColor: '#cf222e',
+                            borderWidth: 2, borderDash: [6,3],
+                            fill: false, pointRadius: 0, tension: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: true,
+                    plugins: {
+                        legend: { labels: { color: txtCol, font: { size: 11 }, boxWidth: 18 } },
+                        tooltip: { callbacks: { label: c => c.dataset.label + ': ' + formatZahl(c.parsed.y) + ' Hz' } }
+                    },
+                    scales: {
+                        x: { ticks: { color: txtCol, font: { size: 11 } }, grid: { color: gridCol } },
+                        y: { beginAtZero: true, ticks: { color: txtCol, font: { size: 11 }, callback: v => v + ' Hz' }, grid: { color: gridCol } }
+                    }
+                }
+            });
+        }
+
         // ============ EVENT LISTENERS ============
         // Hauptberechnung
-        document.querySelectorAll('#durchfluss, #impulswertigkeit, #durchfluss_einheit, #impulswertigkeit_einheit, #typ, #max_freq, #min_pulsbreite').forEach(el => {
+        document.querySelectorAll('#durchfluss, #impulswertigkeit, #durchfluss_einheit, #impulswertigkeit_einheit, #typ, #device_max_freq, #sps_min_pb').forEach(el => {
             el.addEventListener('input', berechneImpulswertigkeit);
             el.addEventListener('change', berechneImpulswertigkeit);
         });
@@ -628,6 +886,12 @@
             el.addEventListener('input', berechneMaxDurchfluss);
             el.addEventListener('change', berechneMaxDurchfluss);
         });
+
+        // Effektives Limit beim Start und bei Limit-Eingaben sofort anzeigen
+        document.querySelectorAll('#device_max_freq, #sps_min_pb').forEach(el => {
+            el.addEventListener('input', updateEffectiveLimit);
+        });
+        updateEffectiveLimit();
 
         document.getElementById('max_typ').addEventListener('change', function() {
             aendereMaxEinheiten(this.value);

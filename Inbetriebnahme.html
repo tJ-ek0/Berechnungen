@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inbetriebnahme – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+    <style>
+        .action-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+        .action-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;font-size:13px;font-weight:500;border-radius:var(--radius-md);border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;font-family:var(--font-sans)}
+        .action-btn:hover{background:var(--bg-subtle);color:var(--text-primary)}
+        .action-btn svg{width:14px;height:14px;fill:currentColor}
+        .dev-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+        .dev-btn{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border-default);background:var(--bg-default);color:var(--text-secondary);cursor:pointer;font-family:var(--font-sans)}
+        .dev-btn.active{background:var(--accent-emphasis);color:#fff;border-color:var(--accent-emphasis)}
+        .progress-bar{height:6px;background:var(--bg-subtle);border-radius:3px;margin-bottom:14px;overflow:hidden}
+        .progress-fill{height:100%;background:var(--accent-emphasis);border-radius:3px;transition:width .3s}
+        .progress-label{font-size:12px;color:var(--text-tertiary);margin-bottom:6px}
+        .check-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:var(--radius-md);border:1px solid var(--border-default);margin-bottom:6px;cursor:pointer;background:var(--bg-default);transition:background .1s}
+        .check-item:hover{background:var(--bg-subtle)}
+        .check-item.done{background:var(--bg-success);border-color:#2ea04340}
+        .check-box{width:20px;height:20px;border-radius:5px;border:2px solid var(--border-default);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;margin-top:1px}
+        .check-item.done .check-box{background:var(--accent-emphasis);border-color:var(--accent-emphasis);color:#fff}
+        .ci-num{font-size:11px;font-weight:700;color:var(--text-tertiary);flex-shrink:0;min-width:20px;padding-top:2px}
+        .ci-title{font-size:13px;font-weight:600;color:var(--text-primary)}
+        .check-item.done .ci-title{color:var(--text-success)}
+        .ci-sub{font-size:11px;color:var(--text-tertiary);margin-top:2px;line-height:1.4}
+        .section-title{font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin:0 0 10px 0}
+    </style>
+</head>
+<body data-tool-id="inbetriebnahme">
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right"><button class="theme-toggle" id="themeToggle"><span id="themeIcon">🌙</span></button></div>
+    </header>
+    <div class="back-bar"><a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a></div>
+
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="resetCurrent()"><svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg> Zurücksetzen</button>
+            <button class="action-btn" onclick="exportPagePDF('Inbetriebnahme-Checkliste')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+        </div>
+        <div class="description">📋 Inbetriebnahme-Checklisten für E+H Messgeräte. Schritt für Schritt durch die Inbetriebnahme — abhaken und als PDF exportieren.</div>
+
+        <p class="section-title">Gerät wählen</p>
+        <div class="dev-row" id="dev_row"></div>
+
+        <div class="progress-label" id="prog_label">0 / 0 Schritte erledigt</div>
+        <div class="progress-bar"><div class="progress-fill" id="prog_fill" style="width:0%"></div></div>
+
+        <div id="checklist"></div>
+    </div></div>
+
+    <footer class="bottom-header"><p>Keine Gewähr. Gerätespezifische Inbetriebnahmeanleitung (BA) stets beachten.</p></footer>
+    <script src="shared.js"></script>
+    <script>
+    const DEVICES = {
+        promag: {
+            name: 'Promag (MID)',
+            steps: [
+                ['Typenschild & Freigabe', 'DN, Druckstufe (PN), Ex-Zulassung, Elektrodenwerkstoff und Auskleidung prüfen. Mindestleitfähigkeit: ≥5 µS/cm (Standard), ≥20 µS/cm (Promag 10H). Für Reinstwasser: Promag W/P.'],
+                ['Einbaulage & Einlaufstrecken', 'Strömungsrichtungspfeil am Gehäuse beachten. Aufwärts-Einbau empfohlen (verhindert Entgasung). Einlaufstrecke min. 5×DN, Auslauf min. 3×DN.'],
+                ['Erdungskonzept (kritisch)', 'Für Kunststoff- oder Auskleidungsrohre: Erdungsringe oder -elektroden montiert? Potenzialausgleichsleiter (min. 4 mm²) von Flansch zu Anlagenerde. Ohne Erdung: Messfehler oder kein Signal.'],
+                ['Elektrischer Anschluss', 'Klemmenplan aus BA prüfen. PE-Klemme anschließen. Schirmung einseitig auf Schaltraumseite erden. 2-Draht: 10,5–32 VDC; 4-Draht: 85–253 VAC je nach Typ.'],
+                ['Quick Setup ausführen', 'Menü → Inbetriebnahme → Quick Setup. Sprache, Systemeinheiten, TAG-Nummer eingeben. Rohrnennweite DN einstellen (muss physischem Einbau entsprechen).'],
+                ['Messbereich (URV / LRV)', 'Menü → Stromausgang → 4-mA-Wert (LRV, meist 0) und 20-mA-Wert (URV = max. Durchfluss) einstellen. Einheit prüfen (m³/h, l/min etc.).'],
+                ['Leerrohr-Erkennung', 'Menü → Inbetriebnahme → Leerrohr-Erkennung → Aktivieren. Ansprechwert typisch 50% einstellen. Funktion bei leerem Rohr testen.'],
+                ['Nullpunktabgleich (Zero Trim)', 'Rohr vollständig befüllen, Durchfluss stoppen (Absperrventile schließen). Menü → Inbetriebnahme → Nullpunktabgleich → Starten. Dauer ca. 20 s. Ergebnis: ≤0,5% URV.'],
+                ['Ausgangstest', 'Menü → Diagnose → Simulation → Stromausgang. 4 mA und 20 mA ausgeben, am SPS-Eingang messen (Toleranz ±0,05 mA). Puls- und Statusausgang ebenfalls simulieren.'],
+                ['Realer Funktionstest', 'Durchfluss erzeugen. Anzeigewert und Ausgangssignal auf Plausibilität prüfen. Ggf. mit Referenzzähler vergleichen und Abweichung dokumentieren.'],
+                ['Grenzwerte & NAMUR-Diagnose', 'NAMUR NE 107: Ausfallsignal, Wartungsbedarf, Außerhalb Spez. konfigurieren. Prozessgrenzwerte für Alarm-Relais setzen.'],
+                ['Dokumentation', 'Messstellenblatt: DN, Elektrodenwerkstoff, Messbereich, Zero-Wert, Leitfähigkeit Medium, Seriennummer, Prüfdatum.']
+            ]
+        },
+        promass: {
+            name: 'Promass (Coriolis)',
+            steps: [
+                ['Typenschild & Freigabe', 'Messrohrwerkstoff, DN, Druckstufe, Ex-Zulassung und Medienzulassung prüfen. Bypass-Ventile vorhanden? Notabsperrung möglich?'],
+                ['Schwingungsfreie Montage', 'Keine Rohrleitungskräfte/-momente auf das Gerät übertragen! Dehnungsbögen oder -kompensatoren einbauen. Eigenfrequenz der Rohrleitungen vom Geräte-DN fernhalten.'],
+                ['Messrohre befüllen & entlüften', 'Messrohre vollständig mit Prozessmedium befüllen. Alle Gasblasen austreiben (Entlüftungsventil öffnen oder Flüssigkeitsstoß). Keine Zweiphasenströmung beim Zero Trim!'],
+                ['Elektrischer Anschluss', 'Klemmenplan aus BA prüfen. Versorgung, 4–20 mA, Puls, HART. Schirmung beidseitig erden (EMV-Anforderung bei Coriolis). Klemmenanzugsmoment beachten.'],
+                ['Quick Setup – Primärmessgröße', 'Menü → Inbetriebnahme → Quick Setup. Sprache, Einheiten, TAG-Nummer. Primärmessgröße wählen: Massenstrom, Volumenstrom oder Dichte.'],
+                ['Messbereich (URV / LRV)', 'URV (20 mA) = Nenndurchfluss aus Datenblatt. LRV (4 mA) = 0. Einheit prüfen (kg/h, t/h, l/h). Dämpfungszeitkonstante: typisch 0,5–2 s.'],
+                ['Nullpunktabgleich – KRITISCH', 'Voraussetzungen: Messrohre 100% gefüllt, Prozesstemperatur und -druck anliegend, Durchfluss = 0 (beide Absperrventile geschlossen!). Menü → Inbetriebnahme → Nullpunktabgleich → Starten. Dauer ca. 20 s.'],
+                ['Zero-Ergebnis beurteilen', 'Zero-Wert notieren. Akzeptabel: ≤0,5% URV. Schlechter Wert → Restgasblasen, Rohrschwingung oder Kavitation → Entlüftung wiederholen, danach erneut trimmen.'],
+                ['Ausgänge prüfen', 'Menü → Diagnose → Simulation. Massenstrom, Dichte, Temperatur simulieren. 4-mA- und 20-mA-Werte am SPS-Eingang prüfen. Impuls- und Statusausgang testen.'],
+                ['Dichte-Kalibrierung (falls erforderlich)', 'Mit Medium bekannter Dichte (Labormessung): Menü → Justierung → Dichte-Justierung. Zwei-Punkt-Kalibrierung mit Luft und Wasser oder Prozessmedium möglich.'],
+                ['Grenzwerte & Diagnose', 'Alarmgrenzen für Massenstrom, Dichte, Temperatur konfigurieren. NAMUR NE 107 Diagnosemeldungen einstellen.'],
+                ['Dokumentation', 'Zero-Wert, Messbereich, Primärmessgröße, Prozessparameter, Seriennummer, Kalibrierdatum und Prüfer dokumentieren.']
+            ]
+        },
+        prowirl: {
+            name: 'Prowirl (Vortex)',
+            steps: [
+                ['Typenschild & Mindestdurchfluss', 'DN, Druckstufe, Medium (Flüssigkeit/Gas/Dampf) prüfen. Betriebsdurchfluss mit Mindestdurchfluss (Reynolds Re > 20 000) vergleichen. Bei zu kleinem Durchfluss: kein stabiles Vortex-Signal.'],
+                ['Einlauf- & Auslaufstrecken', 'Einlauf: min. 15×DN (nach 90°-Bögen: 25×DN, nach Pumpe/Regelventil: 50×DN). Auslauf: min. 5×DN. Strömungsrichtungspfeil beachten.'],
+                ['Elektrischer Anschluss', 'Versorgung, 4–20 mA, Frequenz-/Pulsausgang, Schirmung. Kompensiertes Modell: PT100/PT1000-Eingang und ggf. Druckeingang prüfen.'],
+                ['Quick Setup – Medium & Geometrie', 'Menü → Inbetriebnahme → Quick Setup. TAG-Nummer, Einheiten, DN und Rohrwanddicke eingeben. Mediumstyp wählen: Flüssigkeit, Gas oder Dampf (Satt-/Heißdampf).'],
+                ['Mediumseigenschaften konfigurieren', 'Flüssigkeit: Dichte + Viskosität. Gas: Referenzdichte oder Gastyp + Molmasse. Dampf: Sattdampf → Betriebsdruck eingeben; Heißdampf → Druck + Temperatur.'],
+                ['K-Faktor prüfen', 'K-Faktor aus beiliegendem Kalibrierprotokoll (auf Typenschild oder in Kalibrierzertifikat) gegen Gerätewert prüfen. Bei Abweichung: K-Faktor manuell eingeben.'],
+                ['Messbereich (URV)', 'URV (20 mA) = maximaler Betriebsdurchfluss in m³/h oder Nm³/h (Normkubikmeter für Gas). LRV = 0. Einheit prüfen.'],
+                ['Kleinsignal-Unterdrückung (Low-Flow-Cutoff)', 'Menü → Ausgangssignal → Kleinsignal-Unterdrückung. Typisch 2–5% URV. Verhindert Flattern des Ausgangs bei sehr kleinem Durchfluss.'],
+                ['Dämpfung einstellen', 'Zeitkonstante τ: Flüssigkeit 1–2 s, Gas/Dampf 3–5 s. Zu hoher Wert verlangsamt die Regelung; zu niedriger Wert → unstabiles Signal.'],
+                ['Dampf-Sonderprüfung', 'Kondensatanstau im Messrohr ausschließen. Dampfsperre oder Kondensatableiter vorhanden? Temperatursensor aktiv? Wärmedämmung am Transmitter-Hals ausreichend?'],
+                ['Ausgangstest', '4 mA (LRV) und 20 mA (URV) simulieren, an SPS prüfen. Frequenzausgang mit Sollfrequenz simulieren.'],
+                ['Dokumentation', 'K-Faktor, Messbereich, Medium, Einlaufstrecke, Kompensationsparameter, Seriennummer, Datum dokumentieren.']
+            ]
+        },
+        cerabar: {
+            name: 'Cerabar (Druck)',
+            steps: [
+                ['Typenschild & Freigabe', 'Sensortyp prüfen: PMC (Relativdruck), PMP (Prozess-/Absolutdruck), PMD (Differenzdruck). Messbereich, Überdruckfestigkeit (OPL), Prozessanschluss und Ex-Zulassung prüfen.'],
+                ['Prozessanschluss & Dichtigkeit', 'Anschluss gemäß Anzugsmoment aus BA festziehen. Statische Dichtheitsprüfung bei Betriebsdruck durchführen. Keine Leckagen tolerieren.'],
+                ['Einbaulage & Impulsleitungsführung', 'Sensorposition relativ zur Messpunktebene notieren. Gasmessung: Impulsleitungen aufsteigend verlegen. Flüssigkeitsmessung: absteigend zum Sensor. Kondensatbecher bei Dampf.'],
+                ['Elektrischer Anschluss', '2-Draht 4–20 mA: Versorgung 10,5–35 VDC, Polarität beachten. PE nur wenn vorgesehen (galvanisch getrennt). Schirmung einseitig erden.'],
+                ['Quick Setup', 'Menü → Inbetriebnahme → Quick Setup. Sprache, Einheiten, TAG-Nummer. Druckeinheit wählen: bar, mbar, Pa, kPa oder psi.'],
+                ['Messbereich (LRV / URV)', 'LRV (4 mA) = Unterdruckwert (typisch 0 bar ü). URV (20 mA) = Oberdruckwert = Nennmessbereich. Werte in ausgewählter Druckeinheit eingeben.'],
+                ['Lagekorrektur (Position Adjustment)', 'Sensor auf bekannten Referenzdruck bringen (Atmosphäre für Relativdruck oder Kalibratordruck). Menü → Inbetriebnahme → Lagekorrektur. Korrigiert Nullpunktfehler durch Montagehöhe.'],
+                ['Hydrostatische Korrektur', 'Falls Sensor nicht auf Messpunktebene: Δh [m] × ρ [kg/m³] × 9,81 m/s² = Druckversatz [Pa]. Als Offset eingeben oder Lagekorrektur am Einbaupunkt ausführen.'],
+                ['Ausgangstest', 'Menü → Diagnose → Simulation → Stromausgang. 4 mA und 20 mA ausgeben, am SPS-Eingang messen (Toleranz ±0,05 mA). NAMUR-Failsafe-Signal (3,6 mA oder 21 mA) prüfen.'],
+                ['Prozesstest mit Kalibrator', 'Referenzdruck mit Druckkalibrator anlegen. Anzeigewert und 4–20-mA-Signal prüfen. Messgenauigkeit laut Datenblatt einhalten.'],
+                ['Dokumentation', 'Messbereich, Einbauposition, Lagekorrektur-Datum, Prüfdruck, Kalibrierdatum, Seriennummer und Prüfer dokumentieren.']
+            ]
+        },
+        micropilot: {
+            name: 'Micropilot (Radar)',
+            steps: [
+                ['Typenschild & Antenne prüfen', 'FMR5x-Typ, Antennenform (Plast/FEP-Hornantenne, Metallkegel, Spülluft), max. Prozesstemperatur und -druck prüfen. Antennen-∅ bestimmt Strahlkegelwinkel (enger Kegel = größere Antenne).'],
+                ['Einbauposition', 'Einbau nicht in Befüllstrahl oder Austragsstrom. Abstand Antenne → Behälterwand: min. 1/6 Behälter-∅. Lotrechter Einbau empfohlen. Stutzeninnenseite: keine Einschnürungen.'],
+                ['Elektrischer Anschluss', '2-Draht 4–20 mA HART: Versorgung 10,5–35 VDC. Schirmung: abgeschirmte Leitung oder Metallschutzrohr. SIL-Anwendung: Verdrahtung gemäß SIL-BA prüfen.'],
+                ['Quick Setup – TAG & Mediengruppe', 'Menü → Inbetriebnahme → Quick Setup oder SmartBlue App. TAG-Nummer, Einheiten, Anwendung: Flüssigkeit (Gruppe 1–3) oder Schüttgut (Gruppe 4–7) wählen.'],
+                ['Leerabgleich E (Empty)', 'Menü → Inbetriebnahme → Leerabgleich E. Abstand von Sensor-Referenzpunkt (Flansch-Unterkante) bis Behälterboden bei leerem Behälter in Meter eingeben.'],
+                ['Vollabgleich F (Full)', 'Menü → Inbetriebnahme → Vollabgleich F. Abstand von Referenzpunkt bis maximalem Füllstand eingeben. Achtung: F muss größer als Blockdistanz sein!'],
+                ['Blockdistanz prüfen', 'Totbereich direkt unter der Antenne (kein Messsignal). Typisch 0,1–0,5 m (je nach Antennentyp). Maximaler Füllstand muss unterhalb der Blockdistanz bleiben.'],
+                ['Dielektrizitätskonstante (DK)', 'Menü → Erweitertes Setup → DK-Wert. Wasser ≈ 80, Ethanol ≈ 24, Kohlenwasserstoffe ≈ 1,8–2,5. Bei DK < 2,5: Hochgewinn-Antenne erforderlich, Echoqualität prüfen.'],
+                ['Störechoausblendung (Mapping)', 'Behälter auf Minimum-Niveau fahren. Menü → Inbetriebnahme → Störechoausblendung → Einlernen bis Abstand X m. Einbauten (Rührer, Stutzen, Schweißnähte) werden ausgeblendet.'],
+                ['Linearisierung (optional)', 'Nicht-zylindrischer Behälter: Menü → Erweitertes Setup → Linearisierung → Tabelle (Abstand → Volumen). Bis zu 32 Stützpunkte. Kugelbodenkorrektur aktivieren falls vorh.'],
+                ['Ausgänge & Grenzwerte', '4-mA-Wert (leer = E) und 20-mA-Wert (voll = F) prüfen. Failsafe-Signal konfigurieren (21 mA = Alarm high oder 3,6 mA = Alarm low). Alarmgrenzwert setzen.'],
+                ['Dokumentation', 'Einbauskizze mit E, F und Blockdistanz. DK-Wert, Mediengruppe, Störechoausblendung-Abstand, Seriennummer und Datum dokumentieren.']
+            ]
+        },
+        levelflex: {
+            name: 'Levelflex (Geführter Radar)',
+            steps: [
+                ['Typenschild & Sondentyp', 'FMP5x-Typ, Sondentyp prüfen: Stabsonde (bis ca. 4 m), Seilsonde (große Längen/Schüttgut), Koaxialsonde (DK < 1,9, Schäume, Turbulenzen). Sondenlänge mit Behältertiefe abgleichen.'],
+                ['Mechanischer Einbau', 'Sonde senkrecht und wandberührungsfrei einbauen (min. 100 mm Abstand zur Behälterwand). Seilsonde: Beschwerungsgewicht frei hängen lassen, kein Kontakt zum Boden. Einschraubtiefe korrekt.'],
+                ['Elektrischer Anschluss', '2-Draht 4–20 mA HART: Versorgung 10,5–35 VDC. PROFIBUS PA: Bus-Terminierung und Segmentkoppler prüfen. Schirmung. SIL: gesonderte Verdrahtung gemäß SIL-BA.'],
+                ['Quick Setup – Anwendung & TAG', 'Menü → Inbetriebnahme → Quick Setup oder SmartBlue App. TAG-Nummer, Einheiten. Anwendung wählen: Flüssigkeit, Feststoff (Schüttgut) oder Trennschicht.'],
+                ['Sondenende-Position', 'Menü → Inbetriebnahme → Sondenende-Position. Abstand von Prozessanschluss (Referenzpunkt) bis physischem Sondenende eingeben. Entspricht der tatsächlichen Sondenlänge.'],
+                ['Leerabgleich E (Empty)', 'Menü → Inbetriebnahme → Leerabgleich E. Abstand von Referenzpunkt bis Minimum-Füllstand (unteres Messende) in Meter eingeben.'],
+                ['Vollabgleich F (Full)', 'Menü → Inbetriebnahme → Vollabgleich F. Abstand von Referenzpunkt bis maximalem Füllstand. F muss kleiner als Blockdistanz oben sein (kein Signal im Totbereich am Sondenkopf).'],
+                ['DK-Wert & Mediengruppe', 'Menü → Erweitertes Setup → DK-Wert. Leitfähige Flüssigkeiten: Gruppe A (DK ≥ 10). Kohlenwasserstoffe DK 1,9–4: Gruppe B+Koaxsonde. DK < 1,9: Koaxsonde erforderlich, Gruppe C.'],
+                ['Störechoausblendung (Mapping)', 'Behälter auf bekanntes Referenzniveau (z.B. 20%). Menü → Inbetriebnahme → Störechoausblendung → Einlernen bis Abstand X. Stutzenreflexe, Schweißnähte, Befestigungen werden ausgeblendet.'],
+                ['Trennschicht-Konfiguration (optional)', 'Menü → Inbetriebnahme → Trennschicht. Obere Phase (DK) und untere Phase (DK) eingeben. Kalibrierung mit bekannten Trennschicht-Positionen. Koaxsonde empfohlen.'],
+                ['Ausgänge & Grenzwerte', 'LRV (4 mA = leer = E) und URV (20 mA = voll = F) prüfen. Failsafe-Signal konfigurieren. Überfüll-Alarmgrenzwert setzen.'],
+                ['Dokumentation', 'Sondentyp, Sondenlänge, E, F, Blockdistanz, DK-Wert, Störechoausblendung, Seriennummer, Datum und Prüfer dokumentieren.']
+            ]
+        }
+    };
+
+    const KEYS = Object.keys(DEVICES);
+    let activeKey = KEYS[0];
+    let state = {};
+
+    function loadState() {
+        try { state = JSON.parse(localStorage.getItem('ibn_state') || '{}'); } catch(e) { state = {}; }
+    }
+    function saveState() {
+        try { localStorage.setItem('ibn_state', JSON.stringify(state)); } catch(e) {}
+    }
+
+    // Build device buttons
+    const devRow = document.getElementById('dev_row');
+    KEYS.forEach(k => {
+        const btn = document.createElement('button');
+        btn.className = 'dev-btn' + (k === activeKey ? ' active' : '');
+        btn.textContent = DEVICES[k].name;
+        btn.onclick = () => {
+            activeKey = k;
+            devRow.querySelectorAll('.dev-btn').forEach((b,i) => b.classList.toggle('active', KEYS[i] === k));
+            render();
+        };
+        devRow.appendChild(btn);
+    });
+
+    function render() {
+        const dev = DEVICES[activeKey];
+        const checks = state[activeKey] || {};
+        const total = dev.steps.length;
+        const done = Object.values(checks).filter(Boolean).length;
+
+        document.getElementById('prog_label').textContent = done + ' / ' + total + ' Schritte erledigt';
+        document.getElementById('prog_fill').style.width = (total ? done / total * 100 : 0) + '%';
+
+        const cl = document.getElementById('checklist');
+        cl.innerHTML = '';
+        dev.steps.forEach(([title, sub], i) => {
+            const d = document.createElement('div');
+            d.className = 'check-item' + (checks[i] ? ' done' : '');
+            d.innerHTML = '<div class="check-box">' + (checks[i] ? '✓' : '') + '</div>' +
+                '<div class="ci-num">' + (i+1) + '.</div>' +
+                '<div><div class="ci-title">' + title + '</div><div class="ci-sub">' + sub + '</div></div>';
+            d.onclick = () => {
+                if (!state[activeKey]) state[activeKey] = {};
+                state[activeKey][i] = !state[activeKey][i];
+                saveState();
+                render();
+            };
+            cl.appendChild(d);
+        });
+    }
+
+    function resetCurrent() {
+        state[activeKey] = {};
+        saveState();
+        render();
+    }
+
+    loadState();
+    render();
+    </script>
+</body>
+</html>

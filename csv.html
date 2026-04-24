@@ -212,6 +212,19 @@
 
         // ============ FILE LOADING ============
         function loadFile(file) {
+            const MAX_SIZE = 50 * 1024 * 1024; // 50 MB
+            if (file.size > MAX_SIZE) {
+                const dropZone = document.getElementById('dropZone');
+                dropZone.style.borderColor = 'var(--text-danger)';
+                dropZone.querySelector('.drop-zone-hint').textContent = 'Datei zu groß (' + formatBytes(file.size) + '). Maximal 50 MB erlaubt.';
+                dropZone.querySelector('.drop-zone-hint').style.color = 'var(--text-danger)';
+                setTimeout(() => {
+                    dropZone.style.borderColor = '';
+                    dropZone.querySelector('.drop-zone-hint').textContent = 'Unterstützt: .csv, .txt, .tsv';
+                    dropZone.querySelector('.drop-zone-hint').style.color = '';
+                }, 4000);
+                return;
+            }
             currentFileName = file.name;
             const reader = new FileReader();
             reader.onload = function(e) {

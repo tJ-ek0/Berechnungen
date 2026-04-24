@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elektro-Grundlagen – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <style>
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; font-family: var(--font-sans); }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); }
+        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+        .section-divider { border: none; border-top: 1px solid var(--border-default); margin: 24px 0; }
+        .section-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px 0; }
+
+        .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 14px; }
+        .result-card { background: var(--bg-success); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 12px; text-align: center; }
+        .result-card-value { font-size: 18px; font-weight: 600; color: var(--text-success); font-family: var(--font-mono); }
+        .result-card-label { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+        .result-card.dim { background: var(--bg-subtle); }
+        .result-card.dim .result-card-value { color: var(--text-primary); }
+
+        .formula-hint { font-size: 12px; color: var(--text-tertiary); margin-top: 8px; font-family: var(--font-mono); background: var(--bg-subtle); padding: 6px 12px; border-radius: var(--radius-md); display: inline-block; }
+
+        .r-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .r-table th { background: var(--bg-subtle); font-weight: 600; font-size: 11px; color: var(--text-secondary); padding: 6px 8px; border-bottom: 1px solid var(--border-default); }
+        .r-table td { padding: 5px 8px; border-bottom: 1px solid var(--border-default); vertical-align: middle; }
+        .r-table tr:last-child td { border-bottom: none; }
+        .r-table tfoot td { background: var(--bg-subtle); font-weight: 700; border-top: 2px solid var(--border-default); font-family: var(--font-mono); }
+        .del-btn { background: none; border: none; cursor: pointer; color: var(--text-danger); font-size: 14px; padding: 2px 6px; border-radius: var(--radius-md); }
+        .del-btn:hover { background: var(--bg-danger); }
+    </style>
+</head>
+<body data-tool-id="elektro_grundlagen">
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle"><span id="themeIcon">🌙</span></button>
+        </div>
+    </header>
+    <div class="back-bar">
+        <a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a>
+    </div>
+
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="copyResults()"><svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg> Kopieren</button>
+            <button class="action-btn" onclick="resetFields()"><svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg> Zurücksetzen</button>
+            <button class="action-btn" onclick="exportPagePDF('Elektro-Grundlagen')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+        </div>
+
+        <div class="description">⚡ Ohm'sches Gesetz, elektrische Leistung und Widerstände in Reihen-/Parallelschaltung. Zwei Größen eingeben — alle anderen werden berechnet.</div>
+
+        <!-- Ohmsches Gesetz -->
+        <p class="section-title">Ohm'sches Gesetz</p>
+        <table>
+            <tr><th colspan="6">U / I / R — zwei bekannte Größen eingeben</th></tr>
+            <tr>
+                <td colspan="2">Spannung U</td>
+                <td colspan="4"><input class="input-field" type="number" id="ohm_u" placeholder="leer lassen zum Berechnen" step="any" oninput="calcOhm('u')"> V</td>
+            </tr>
+            <tr>
+                <td colspan="2">Stromstärke I</td>
+                <td colspan="4"><input class="input-field" type="number" id="ohm_i" placeholder="leer lassen zum Berechnen" step="any" oninput="calcOhm('i')"> mA</td>
+            </tr>
+            <tr>
+                <td colspan="2">Widerstand R</td>
+                <td colspan="4">
+                    <input class="input-field" type="number" id="ohm_r" placeholder="leer lassen zum Berechnen" step="any" oninput="calcOhm('r')">
+                    <select class="input-field" id="ohm_r_unit" onchange="calcOhm('r')" style="width:auto">
+                        <option value="1">Ω</option>
+                        <option value="1000">kΩ</option>
+                        <option value="1000000">MΩ</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+        <div class="result-grid" id="ohm_results" style="display:none"></div>
+        <div id="ohm_formula" class="formula-hint" style="display:none"></div>
+
+        <!-- Elektrische Leistung -->
+        <hr class="section-divider">
+        <p class="section-title">Elektrische Leistung</p>
+        <table>
+            <tr><th colspan="6">P / U / I / R — zwei bekannte Größen eingeben</th></tr>
+            <tr>
+                <td colspan="2">Leistung P</td>
+                <td colspan="4"><input class="input-field" type="number" id="pw_p" placeholder="leer lassen" step="any" oninput="calcPower('p')">
+                    <select class="input-field" id="pw_p_unit" onchange="calcPower('p')" style="width:auto">
+                        <option value="1">W</option>
+                        <option value="1000">kW</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Spannung U</td>
+                <td colspan="4"><input class="input-field" type="number" id="pw_u" placeholder="leer lassen" step="any" oninput="calcPower('u')"> V</td>
+            </tr>
+            <tr>
+                <td colspan="2">Stromstärke I</td>
+                <td colspan="4"><input class="input-field" type="number" id="pw_i" placeholder="leer lassen" step="any" oninput="calcPower('i')"> A</td>
+            </tr>
+            <tr>
+                <td colspan="2">Widerstand R</td>
+                <td colspan="4"><input class="input-field" type="number" id="pw_r" placeholder="leer lassen" step="any" oninput="calcPower('r')"> Ω</td>
+            </tr>
+        </table>
+        <div class="result-grid" id="pw_results" style="display:none"></div>
+        <div id="pw_formula" class="formula-hint" style="display:none"></div>
+
+        <!-- Reihenschaltung -->
+        <hr class="section-divider">
+        <p class="section-title">Widerstände in Reihenschaltung</p>
+        <table class="r-table">
+            <thead><tr><th>Bezeichnung</th><th>R (Ω)</th><th></th></tr></thead>
+            <tbody id="reihe_body"></tbody>
+            <tfoot><tr><td>R<sub>gesamt</sub></td><td id="reihe_total">—</td><td></td></tr></tfoot>
+        </table>
+        <button class="action-btn" style="margin-top:8px" onclick="addR('reihe')">+ Widerstand</button>
+
+        <!-- Parallelschaltung -->
+        <hr class="section-divider">
+        <p class="section-title">Widerstände in Parallelschaltung</p>
+        <table class="r-table">
+            <thead><tr><th>Bezeichnung</th><th>R (Ω)</th><th></th></tr></thead>
+            <tbody id="par_body"></tbody>
+            <tfoot><tr><td>R<sub>gesamt</sub></td><td id="par_total">—</td><td></td></tr></tfoot>
+        </table>
+        <button class="action-btn" style="margin-top:8px" onclick="addR('par')">+ Widerstand</button>
+
+        <div class="shortcuts-hint" style="margin-top:16px;">
+            <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+            <span><kbd>Esc</kbd> Zurücksetzen</span>
+            <span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span>
+        </div>
+    </div></div>
+
+    <footer class="bottom-header">
+        <p>Keine Gewähr für die Genauigkeit. Nutzung auf eigenes Risiko.</p>
+    </footer>
+
+    <script src="shared.js"></script>
+    <script>
+        function v(id) { const el = document.getElementById(id); const s = el.value.trim(); return s === '' ? null : parseFloat(s); }
+        function fmt(x) { if (x === null || isNaN(x) || !isFinite(x)) return '–'; if (Math.abs(x) >= 1e6) return (x/1e6).toPrecision(4) + ' M'; if (Math.abs(x) >= 1e3) return (x/1e3).toPrecision(4) + ' k'; return x.toPrecision(4); }
+
+        // ======= OHM =======
+        function calcOhm(changed) {
+            const U = v('ohm_u');
+            const I_mA = v('ohm_i'); const I = I_mA !== null ? I_mA / 1000 : null;
+            const R_raw = v('ohm_r'); const rUnit = parseFloat(document.getElementById('ohm_r_unit').value);
+            const R = R_raw !== null ? R_raw * rUnit : null;
+
+            let resU = U, resI = I, resR = R, formula = '';
+            const known = [U !== null, I !== null, R !== null].filter(Boolean).length;
+
+            if (known >= 2) {
+                if (U === null && I !== null && R !== null) { resU = I * R; formula = 'U = I × R'; }
+                else if (I === null && U !== null && R !== null) { resI = U / R; formula = 'I = U / R'; }
+                else if (R === null && U !== null && I !== null && I !== 0) { resR = U / I; formula = 'R = U / I'; }
+                else if (U !== null && I !== null) { resR = U / I; formula = 'R = U / I'; }
+            }
+
+            const grid = document.getElementById('ohm_results');
+            const fEl = document.getElementById('ohm_formula');
+            if (resU === null && resI === null && resR === null) { grid.style.display = 'none'; fEl.style.display = 'none'; return; }
+
+            grid.style.display = 'grid';
+            fEl.style.display = formula ? 'inline-block' : 'none';
+            fEl.textContent = formula;
+
+            const resR_kOhm = resR !== null ? resR / 1000 : null;
+            grid.innerHTML =
+                '<div class="result-card' + (changed==='u'?' dim':'') + '"><div class="result-card-value">' + (resU !== null ? resU.toPrecision(5) : '–') + '</div><div class="result-card-label">Spannung U (V)</div></div>' +
+                '<div class="result-card' + (changed==='i'?' dim':'') + '"><div class="result-card-value">' + (resI !== null ? (resI*1000).toPrecision(5) : '–') + '</div><div class="result-card-label">Strom I (mA)</div></div>' +
+                '<div class="result-card' + (changed==='i'?' dim':'') + '"><div class="result-card-value">' + (resI !== null ? resI.toPrecision(5) : '–') + '</div><div class="result-card-label">Strom I (A)</div></div>' +
+                '<div class="result-card' + (changed==='r'?' dim':'') + '"><div class="result-card-value">' + (resR !== null ? resR.toPrecision(5) : '–') + '</div><div class="result-card-label">Widerstand (Ω)</div></div>' +
+                '<div class="result-card' + (changed==='r'?' dim':'') + '"><div class="result-card-value">' + (resR_kOhm !== null ? resR_kOhm.toPrecision(4) : '–') + '</div><div class="result-card-label">Widerstand (kΩ)</div></div>';
+        }
+
+        // ======= POWER =======
+        function calcPower(changed) {
+            const pUnit = parseFloat(document.getElementById('pw_p_unit').value);
+            const P_raw = v('pw_p'); const P = P_raw !== null ? P_raw * pUnit : null;
+            const U = v('pw_u'), I = v('pw_i'), R = v('pw_r');
+
+            let rP = P, rU = U, rI = I, rR = R, formula = '';
+            const vals = {P, U, I, R};
+            const known = Object.values(vals).filter(x => x !== null).length;
+
+            if (known >= 2) {
+                if (P !== null && U !== null && I === null) { rI = P / U; formula = 'I = P / U'; }
+                else if (P !== null && I !== null && U === null) { rU = P / I; formula = 'U = P / I'; }
+                else if (U !== null && I !== null && P === null) { rP = U * I; formula = 'P = U × I'; }
+                else if (P !== null && R !== null && U === null && I === null) { rI = Math.sqrt(P / R); rU = rI * R; formula = 'I = √(P/R), U = I×R'; }
+                else if (U !== null && R !== null && P === null && I === null) { rI = U / R; rP = U * rI; formula = 'I = U/R, P = U×I'; }
+                else if (I !== null && R !== null && P === null && U === null) { rU = I * R; rP = I * rU; formula = 'U = I×R, P = U×I'; }
+            }
+
+            const grid = document.getElementById('pw_results');
+            const fEl = document.getElementById('pw_formula');
+            if (known < 2) { grid.style.display = 'none'; fEl.style.display = 'none'; return; }
+
+            grid.style.display = 'grid';
+            fEl.style.display = formula ? 'inline-block' : 'none';
+            fEl.textContent = formula;
+            grid.innerHTML =
+                '<div class="result-card' + (changed==='p'?' dim':'') + '"><div class="result-card-value">' + (rP !== null ? rP.toPrecision(5) : '–') + '</div><div class="result-card-label">Leistung P (W)</div></div>' +
+                '<div class="result-card' + (changed==='p'?' dim':'') + '"><div class="result-card-value">' + (rP !== null ? (rP/1000).toPrecision(4) : '–') + '</div><div class="result-card-label">Leistung P (kW)</div></div>' +
+                '<div class="result-card' + (changed==='u'?' dim':'') + '"><div class="result-card-value">' + (rU !== null ? rU.toPrecision(5) : '–') + '</div><div class="result-card-label">Spannung U (V)</div></div>' +
+                '<div class="result-card' + (changed==='i'?' dim':'') + '"><div class="result-card-value">' + (rI !== null ? rI.toPrecision(5) : '–') + '</div><div class="result-card-label">Strom I (A)</div></div>' +
+                '<div class="result-card' + (changed==='r'?' dim':'') + '"><div class="result-card-value">' + (rR !== null ? rR.toPrecision(4) : '–') + '</div><div class="result-card-label">Widerstand R (Ω)</div></div>';
+        }
+
+        // ======= REIHE / PARALLEL =======
+        let rRowId = 0;
+        function addR(type, val) {
+            rRowId++;
+            const id = rRowId;
+            const tbody = document.getElementById(type + '_body');
+            const tr = document.createElement('tr');
+            tr.id = type + '_r_' + id;
+            tr.innerHTML =
+                '<td><input class="input-field" type="text" value="R' + id + '" style="width:70px" oninput="calcR()"></td>' +
+                '<td><input class="input-field" type="number" value="' + (val || 100) + '" min="0" step="any" style="width:100px" oninput="calcR()"> Ω</td>' +
+                '<td><button class="del-btn" onclick="this.closest(\'tr\').remove();calcR()">✕</button></td>';
+            tbody.appendChild(tr);
+            calcR();
+        }
+
+        function calcR() {
+            ['reihe','par'].forEach(type => {
+                const rows = document.querySelectorAll('#' + type + '_body tr');
+                const vals = [];
+                rows.forEach(tr => {
+                    const n = tr.querySelectorAll('input[type="number"]');
+                    const r = parseFloat(n[0]?.value);
+                    if (!isNaN(r) && r > 0) vals.push(r);
+                });
+                let total = 0;
+                if (type === 'reihe') { total = vals.reduce((a,b) => a+b, 0); }
+                else { total = vals.length > 0 ? 1 / vals.reduce((s,r) => s + 1/r, 0) : 0; }
+                document.getElementById(type + '_total').textContent = vals.length > 0 ? total.toPrecision(5) + ' Ω' : '—';
+            });
+        }
+
+        // Init defaults
+        addR('reihe', 100); addR('reihe', 220); addR('reihe', 470);
+        addR('par', 1000); addR('par', 1000);
+    </script>
+</body>
+</html>

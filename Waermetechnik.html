@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wärmetechnik – Techniker Berechnungstools</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌡️</text></svg>">
+    <style>
+        .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; font-family: var(--font-sans); }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); }
+        .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
+        .section-divider { border: none; border-top: 1px solid var(--border-default); margin: 24px 0; }
+        .section-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px 0; }
+        .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 14px; }
+        .result-card { background: var(--bg-success); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 12px; text-align: center; }
+        .result-card-value { font-size: 18px; font-weight: 600; color: var(--text-success); font-family: var(--font-mono); }
+        .result-card-label { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+        .ref-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+        .ref-table th { background: var(--bg-subtle); font-weight: 600; font-size: 11px; color: var(--text-secondary); padding: 5px 8px; border-bottom: 1px solid var(--border-default); text-align: left; }
+        .ref-table td { padding: 4px 8px; border-bottom: 1px solid var(--border-default); }
+        .ref-table tr:last-child td { border-bottom: none; }
+        .ref-table tr:hover td { background: var(--bg-subtle); cursor: pointer; }
+        .layer-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+        .layer-table th { background: var(--bg-subtle); font-size: 11px; font-weight: 600; color: var(--text-secondary); padding: 6px 8px; border-bottom: 1px solid var(--border-default); }
+        .layer-table td { padding: 4px 6px; border-bottom: 1px solid var(--border-default); vertical-align: middle; }
+        .layer-table tr:last-child td { border-bottom: none; }
+        .layer-table tfoot td { background: var(--bg-subtle); font-weight: 700; border-top: 2px solid var(--border-default); font-family: var(--font-mono); }
+        .del-btn { background: none; border: none; cursor: pointer; color: var(--text-danger); font-size: 14px; padding: 2px 6px; border-radius: var(--radius-md); }
+        .del-btn:hover { background: var(--bg-danger); }
+    </style>
+</head>
+<body data-tool-id="waermetechnik">
+    <header>
+        <div class="header-left">
+            <svg class="header-logo" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="header-title">Techniker Berechnungstools</span>
+        </div>
+        <div class="header-right">
+            <button class="theme-toggle" id="themeToggle"><span id="themeIcon">🌙</span></button>
+        </div>
+    </header>
+    <div class="back-bar">
+        <a href="index.html" class="back-link"><svg viewBox="0 0 16 16"><path d="M7.78 12.53a.75.75 0 0 1-1.06 0L2.47 8.28a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 1.06L4.81 7h7.44a.75.75 0 0 1 0 1.5H4.81l2.97 2.97a.75.75 0 0 1 0 1.06z"/></svg> Zurück zur Übersicht</a>
+    </div>
+
+    <div class="page-container"><div class="container">
+        <div class="action-bar">
+            <button class="action-btn" onclick="copyResults()"><svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg> Kopieren</button>
+            <button class="action-btn" onclick="resetFields()"><svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg> Zurücksetzen</button>
+            <button class="action-btn" onclick="exportPagePDF('Wärmetechnik')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
+        </div>
+
+        <div class="description">🌡️ Wärmemenge (Q = m·c·ΔT), Wärmestrom, Wärmeleitung und U-Wert mehrschichtiger Bauteile.</div>
+
+        <!-- Wärmemenge -->
+        <p class="section-title">Wärmemenge Q = m · c · ΔT</p>
+        <table>
+            <tr>
+                <td colspan="2">Medium</td>
+                <td colspan="4">
+                    <select class="input-field" id="wm_medium" onchange="onMediumChange()" style="width:auto">
+                        <option value="4186">Wasser (4186 J/kg·K)</option>
+                        <option value="2400">Heizöl (2400 J/kg·K)</option>
+                        <option value="2000">Ethylenglykol 50% (3600 J/kg·K)</option>
+                        <option value="3600">Glykol-Wasser 50/50 (3600 J/kg·K)</option>
+                        <option value="1005">Luft (1005 J/kg·K)</option>
+                        <option value="2010">Dampf (2010 J/kg·K)</option>
+                        <option value="460">Stahl (460 J/kg·K)</option>
+                        <option value="900">Aluminium (900 J/kg·K)</option>
+                        <option value="0">Benutzerdefiniert</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Spez. Wärmekapazität c</td>
+                <td colspan="4"><input class="input-field" type="number" id="wm_c" value="4186" min="0" step="1" oninput="calcWM()"> J/(kg·K)</td>
+            </tr>
+            <tr>
+                <td colspan="2">Masse m</td>
+                <td colspan="4"><input class="input-field" type="number" id="wm_m" value="100" min="0" step="any" oninput="calcWM()">
+                    <select class="input-field" id="wm_m_unit" onchange="calcWM()" style="width:auto">
+                        <option value="1">kg</option>
+                        <option value="0.001">g</option>
+                        <option value="1000">t</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Temperaturänderung ΔT</td>
+                <td colspan="4"><input class="input-field" type="number" id="wm_dt" value="20" step="any" oninput="calcWM()"> K (oder °C)</td>
+            </tr>
+            <tr>
+                <td colspan="2">Zeit t (für Leistung)</td>
+                <td colspan="4"><input class="input-field" type="number" id="wm_t" value="3600" min="0" step="1" oninput="calcWM()">
+                    <select class="input-field" id="wm_t_unit" onchange="calcWM()" style="width:auto">
+                        <option value="1">s</option>
+                        <option value="60">min</option>
+                        <option value="3600" selected>h</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+        <div class="result-grid">
+            <div class="result-card"><div class="result-card-value" id="wm_q_j">—</div><div class="result-card-label">Wärmemenge Q (J)</div></div>
+            <div class="result-card"><div class="result-card-value" id="wm_q_kj">—</div><div class="result-card-label">Wärmemenge Q (kJ)</div></div>
+            <div class="result-card"><div class="result-card-value" id="wm_q_kwh">—</div><div class="result-card-label">Wärmemenge Q (kWh)</div></div>
+            <div class="result-card"><div class="result-card-value" id="wm_phi">—</div><div class="result-card-label">Wärmestrom Φ (W)</div></div>
+            <div class="result-card"><div class="result-card-value" id="wm_phi_kw">—</div><div class="result-card-label">Wärmestrom Φ (kW)</div></div>
+        </div>
+
+        <!-- U-Wert -->
+        <hr class="section-divider">
+        <p class="section-title">U-Wert / Wärmedurchgangskoeffizient (mehrschichtig)</p>
+        <table style="margin-bottom:8px">
+            <tr>
+                <td colspan="2">Wärmeübergangswiderstand innen R<sub>si</sub></td>
+                <td colspan="4">
+                    <select class="input-field" id="uval_rsi" onchange="calcU()" style="width:auto">
+                        <option value="0.13" selected>0,13 m²K/W (Wand, horizontal)</option>
+                        <option value="0.10">0,10 m²K/W (Decke, Wärme aufwärts)</option>
+                        <option value="0.17">0,17 m²K/W (Boden, Wärme abwärts)</option>
+                        <option value="0">0 (vernachlässigen)</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">Wärmeübergangswiderstand außen R<sub>se</sub></td>
+                <td colspan="4">
+                    <select class="input-field" id="uval_rse" onchange="calcU()" style="width:auto">
+                        <option value="0.04" selected>0,04 m²K/W (außen, wind)</option>
+                        <option value="0.13">0,13 m²K/W (innen, ruhig)</option>
+                        <option value="0">0 (vernachlässigen)</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+
+        <table class="layer-table">
+            <thead><tr><th>Schicht</th><th>Material / Bezeichnung</th><th>Dicke d (m)</th><th>λ (W/m·K)</th><th>R (m²K/W)</th><th></th></tr></thead>
+            <tbody id="layer_body"></tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4">Σ R<sub>T</sub> = R<sub>si</sub> + R<sub>Schichten</sub> + R<sub>se</sub></td>
+                    <td id="layer_rt">—</td><td></td>
+                </tr>
+            </tfoot>
+        </table>
+        <button class="action-btn" style="margin-top:8px" onclick="addLayer()">+ Schicht</button>
+
+        <div class="result-grid" style="margin-top:14px">
+            <div class="result-card"><div class="result-card-value" id="u_val">—</div><div class="result-card-label">U-Wert (W/m²·K)</div></div>
+            <div class="result-card"><div class="result-card-value" id="u_phi_m2">—</div><div class="result-card-label">Wärmestrom pro m² (W/m²) bei ΔT =
+                <input type="number" id="u_dt" value="20" style="width:40px;border:none;background:transparent;font-family:var(--font-mono);font-size:11px;color:var(--text-tertiary)" oninput="calcU()"> K</div></div>
+        </div>
+
+        <!-- Materialreferenz -->
+        <hr class="section-divider">
+        <p class="section-title">Wärmeleitfähigkeit λ – Referenz (klicken zum Einfügen)</p>
+        <table class="ref-table" id="ref_lambda">
+            <thead><tr><th>Material</th><th>λ (W/m·K)</th><th>Typische Anwendung</th></tr></thead>
+            <tbody></tbody>
+        </table>
+
+        <div class="shortcuts-hint" style="margin-top:16px;">
+            <span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span>
+            <span><kbd>Esc</kbd> Zurücksetzen</span>
+        </div>
+    </div></div>
+
+    <footer class="bottom-header">
+        <p>Keine Gewähr für die Genauigkeit. Nutzung auf eigenes Risiko.</p>
+    </footer>
+
+    <script src="shared.js"></script>
+    <script>
+        // ======= WÄRMEMENGE =======
+        function onMediumChange() {
+            const sel = document.getElementById('wm_medium');
+            const c = parseFloat(sel.value);
+            if (c > 0) document.getElementById('wm_c').value = c;
+            calcWM();
+        }
+
+        function calcWM() {
+            const c = parseFloat(document.getElementById('wm_c').value) || 0;
+            const m_raw = parseFloat(document.getElementById('wm_m').value) || 0;
+            const m_unit = parseFloat(document.getElementById('wm_m_unit').value) || 1;
+            const m = m_raw * m_unit;
+            const dt = parseFloat(document.getElementById('wm_dt').value) || 0;
+            const t_raw = parseFloat(document.getElementById('wm_t').value) || 1;
+            const t_unit = parseFloat(document.getElementById('wm_t_unit').value) || 3600;
+            const t = t_raw * t_unit;
+
+            const Q = m * c * dt;
+            const phi = t > 0 ? Q / t : 0;
+
+            document.getElementById('wm_q_j').textContent   = Q.toFixed(0);
+            document.getElementById('wm_q_kj').textContent  = (Q/1000).toFixed(2);
+            document.getElementById('wm_q_kwh').textContent = (Q/3600000).toFixed(4);
+            document.getElementById('wm_phi').textContent   = phi.toFixed(1);
+            document.getElementById('wm_phi_kw').textContent= (phi/1000).toFixed(3);
+        }
+
+        // ======= U-WERT =======
+        let layerId = 0;
+        // [name, lambda, typical_d]
+        const LAMBDA_REF = [
+            ['Mineralwolle (Dämmung)',   0.035, 0.12,  'Wärmedämmung'],
+            ['EPS (Styropor)',            0.04,  0.10,  'Fassadendämmung'],
+            ['XPS',                       0.035, 0.08,  'Perimeterdämmung'],
+            ['PUR-Schaum',               0.025, 0.06,  'Kühlraumdämmung'],
+            ['Beton (Normal)',            2.0,   0.20,  'Außenwand, Decke'],
+            ['Stahlbeton',               2.3,   0.20,  'Stahlbetonelement'],
+            ['Ziegel (Vollziegel)',       0.8,   0.24,  'Mauerwerk'],
+            ['Poroton-Ziegel (WDF)',      0.18,  0.365, 'Wärmedämmziegel'],
+            ['Kalksandstein',            1.0,   0.175, 'Innenmauerwerk'],
+            ['Holz (Nadelholz)',          0.13,  0.04,  'Holzbau, Balken'],
+            ['Holzspanplatte',            0.13,  0.019, 'Innenwandverkleidung'],
+            ['Stahl',                    50.0,  0.005, 'Behälter, Rohre'],
+            ['Aluminium',                220.0, 0.003, 'Kühlkörper, Wärmetauscher'],
+            ['Glas (einfach)',            1.0,   0.006, 'Fenster, Scheibe'],
+            ['Gips-Karton',              0.25,  0.0125,'Trockenausbau'],
+            ['Putz (Außenputz)',          1.0,   0.015, 'Außenputz'],
+            ['Linoleum',                 0.17,  0.003, 'Bodenbelag'],
+            ['Keramikfliese',            1.3,   0.008, 'Bad, Küche'],
+        ];
+
+        const refTbody = document.querySelector('#ref_lambda tbody');
+        LAMBDA_REF.forEach(([name, lam, d, app]) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = '<td>' + name + '</td><td style="font-family:var(--font-mono)">' + lam + '</td><td style="color:var(--text-tertiary);font-size:11px">' + app + '</td>';
+            tr.title = 'Klicken: λ = ' + lam + ' W/m·K, d = ' + d + ' m einfügen';
+            tr.addEventListener('click', () => addLayer(name, d, lam));
+            refTbody.appendChild(tr);
+        });
+
+        function addLayer(name, d, lam) {
+            layerId++;
+            const id = layerId;
+            const tr = document.createElement('tr');
+            tr.id = 'layer_' + id;
+            tr.innerHTML =
+                '<td style="color:var(--text-tertiary);font-size:11px">' + id + '</td>' +
+                '<td><input class="input-field" type="text" value="' + (name || 'Schicht ' + id) + '" style="width:120px" oninput="calcU()"></td>' +
+                '<td><input class="input-field" type="number" value="' + (d || 0.1) + '" min="0" step="0.001" id="ld_' + id + '" style="width:75px" oninput="calcU()"></td>' +
+                '<td><input class="input-field" type="number" value="' + (lam || 0.04) + '" min="0" step="0.001" id="ll_' + id + '" style="width:75px" oninput="calcU()"></td>' +
+                '<td id="lr_' + id + '" style="font-family:var(--font-mono)">—</td>' +
+                '<td><button class="del-btn" onclick="document.getElementById(\'layer_' + id + '\').remove();calcU()">✕</button></td>';
+            document.getElementById('layer_body').appendChild(tr);
+            calcU();
+        }
+
+        function calcU() {
+            const rsi = parseFloat(document.getElementById('uval_rsi').value) || 0;
+            const rse = parseFloat(document.getElementById('uval_rse').value) || 0;
+            let rSum = rsi + rse;
+
+            document.querySelectorAll('#layer_body tr').forEach(tr => {
+                const id = tr.id.replace('layer_', '');
+                const d = parseFloat(document.getElementById('ld_' + id)?.value) || 0;
+                const lam = parseFloat(document.getElementById('ll_' + id)?.value) || 1;
+                const r = lam > 0 ? d / lam : 0;
+                const el = document.getElementById('lr_' + id);
+                if (el) el.textContent = r.toFixed(4);
+                rSum += r;
+            });
+
+            document.getElementById('layer_rt').textContent = rSum.toFixed(4) + ' m²K/W';
+            const U = rSum > 0 ? 1 / rSum : 0;
+            const dt = parseFloat(document.getElementById('u_dt').value) || 20;
+            document.getElementById('u_val').textContent = U.toFixed(3);
+            document.getElementById('u_phi_m2').textContent = (U * dt).toFixed(1);
+        }
+
+        // Init
+        calcWM();
+        addLayer('Mauerwerk', 0.24, 0.8);
+        addLayer('Wärmedämmung EPS', 0.12, 0.04);
+        addLayer('Außenputz', 0.015, 1.0);
+    </script>
+</body>
+</html>

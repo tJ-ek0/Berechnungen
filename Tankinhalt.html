@@ -9,19 +9,20 @@
     <style>
         .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
         .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
-        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); transform: none; box-shadow: none; filter: none; }
+        .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); }
         .action-btn svg { width: 14px; height: 14px; fill: currentColor; }
 
         .section-divider { border: none; border-top: 1px solid var(--border-default); margin: 24px 0; }
+        .section-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 10px 0; }
 
-        .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 16px; margin-bottom: 16px; }
+        .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 16px; margin-bottom: 16px; }
         .result-card { background: var(--bg-success); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 12px; text-align: center; }
         .result-card-value { font-size: 18px; font-weight: 600; color: var(--text-success); font-family: var(--font-mono); }
         .result-card-label { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
 
         .shape-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
         .shape-btn { padding: 10px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); cursor: pointer; font-family: var(--font-sans); font-size: 13px; font-weight: 500; color: var(--text-secondary); transition: all 0.15s; box-shadow: none; display: flex; align-items: center; gap: 8px; }
-        .shape-btn:hover { border-color: var(--accent-fg); color: var(--accent-fg); transform: none; box-shadow: none; filter: none; }
+        .shape-btn:hover { border-color: var(--accent-fg); color: var(--accent-fg); }
         .shape-btn.active { background: var(--accent-emphasis); color: var(--text-on-emphasis); border-color: var(--accent-emphasis); }
         .shape-btn .shape-icon { font-size: 20px; }
 
@@ -35,6 +36,42 @@
 
         .info-box { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 14px 18px; margin-top: 16px; font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
         .info-box strong { color: var(--text-primary); }
+
+        .lin-table-wrapper { overflow-x: auto; margin-top: 10px; border: 1px solid var(--border-default); border-radius: var(--radius-md); }
+        #lin_table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        #lin_table th { background: var(--bg-subtle); font-weight: 600; font-size: 11px; color: var(--text-secondary); padding: 7px 10px; text-align: right; border-bottom: 1px solid var(--border-default); white-space: nowrap; }
+        #lin_table th:first-child { text-align: center; }
+        #lin_table td { padding: 5px 10px; text-align: right; border-bottom: 1px solid var(--border-default); font-family: var(--font-mono); color: var(--text-primary); }
+        #lin_table td:first-child { text-align: center; color: var(--text-tertiary); font-family: var(--font-sans); font-size: 11px; }
+        #lin_table tr:last-child td { border-bottom: none; }
+        #lin_table tr.lin-row-edge td { background: var(--bg-attention); }
+        #lin_table .lin-num { color: var(--text-tertiary); }
+
+        .lin-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+        .lin-controls label { font-size: 13px; color: var(--text-secondary); }
+
+        .device-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+        .device-badge.levelflex { background: #dbeafe; color: #1e40af; }
+        .device-badge.radar     { background: #dcfce7; color: #15803d; }
+        .device-badge.ultrasonic{ background: #fef9c3; color: #854d0e; }
+
+        .calib-box { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 10px 14px; margin: 10px 0; font-size: 13px; }
+        .calib-box .calib-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid var(--border-default); }
+        .calib-box .calib-row:last-child { border-bottom: none; }
+        .calib-box .calib-label { color: var(--text-secondary); }
+        .calib-box .calib-val { font-family: var(--font-mono); font-weight: 600; color: var(--text-primary); }
+        .calib-box .calib-hint { font-size: 11px; color: var(--text-tertiary); margin-top: 6px; }
+
+        .apply-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 600; border-radius: var(--radius-md); border: 1px solid var(--accent-fg); background: var(--bg-default); color: var(--accent-fg); cursor: pointer; transition: all 0.2s; font-family: var(--font-sans); }
+        .apply-btn:hover { background: var(--accent-fg); color: var(--text-on-emphasis); }
+
+        .hidden-row { display: none; }
+
+        .svg-wrapper { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 8px; margin-top: 16px; overflow: hidden; }
+        #tankSVG { display: block; width: 100%; height: auto; }
+        .svg-label { font-size: 11px; fill: var(--text-tertiary); font-family: var(--font-sans); }
+        .svg-dim   { font-size: 10px; fill: var(--accent-fg);     font-family: var(--font-mono); }
+        .svg-val   { font-size: 11px; fill: var(--text-success);  font-family: var(--font-mono); font-weight: 600; }
     </style>
 </head>
 <body data-tool-id="tank">
@@ -62,24 +99,41 @@
             </div>
 
             <div class="description">
-                🛢️ Berechnet das Füllvolumen eines Tanks basierend auf Füllstand und Tankgeometrie. Unterstützt stehende und liegende Zylinder, Kugeltanks und konische Behälter.
+                🛢️ Berechnet Füllvolumen, Füllmasse und Linearisierungstabelle für Füllstandsmessungen. Unterstützt stehende/liegende Zylinder, Kugeltanks und Kegelstümpfe mit LRV/URV-Konfiguration.
             </div>
 
             <!-- Tankform -->
             <div class="shape-btns">
-                <button class="shape-btn active" onclick="setShape('vCyl')"><span class="shape-icon">🥫</span> Stehender Zylinder</button>
-                <button class="shape-btn" onclick="setShape('hCyl')"><span class="shape-icon">🛢️</span> Liegender Zylinder</button>
-                <button class="shape-btn" onclick="setShape('sphere')"><span class="shape-icon">🔵</span> Kugeltank</button>
-                <button class="shape-btn" onclick="setShape('cone')"><span class="shape-icon">🔻</span> Konus (stehend)</button>
+                <button class="shape-btn active" onclick="setShape('vCyl', this)"><span class="shape-icon">🥫</span> Stehender Zylinder</button>
+                <button class="shape-btn" onclick="setShape('hCyl', this)"><span class="shape-icon">🛢️</span> Liegender Zylinder</button>
+                <button class="shape-btn" onclick="setShape('sphere', this)"><span class="shape-icon">🔵</span> Kugeltank</button>
+                <button class="shape-btn" onclick="setShape('cone', this)"><span class="shape-icon">🔻</span> Konus (stehend)</button>
             </div>
 
             <!-- Stehender Zylinder -->
             <div class="param-section active" id="sec_vCyl">
                 <table>
                     <tr><th colspan="6">Stehender Zylinder</th></tr>
-                    <tr><td colspan="2">Durchmesser</td><td colspan="4"><input class="input-field" type="number" id="vCyl_d" value="2" step="0.01"> m</td></tr>
-                    <tr><td colspan="2">Gesamthöhe</td><td colspan="4"><input class="input-field" type="number" id="vCyl_h" value="5" step="0.01"> m</td></tr>
-                    <tr><td colspan="2">Füllstand</td><td colspan="4"><input class="input-field" type="number" id="vCyl_level" value="3" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Innendurchmesser</td><td colspan="4"><input class="input-field" type="number" id="vCyl_d" value="2" min="0" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Zylinderlänge (Naht–Naht)</td><td colspan="4"><input class="input-field" type="number" id="vCyl_lcyl" value="4" min="0" step="0.01"> m <span style="font-size:11px;color:var(--text-tertiary)">nur gerader Teil</span></td></tr>
+                    <tr><td colspan="2">Bodenart (unten)</td><td colspan="4">
+                        <select class="input-field" id="vCyl_botHead" onchange="calc()">
+                            <option value="flat">Flachboden</option>
+                            <option value="kloepperboden" selected>Klöpperboden DIN 28011</option>
+                            <option value="korbbogen">Korbbogenboden DIN 28013</option>
+                            <option value="hemisphere">Halbkugelboden</option>
+                        </select>
+                    </td></tr>
+                    <tr><td colspan="2">Deckelart (oben)</td><td colspan="4">
+                        <select class="input-field" id="vCyl_topHead" onchange="calc()">
+                            <option value="kloepperboden" selected>Klöpperboden DIN 28011</option>
+                            <option value="korbbogen">Korbbogenboden DIN 28013</option>
+                            <option value="hemisphere">Halbkugelboden</option>
+                            <option value="flat">Flachboden</option>
+                        </select>
+                    </td></tr>
+                    <tr><td colspan="2">Berechnete Gesamthöhe</td><td colspan="4" class="result-field" style="padding:6px 8px;"><span id="vCyl_totalH">—</span></td></tr>
+                    <tr><td colspan="2">Füllstand (ab Bodenspiegel)</td><td colspan="4"><input class="input-field" type="number" id="vCyl_level" value="3" min="0" step="0.001"> m</td></tr>
                 </table>
             </div>
 
@@ -87,9 +141,17 @@
             <div class="param-section" id="sec_hCyl">
                 <table>
                     <tr><th colspan="6">Liegender Zylinder</th></tr>
-                    <tr><td colspan="2">Durchmesser</td><td colspan="4"><input class="input-field" type="number" id="hCyl_d" value="2" step="0.01"> m</td></tr>
-                    <tr><td colspan="2">Länge</td><td colspan="4"><input class="input-field" type="number" id="hCyl_l" value="5" step="0.01"> m</td></tr>
-                    <tr><td colspan="2">Füllstand (vom Boden)</td><td colspan="4"><input class="input-field" type="number" id="hCyl_level" value="1" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Innendurchmesser</td><td colspan="4"><input class="input-field" type="number" id="hCyl_d" value="2" min="0" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Zylinderlänge (Naht–Naht)</td><td colspan="4"><input class="input-field" type="number" id="hCyl_lcyl" value="5" min="0" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Bodenart (Stirnseiten)</td><td colspan="4">
+                        <select class="input-field" id="hCyl_headType" onchange="calc()">
+                            <option value="flat">Flachboden</option>
+                            <option value="kloepperboden" selected>Klöpperboden DIN 28011</option>
+                            <option value="korbbogen">Korbbogenboden DIN 28013</option>
+                            <option value="hemisphere">Halbkugelboden</option>
+                        </select>
+                    </td></tr>
+                    <tr><td colspan="2">Füllstand (vom Boden)</td><td colspan="4"><input class="input-field" type="number" id="hCyl_level" value="1" min="0" step="0.001"> m</td></tr>
                 </table>
             </div>
 
@@ -97,8 +159,8 @@
             <div class="param-section" id="sec_sphere">
                 <table>
                     <tr><th colspan="6">Kugeltank</th></tr>
-                    <tr><td colspan="2">Durchmesser</td><td colspan="4"><input class="input-field" type="number" id="sph_d" value="3" step="0.01"> m</td></tr>
-                    <tr><td colspan="2">Füllstand (vom Boden)</td><td colspan="4"><input class="input-field" type="number" id="sph_level" value="1.5" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Durchmesser</td><td colspan="4"><input class="input-field" type="number" id="sph_d" value="3" min="0" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Füllstand (vom Boden)</td><td colspan="4"><input class="input-field" type="number" id="sph_level" value="1.5" min="0" step="0.001"> m</td></tr>
                 </table>
             </div>
 
@@ -106,25 +168,185 @@
             <div class="param-section" id="sec_cone">
                 <table>
                     <tr><th colspan="6">Stehender Konus (Kegelstumpf)</th></tr>
-                    <tr><td colspan="2">Durchmesser unten</td><td colspan="4"><input class="input-field" type="number" id="cone_d1" value="1" step="0.01"> m</td></tr>
-                    <tr><td colspan="2">Durchmesser oben</td><td colspan="4"><input class="input-field" type="number" id="cone_d2" value="2" step="0.01"> m</td></tr>
-                    <tr><td colspan="2">Gesamthöhe</td><td colspan="4"><input class="input-field" type="number" id="cone_h" value="3" step="0.01"> m</td></tr>
-                    <tr><td colspan="2">Füllstand</td><td colspan="4"><input class="input-field" type="number" id="cone_level" value="1.5" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Durchmesser unten</td><td colspan="4"><input class="input-field" type="number" id="cone_d1" value="1" min="0" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Durchmesser oben</td><td colspan="4"><input class="input-field" type="number" id="cone_d2" value="2" min="0" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Gesamthöhe</td><td colspan="4"><input class="input-field" type="number" id="cone_h" value="3" min="0" step="0.01"> m</td></tr>
+                    <tr><td colspan="2">Füllstand</td><td colspan="4"><input class="input-field" type="number" id="cone_level" value="1.5" min="0" step="0.001"> m</td></tr>
                 </table>
             </div>
 
+            <!-- Stutzen-Konfiguration -->
+            <hr class="section-divider">
+            <p class="section-title">Stutzen &amp; Einbau</p>
+            <table>
+                <tr>
+                    <td colspan="2">Stutzen-Position</td>
+                    <td colspan="4">
+                        <select class="input-field" id="nozzle_pos" onchange="onNozzlePosChange()">
+                            <option value="top">Oben (Deckel/Kopf)</option>
+                            <option value="side">Seite (Mantelrohr)</option>
+                            <option value="bottom">Unten (Boden)</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr id="nozzle_height_row" class="hidden-row">
+                    <td colspan="2">Stutzen-Höhe über Tankboden</td>
+                    <td colspan="4"><input class="input-field" type="number" id="nozzle_height" value="0" min="0" step="1"> mm</td>
+                </tr>
+                <tr>
+                    <td colspan="2">Außenlänge (über Tank)</td>
+                    <td colspan="4"><input class="input-field" type="number" id="nozzle_outside" value="150" min="0" step="1"> mm</td>
+                </tr>
+                <tr>
+                    <td colspan="2">Tauchtiefe (in Tank)</td>
+                    <td colspan="4"><input class="input-field" type="number" id="nozzle_insertion" value="0" min="0" step="1"> mm <span style="font-size:11px;color:var(--text-tertiary)">für eingesch. Sonden</span></td>
+                </tr>
+                <tr>
+                    <td colspan="2">Neigungswinkel</td>
+                    <td colspan="4">
+                        <input class="input-field" type="number" id="tilt_angle" value="0" min="0" max="45" step="0.1" style="width:80px"> °
+                        <button class="action-btn" onclick="readTiltFromPhone()" title="Handy-Neigungssensor" style="margin-left:6px">📱 Handy-Sensor</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">Sensor-Referenzhöhe (berechnet)</td>
+                    <td colspan="4" style="font-family:var(--font-mono);font-weight:600;color:var(--text-success);padding:6px 8px"><span id="h_sensor_display">—</span></td>
+                </tr>
+            </table>
+
+            <!-- E+H Messgerät -->
+            <hr class="section-divider">
+            <p class="section-title">Messgerät (E+H)</p>
+            <table>
+                <tr>
+                    <td colspan="2">Gerätetyp</td>
+                    <td colspan="4">
+                        <select class="input-field" id="device_sel" onchange="onDeviceChanged()">
+                            <option value="none">Kein / Manuell</option>
+                            <optgroup label="── Levelflex (Geführtes Mikrowellenradar) ──">
+                                <option value="fmp51">Levelflex FMP51</option>
+                                <option value="fmp52">Levelflex FMP52</option>
+                                <option value="fmp54">Levelflex FMP54 (beheizbar)</option>
+                                <option value="fmp55">Levelflex FMP55 (Hygiene)</option>
+                                <option value="fmp56">Levelflex FMP56 (Ex)</option>
+                            </optgroup>
+                            <optgroup label="── Micropilot (Freiraum-Radar) ──">
+                                <option value="fmr10">Micropilot FMR10 – 6 GHz, 10°</option>
+                                <option value="fmr20">Micropilot FMR20 – 26 GHz, 8°</option>
+                                <option value="fmr30">Micropilot FMR30 – 26 GHz, 4°</option>
+                                <option value="fmr50">Micropilot FMR50 – 76 GHz, 4°</option>
+                                <option value="fmr51">Micropilot FMR51 – 76 GHz, 3°</option>
+                                <option value="fmr54">Micropilot FMR54 – 76 GHz, 3°</option>
+                                <option value="fmr57">Micropilot FMR57 – 76 GHz, 4°</option>
+                            </optgroup>
+                            <optgroup label="── Prosonic (Ultraschall) ──">
+                                <option value="fmu41">Prosonic FMU41 – 12°</option>
+                                <option value="fmu42">Prosonic FMU42 – 12°</option>
+                                <option value="fmu43">Prosonic FMU43 – 8°</option>
+                                <option value="fmu44">Prosonic FMU44 – 8°</option>
+                            </optgroup>
+                        </select>
+                    </td>
+                </tr>
+                <!-- Levelflex: Sondenlänge -->
+                <tr id="probe_row" class="hidden-row">
+                    <td colspan="2">Sondenlänge</td>
+                    <td colspan="4"><input class="input-field" type="number" id="probe_length" value="3000" min="0" step="10"> mm</td>
+                </tr>
+                <!-- Sperrbereich oben (alle Geräte) -->
+                <tr id="bdt_row" class="hidden-row">
+                    <td colspan="2">Sperrbereich oben (BDT)</td>
+                    <td colspan="4"><input class="input-field" type="number" id="bdt_mm" value="0" min="0" step="1"> mm</td>
+                </tr>
+                <!-- Sperrbereich unten (Levelflex) -->
+                <tr id="bdb_row" class="hidden-row">
+                    <td colspan="2">Sperrbereich unten (BDB)</td>
+                    <td colspan="4"><input class="input-field" type="number" id="bdb_mm" value="0" min="0" step="1"> mm</td>
+                </tr>
+                <!-- Abstrahlwinkel (Radar/US) -->
+                <tr id="beam_row" class="hidden-row">
+                    <td colspan="2">Abstrahlwinkel</td>
+                    <td colspan="4"><input class="input-field" type="number" id="beam_angle" value="4" min="1" max="30" step="0.5"> °</td>
+                </tr>
+            </table>
+
+            <!-- Berechnete Abgleich-Werte -->
+            <div class="calib-box" id="calibBox" style="display:none">
+                <div class="calib-row">
+                    <span class="calib-label">E – Leerabgleich (4 mA-Abstand)</span>
+                    <span class="calib-val" id="e_calib">—</span>
+                </div>
+                <div class="calib-row">
+                    <span class="calib-label">F – Vollabgleich (20 mA-Abstand)</span>
+                    <span class="calib-val" id="f_calib">—</span>
+                </div>
+                <div class="calib-row">
+                    <span class="calib-label">Eff. LRV (Leer-Niveau)</span>
+                    <span class="calib-val" id="eff_lrv">—</span>
+                </div>
+                <div class="calib-row">
+                    <span class="calib-label">Eff. URV (Voll-Niveau)</span>
+                    <span class="calib-val" id="eff_urv">—</span>
+                </div>
+                <div class="calib-hint" id="tilt_hint" style="display:none"></div>
+                <div style="margin-top:10px">
+                    <button class="apply-btn" onclick="applyCalibToConfig()">↓ LRV / URV übernehmen</button>
+                </div>
+            </div>
+
+            <!-- Transmitter-Konfiguration -->
+            <hr class="section-divider">
+            <p class="section-title">Transmitter-Konfiguration</p>
+            <table>
+                <tr>
+                    <td colspan="2">Dichte des Mediums</td>
+                    <td colspan="4"><input class="input-field" type="number" id="cfg_density" value="1000" min="0" step="1"> kg/m³ <span style="font-size:11px;color:var(--text-tertiary)">(Wasser = 1000)</span></td>
+                </tr>
+                <tr>
+                    <td colspan="2">LRV – Unterer Messbereich</td>
+                    <td colspan="4"><input class="input-field" type="number" id="cfg_lrv" value="0" min="0" step="1"> mm vom Tankboden</td>
+                </tr>
+                <tr>
+                    <td colspan="2">URV – Oberer Messbereich</td>
+                    <td colspan="4"><input class="input-field" type="number" id="cfg_urv" value="5000" min="0" step="1"> mm vom Tankboden</td>
+                </tr>
+            </table>
+
             <!-- Ergebnisse -->
+            <hr class="section-divider">
             <div class="result-grid" id="resultGrid">
                 <div class="result-card"><div class="result-card-value" id="res_vol_m3">—</div><div class="result-card-label">Füllvolumen (m³)</div></div>
                 <div class="result-card"><div class="result-card-value" id="res_vol_l">—</div><div class="result-card-label">Füllvolumen (Liter)</div></div>
                 <div class="result-card"><div class="result-card-value" id="res_total_m3">—</div><div class="result-card-label">Gesamtvolumen (m³)</div></div>
                 <div class="result-card"><div class="result-card-value" id="res_pct">—</div><div class="result-card-label">Füllgrad (%)</div></div>
+                <div class="result-card"><div class="result-card-value" id="res_mass_kg">—</div><div class="result-card-label">Füllmasse (kg)</div></div>
+                <div class="result-card"><div class="result-card-value" id="res_mass_t">—</div><div class="result-card-label">Füllmasse (t)</div></div>
             </div>
 
             <!-- Füllstandsbalken -->
             <div class="fill-bar">
                 <div class="fill-bar-label"><span>Füllgrad</span><span id="fillPctLabel">0%</span></div>
                 <div class="fill-bar-track"><div class="fill-bar-fill" id="fillBarFill" style="width:0%"></div></div>
+            </div>
+
+            <!-- Tank-Visualisierung -->
+            <div class="svg-wrapper">
+                <p class="section-title" style="margin-bottom:6px">Tank-Visualisierung</p>
+                <svg id="tankSVG" viewBox="0 0 300 380" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <clipPath id="tankClip"><path id="tankClipPath"/></clipPath>
+                    </defs>
+                    <!-- Flüssigkeitsfüllung (geclippt auf Tankform) -->
+                    <rect id="svgFill" clip-path="url(#tankClip)" x="0" y="0" width="300" height="380" fill="none"/>
+                    <!-- Tankwand -->
+                    <path id="tankOutline" fill="none" stroke-width="2"/>
+                    <!-- Stutzen -->
+                    <g id="svgNozzle"></g>
+                    <!-- Messgerät (Sonde / Strahl) -->
+                    <g id="svgDevice"></g>
+                    <!-- Beschriftungen -->
+                    <g id="svgLabels"></g>
+                </svg>
             </div>
 
             <hr class="section-divider">
@@ -148,8 +370,45 @@
                 </tr>
             </table>
 
-            <div class="info-box">
-                <strong>Hinweis:</strong> Alle Berechnungen gelten für ideale geometrische Formen ohne Einbauten, Stutzen oder Böden (Klöpper-/Korbbogenböden). Der liegender Zylinder wird als glatte Trommel ohne gewölbte Enden berechnet. Für höhere Genauigkeit die Herstellerangaben verwenden.
+            <hr class="section-divider">
+
+            <!-- Linearisierungstabelle -->
+            <p class="section-title">Linearisierungstabelle (LRV → URV)</p>
+            <div class="lin-controls">
+                <label>Punkte:
+                    <select class="input-field" id="lin_n" style="width:auto;padding:4px 8px;">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="16">16</option>
+                        <option value="20">20</option>
+                        <option value="25">25</option>
+                        <option value="32">32</option>
+                    </select>
+                </label>
+                <button class="action-btn" onclick="exportCSV()">
+                    <svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
+                    CSV Export
+                </button>
+            </div>
+            <div class="lin-table-wrapper">
+                <table id="lin_table">
+                    <thead>
+                        <tr>
+                            <th>Nr.</th>
+                            <th>Füllstand (mm)</th>
+                            <th>Füllstand (%)</th>
+                            <th>Volumen (m³)</th>
+                            <th>Volumen (l)</th>
+                            <th>Masse (kg)</th>
+                            <th>Masse (t)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lin_body"></tbody>
+                </table>
+            </div>
+
+            <div class="info-box" style="margin-top:16px;">
+                <strong>Hinweis:</strong> Klöpperboden nach DIN 28011 (R=D, r=0,1·D), Korbbogenboden nach DIN 28013 (R=0,8·D, r=0,154·D). Bodenvolumen per numerischer Integration. Kein Abzug für Einbauten. E+H Sperrbereich-Werte sind Richtwerte — die aktuellen Gerätedatenblätter prüfen. LRV/URV definieren den Linearisierungsbereich.
             </div>
 
             <div class="shortcuts-hint" style="margin-top:16px;">
@@ -168,157 +427,772 @@
     <script>
         let activeShape = 'vCyl';
 
-        function setShape(shape) {
+        // ============ E+H GERÄTEDATENBANK ============
+        const EH_DEVICES = {
+            // Levelflex – Geführtes Mikrowellenradar
+            fmp51: { name:'Levelflex FMP51', type:'levelflex', bdt:100, bdb:100,  beam:null },
+            fmp52: { name:'Levelflex FMP52', type:'levelflex', bdt:100, bdb:100,  beam:null },
+            fmp54: { name:'Levelflex FMP54', type:'levelflex', bdt:200, bdb:150,  beam:null },
+            fmp55: { name:'Levelflex FMP55', type:'levelflex', bdt:100, bdb:100,  beam:null },
+            fmp56: { name:'Levelflex FMP56', type:'levelflex', bdt:100, bdb:100,  beam:null },
+            // Micropilot – Freiraum-Radar
+            fmr10: { name:'Micropilot FMR10', type:'radar',    bdt:300, bdb:0,    beam:10  },
+            fmr20: { name:'Micropilot FMR20', type:'radar',    bdt:300, bdb:0,    beam:8   },
+            fmr30: { name:'Micropilot FMR30', type:'radar',    bdt:300, bdb:0,    beam:4   },
+            fmr50: { name:'Micropilot FMR50', type:'radar',    bdt:500, bdb:0,    beam:4   },
+            fmr51: { name:'Micropilot FMR51', type:'radar',    bdt:500, bdb:0,    beam:3   },
+            fmr54: { name:'Micropilot FMR54', type:'radar',    bdt:500, bdb:0,    beam:3   },
+            fmr57: { name:'Micropilot FMR57', type:'radar',    bdt:400, bdb:0,    beam:4   },
+            // Prosonic – Ultraschall
+            fmu41: { name:'Prosonic FMU41',   type:'ultrasonic',bdt:250, bdb:0,   beam:12  },
+            fmu42: { name:'Prosonic FMU42',   type:'ultrasonic',bdt:250, bdb:0,   beam:12  },
+            fmu43: { name:'Prosonic FMU43',   type:'ultrasonic',bdt:250, bdb:0,   beam:8   },
+            fmu44: { name:'Prosonic FMU44',   type:'ultrasonic',bdt:250, bdb:0,   beam:8   },
+        };
+
+        // ============ STUTZEN UI ============
+        function onNozzlePosChange() {
+            const pos = document.getElementById('nozzle_pos').value;
+            document.getElementById('nozzle_height_row').classList.toggle('hidden-row', pos !== 'side');
+            calc();
+        }
+
+        // Sensor-Referenzhöhe berechnen (mm über Tankboden-Innenfläche)
+        function getSensorHeight() {
+            const pos     = document.getElementById('nozzle_pos').value;
+            const outside = parseFloat(document.getElementById('nozzle_outside').value) || 0;
+            const insert  = parseFloat(document.getElementById('nozzle_insertion').value) || 0;
+            const totalH_mm = getTotalHeight() * 1000;
+            if (pos === 'top')    return totalH_mm + outside - insert;
+            if (pos === 'side')   return parseFloat(document.getElementById('nozzle_height').value) || 0;
+            if (pos === 'bottom') return insert - outside; // negativ = unter Tankboden
+            return 0;
+        }
+
+        // ============ GERÄT UI ============
+        function onDeviceChanged() {
+            const key = document.getElementById('device_sel').value;
+            const dev = EH_DEVICES[key];
+
+            const isLevelflex   = dev && dev.type === 'levelflex';
+            const isRadarOrUS   = dev && (dev.type === 'radar' || dev.type === 'ultrasonic');
+            const hasDevice     = !!dev;
+
+            document.getElementById('probe_row').classList.toggle('hidden-row', !isLevelflex);
+            document.getElementById('bdb_row').classList.toggle('hidden-row', !isLevelflex);
+            document.getElementById('bdt_row').classList.toggle('hidden-row', !hasDevice);
+            document.getElementById('beam_row').classList.toggle('hidden-row', !isRadarOrUS);
+            document.getElementById('calibBox').style.display = hasDevice ? '' : 'none';
+
+            if (dev) {
+                document.getElementById('bdt_mm').value  = dev.bdt;
+                document.getElementById('bdb_mm').value  = dev.bdb;
+                if (dev.beam !== null) document.getElementById('beam_angle').value = dev.beam;
+            }
+            calc();
+        }
+
+        // Berechnete Abgleich-Werte ausgeben
+        function updateCalibBox() {
+            const key = document.getElementById('device_sel').value;
+            const dev = EH_DEVICES[key];
+            if (!dev) { document.getElementById('calibBox').style.display = 'none'; return; }
+
+            const hSensor = getSensorHeight();
+            const bdt     = parseFloat(document.getElementById('bdt_mm').value) || 0;
+            const bdb     = parseFloat(document.getElementById('bdb_mm').value) || 0;
+            const probe   = parseFloat(document.getElementById('probe_length').value) || 0;
+            const tilt    = parseFloat(document.getElementById('tilt_angle').value) || 0;
+            const cosCorr = tilt > 0 ? (1 / Math.cos(tilt * Math.PI / 180)) : 1;
+
+            let E_mm, F_mm;
+            if (dev.type === 'levelflex') {
+                F_mm = bdt;
+                E_mm = probe - bdb;
+            } else {
+                // Radar / Ultraschall – Sensor misst von oben nach unten
+                F_mm = bdt;
+                E_mm = hSensor; // bis zum Tankboden
+            }
+
+            const effLRV = Math.round(hSensor - E_mm);
+            const effURV = Math.round(hSensor - F_mm);
+            const E_corr = (E_mm * cosCorr).toFixed(0);
+            const F_corr = (F_mm * cosCorr).toFixed(0);
+
+            document.getElementById('e_calib').textContent = E_corr + ' mm';
+            document.getElementById('f_calib').textContent = F_corr + ' mm';
+            document.getElementById('eff_lrv').textContent = effLRV + ' mm';
+            document.getElementById('eff_urv').textContent = effURV + ' mm';
+
+            const tiltHint = document.getElementById('tilt_hint');
+            if (tilt > 0) {
+                tiltHint.style.display = '';
+                tiltHint.textContent = 'Neigungskorrektur ' + tilt.toFixed(1) + '° → Faktor '
+                    + cosCorr.toFixed(4) + '. E/F wurden um diesen Faktor verlängert.';
+            } else {
+                tiltHint.style.display = 'none';
+            }
+
+            document.getElementById('calibBox').style.display = '';
+        }
+
+        // Übernehmen-Button: berechnete Werte in LRV/URV eintragen
+        function applyCalibToConfig() {
+            const key = document.getElementById('device_sel').value;
+            const dev = EH_DEVICES[key];
+            if (!dev) return;
+            const hSensor = getSensorHeight();
+            const bdt     = parseFloat(document.getElementById('bdt_mm').value) || 0;
+            const bdb     = parseFloat(document.getElementById('bdb_mm').value) || 0;
+            const probe   = parseFloat(document.getElementById('probe_length').value) || 0;
+            let E_mm = dev.type === 'levelflex' ? probe - bdb : hSensor;
+            document.getElementById('cfg_lrv').value = Math.max(0, Math.round(hSensor - E_mm));
+            document.getElementById('cfg_urv').value = Math.max(0, Math.round(hSensor - bdt));
+            calc();
+        }
+
+        // ============ HANDY NEIGUNGSSENSOR ============
+        function readTiltFromPhone() {
+            if (!window.DeviceOrientationEvent) {
+                alert('Neigungssensor nicht verfügbar auf diesem Gerät.');
+                return;
+            }
+            const handler = (e) => {
+                const tilt = Math.sqrt((e.beta || 0) ** 2 + (e.gamma || 0) ** 2);
+                document.getElementById('tilt_angle').value = Math.min(45, tilt).toFixed(1);
+                window.removeEventListener('deviceorientation', handler);
+                calc();
+            };
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(r => { if (r === 'granted') window.addEventListener('deviceorientation', handler); })
+                    .catch(() => alert('Berechtigung verweigert.'));
+            } else {
+                window.addEventListener('deviceorientation', handler);
+            }
+        }
+
+        function setShape(shape, btn) {
             activeShape = shape;
             document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
-            event.target.closest('.shape-btn').classList.add('active');
+            btn.classList.add('active');
             document.querySelectorAll('.param-section').forEach(s => s.classList.remove('active'));
             document.getElementById('sec_' + shape).classList.add('active');
             calc();
         }
 
-        // ============ CALCULATIONS ============
+        // ============ HEAD / BODEN GEOMETRIE ============
+        // headType: 'flat' | 'kloepperboden' | 'korbbogen' | 'hemisphere'
 
-        // Stehender Zylinder: V = π × r² × h_fill
-        function calcVCyl() {
-            const d = parseFloat(document.getElementById('vCyl_d').value) || 0;
-            const h = parseFloat(document.getElementById('vCyl_h').value) || 0;
-            const level = Math.min(parseFloat(document.getElementById('vCyl_level').value) || 0, h);
-            const r = d / 2;
-            const fillVol = Math.PI * r * r * level;
-            const totalVol = Math.PI * r * r * h;
-            return { fillVol, totalVol, maxLevel: h };
+        function headParams(D, headType) {
+            if (headType === 'flat')       return { R: 0, r: 0, hb: 0 };
+            if (headType === 'hemisphere') return { R: D / 2, r: 0, hb: D / 2 };
+            let R, r;
+            if (headType === 'kloepperboden') { R = D;       r = 0.1   * D; } // DIN 28011
+            else                              { R = 0.8 * D; r = 0.154 * D; } // Korbbogen DIN 28013
+            const hb = R + r - Math.sqrt(Math.max(0, (R - r) * (R - r) - (D / 2 - r) * (D / 2 - r)));
+            return { R, r, hb };
         }
 
-        // Liegender Zylinder: Kreissegment × Länge
-        // A = r² × arccos((r-h)/r) - (r-h) × √(2rh - h²)
-        function calcHCyl() {
-            const d = parseFloat(document.getElementById('hCyl_d').value) || 0;
-            const l = parseFloat(document.getElementById('hCyl_l').value) || 0;
-            const level = Math.min(parseFloat(document.getElementById('hCyl_level').value) || 0, d);
-            const r = d / 2;
-            if (r <= 0 || l <= 0) return { fillVol: 0, totalVol: 0, maxLevel: d };
-            const segmentArea = r * r * Math.acos((r - level) / r) - (r - level) * Math.sqrt(2 * r * level - level * level);
-            const fillVol = segmentArea * l;
-            const totalVol = Math.PI * r * r * l;
-            return { fillVol, totalVol, maxLevel: d };
+        // Innenradius des Bodens bei Höhe y vom Tiefpunkt (Scheitel)
+        function headRadiusAtY(y, D, headType) {
+            if (headType === 'flat') return D / 2;
+            const { R, r, hb } = headParams(D, headType);
+            if (hb <= 0 || y >= hb) return D / 2;
+            if (headType === 'hemisphere') return Math.sqrt(Math.max(0, D * y - y * y));
+            // Übergangshoehe Kalotte → Krempe
+            const yt = R * (hb - 2 * r) / (R - r);
+            if (y <= yt) {
+                return Math.sqrt(Math.max(0, 2 * R * y - y * y)); // Kalotte
+            } else {
+                const kcy = hb - r, kcx = D / 2 - r;
+                return kcx + Math.sqrt(Math.max(0, r * r - (y - kcy) * (y - kcy))); // Krempe
+            }
         }
 
-        // Kugeltank: V = π × h² × (3r - h) / 3  (Kugelkappe)
-        function calcSphere() {
-            const d = parseFloat(document.getElementById('sph_d').value) || 0;
-            const level = Math.min(parseFloat(document.getElementById('sph_level').value) || 0, d);
-            const r = d / 2;
-            if (r <= 0) return { fillVol: 0, totalVol: 0, maxLevel: d };
-            const fillVol = Math.PI * level * level * (3 * r - level) / 3;
-            const totalVol = (4 / 3) * Math.PI * r * r * r;
-            return { fillVol, totalVol, maxLevel: d };
+        // Teilvolumen eines Bodens von 0 bis fillH (trapez-Integration)
+        function headPartialVol(fillH, D, headType) {
+            if (headType === 'flat' || fillH <= 0) return 0;
+            const { hb } = headParams(D, headType);
+            const h = Math.min(fillH, hb);
+            const N = 80;
+            const dy = h / N;
+            let vol = 0, prevA = Math.PI * headRadiusAtY(0, D, headType) ** 2;
+            for (let i = 1; i <= N; i++) {
+                const a = Math.PI * headRadiusAtY(i * dy, D, headType) ** 2;
+                vol += (prevA + a) * 0.5 * dy;
+                prevA = a;
+            }
+            return vol;
         }
 
-        // Konus (Kegelstumpf): bei Füllstand h_fill
-        // Radius bei Höhe h: r(h) = r1 + (r2-r1) × h/H
-        // V(h) = π×h/3 × (r1² + r1×r(h) + r(h)²)
-        function calcCone() {
-            const d1 = parseFloat(document.getElementById('cone_d1').value) || 0;
-            const d2 = parseFloat(document.getElementById('cone_d2').value) || 0;
-            const H = parseFloat(document.getElementById('cone_h').value) || 0;
-            const level = Math.min(parseFloat(document.getElementById('cone_level').value) || 0, H);
-            const r1 = d1 / 2;
-            const r2 = d2 / 2;
-            if (H <= 0) return { fillVol: 0, totalVol: 0, maxLevel: H };
-            function coneVol(h) {
+        function headTotalVol(D, headType) {
+            return headPartialVol(headParams(D, headType).hb, D, headType);
+        }
+
+        // ============ HILFE: Kreissegment-Fläche ============
+        function circleSegArea(R, h) {
+            if (h <= 0) return 0;
+            if (h >= 2 * R) return Math.PI * R * R;
+            return R * R * Math.acos((R - h) / R) - (R - h) * Math.sqrt(Math.max(0, 2 * R * h - h * h));
+        }
+
+        // ============ VOLUMEN-FUNKTIONEN ============
+
+        function volVCyl(D, Lcyl, botHead, topHead, levelM) {
+            const r = D / 2;
+            const hbot = headParams(D, botHead).hb;
+            const htop = headParams(D, topHead).hb;
+            const maxH = hbot + Lcyl + htop;
+            const total = headTotalVol(D, botHead) + Math.PI * r * r * Lcyl + headTotalVol(D, topHead);
+            const lv = Math.max(0, Math.min(levelM, maxH));
+            let fill;
+            if      (lv <= hbot)              fill = headPartialVol(lv, D, botHead);
+            else if (lv <= hbot + Lcyl)       fill = headTotalVol(D, botHead) + Math.PI * r * r * (lv - hbot);
+            else                              fill = headTotalVol(D, botHead) + Math.PI * r * r * Lcyl
+                                                   + headPartialVol(lv - hbot - Lcyl, D, topHead);
+            return { fill, total, maxH };
+        }
+
+        // Liegender Zylinder – Füllstand vom untersten Scheitelpunkt (Boden der Kreisfläche)
+        function volHCyl(D, Lcyl, headType, levelM) {
+            const r = D / 2;
+            const { hb } = headParams(D, headType);
+            const lv = Math.max(0, Math.min(levelM, D));
+            // Zylinderteil
+            const Vcyl = circleSegArea(r, lv) * Lcyl;
+            // Zwei Böden: Integration über axiale Position x (0..hb)
+            let Vheads = 0;
+            if (headType !== 'flat' && hb > 0) {
+                const N = 80, dx = hb / N;
+                let prevA = circleSegArea(headRadiusAtY(0, D, headType), lv);
+                for (let i = 1; i <= N; i++) {
+                    const a = circleSegArea(headRadiusAtY(i * dx, D, headType), lv);
+                    Vheads += (prevA + a) * 0.5 * dx;
+                    prevA = a;
+                }
+                Vheads *= 2;
+            }
+            const total = Math.PI * r * r * Lcyl + 2 * headTotalVol(D, headType);
+            return { fill: Vcyl + Vheads, total, maxH: D };
+        }
+
+        function volSphere(D, levelM) {
+            const r = D / 2;
+            const lv = Math.max(0, Math.min(levelM, D));
+            if (r <= 0) return { fill: 0, total: 0, maxH: D };
+            return {
+                fill:  Math.PI * lv * lv * (3 * r - lv) / 3,
+                total: (4 / 3) * Math.PI * r * r * r,
+                maxH:  D
+            };
+        }
+
+        function volCone(d1, d2, H, levelM) {
+            const r1 = d1 / 2, r2 = d2 / 2;
+            const lv = Math.max(0, Math.min(levelM, H));
+            if (H <= 0) return { fill: 0, total: 0, maxH: H };
+            function cv(h) {
                 const rh = r1 + (r2 - r1) * h / H;
                 return (Math.PI * h / 3) * (r1 * r1 + r1 * rh + rh * rh);
             }
-            return { fillVol: coneVol(level), totalVol: coneVol(H), maxLevel: H };
+            return { fill: cv(lv), total: cv(H), maxH: H };
+        }
+
+        // ============ GEOMETRY READER ============
+
+        function sel(id) { const el = document.getElementById(id); return el ? el.value : 'flat'; }
+
+        function getGeom() {
+            function n(id) { return parseFloat(document.getElementById(id).value) || 0; }
+            switch (activeShape) {
+                case 'vCyl':   return { d: n('vCyl_d'), lcyl: n('vCyl_lcyl'), botHead: sel('vCyl_botHead'), topHead: sel('vCyl_topHead'), level: n('vCyl_level') };
+                case 'hCyl':   return { d: n('hCyl_d'), lcyl: n('hCyl_lcyl'), headType: sel('hCyl_headType'), level: n('hCyl_level') };
+                case 'sphere': return { d: n('sph_d'), level: n('sph_level') };
+                case 'cone':   return { d1: n('cone_d1'), d2: n('cone_d2'), h: n('cone_h'), level: n('cone_level') };
+            }
+        }
+
+        function getVolumeAtLevel(levelM) {
+            const g = getGeom();
+            switch (activeShape) {
+                case 'vCyl':   return volVCyl(g.d, g.lcyl, g.botHead, g.topHead, levelM);
+                case 'hCyl':   return volHCyl(g.d, g.lcyl, g.headType, levelM);
+                case 'sphere': return volSphere(g.d, levelM);
+                case 'cone':   return volCone(g.d1, g.d2, g.h, levelM);
+            }
+        }
+
+        // Gesamthöhe des Tanks (für Anzeige und Stutzen-Berechnung)
+        function getTotalHeight() {
+            const g = getGeom();
+            switch (activeShape) {
+                case 'vCyl':   return headParams(g.d, g.botHead).hb + g.lcyl + headParams(g.d, g.topHead).hb;
+                case 'hCyl':   return g.d;
+                case 'sphere': return g.d;
+                case 'cone':   return g.h;
+                default:       return 0;
+            }
+        }
+
+        // ============ SVG VISUALISIERUNG ============
+
+        function svgEl(tag, attrs = {}, text = '') {
+            const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+            Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+            if (text) el.textContent = text;
+            return el;
+        }
+
+        // Kopfprofil-Punkte: rechte Hälfte, von Schulter (t=0) → Scheitel (t=1)
+        // Profil-Punkte einer Hälfte des Bodens: pts[0]=Schulter (cx+r), pts[N]=Scheitel (cx)
+        function headProfilePts(D, headType, scale, cx, yShoulderSvg, apexBelow) {
+            const { hb } = headParams(D, headType);
+            // Flachboden: nur die Schulter zurückgeben (kein Scheitel)
+            if (hb <= 0) return [{ x: cx + D / 2 * scale, y: yShoulderSvg }];
+            const N = 20, dir = apexBelow ? 1 : -1;
+            const pts = [];
+            for (let i = 0; i <= N; i++) {
+                const t      = i / N;
+                const yLocal = (1 - t) * hb;   // hb bei Schulter (t=0), 0 beim Scheitel (t=1)
+                const r      = headRadiusAtY(yLocal, D, headType);
+                pts.push({ x: cx + r * scale, y: yShoulderSvg + dir * t * hb * scale });
+            }
+            return pts; // pts[0]=Schulter (cx+r), pts[N]=Scheitel (cx)
+        }
+
+        function ptsToD(pts, close = true) {
+            let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+            for (let i = 1; i < pts.length; i++) d += ` L ${pts[i].x.toFixed(1)} ${pts[i].y.toFixed(1)}`;
+            return close ? d + ' Z' : d;
+        }
+
+        function buildVerticalPath(D, Lcyl, botHead, topHead, scale, cx, yTopApex) {
+            const r_px = D / 2 * scale;
+            const htop = headParams(D, topHead).hb;
+            const hbot = headParams(D, botHead).hb;
+            const yTopShoulder = yTopApex + htop * scale;
+            const yBotShoulder = yTopShoulder + Lcyl * scale;
+            const yBotApex     = yBotShoulder + hbot * scale;
+
+            // pts[0]=Schulter(cx+r), pts[N]=Scheitel(cx) — für Flachboden nur 1 Punkt
+            const topPts = headProfilePts(D, topHead, scale, cx, yTopShoulder, false);
+            const botPts = headProfilePts(D, botHead, scale, cx, yBotShoulder, true);
+
+            const all = [];
+
+            // 1. Rechte Seite Deckel: von Scheitel/Ecke hinunter zur Schulter
+            for (let i = topPts.length - 1; i >= 0; i--) all.push(topPts[i]);
+
+            // 2. Rechte Zylinderwand
+            all.push({ x: cx + r_px, y: yBotShoulder });
+
+            // 3. Rechte Seite Boden: Schulter → Scheitel
+            for (let i = 1; i < botPts.length; i++) all.push(botPts[i]);
+
+            // 4. Linke Seite Boden: Scheitel → linke Schulter (gespiegelt)
+            //    Für Flachboden (1 Punkt): startIndex=0 → erzeugt linke untere Ecke
+            //    Für Gewölbt (N+1 Punkte): startIndex=N-1 → überspringt Scheitel-Duplikat
+            const botMirrorStart = botPts.length > 1 ? botPts.length - 2 : 0;
+            for (let i = botMirrorStart; i >= 0; i--)
+                all.push({ x: cx - (botPts[i].x - cx), y: botPts[i].y });
+
+            // 5. Linke Zylinderwand
+            all.push({ x: cx - r_px, y: yTopShoulder });
+
+            // 6. Linke Seite Deckel: linke Schulter → Scheitel (gespiegelt, Schulter bereits oben)
+            for (let i = 1; i < topPts.length; i++)
+                all.push({ x: cx - (topPts[i].x - cx), y: topPts[i].y });
+
+            return { d: ptsToD(all), yTopApex, yBotApex, yTopShoulder, yBotShoulder, r_px };
+        }
+
+        function drawTank() {
+            const SVG_W = 300, SVG_H = 380;
+            const MARGIN_X = 55, MARGIN_Y = 24;
+            const drawW = SVG_W - 2 * MARGIN_X;
+            const drawH = SVG_H - 2 * MARGIN_Y;
+            const cx = SVG_W / 2;
+            const g = getGeom();
+            const res = getVolumeAtLevel(g.level || 0);
+            const totalH = getTotalHeight();
+
+            // CSS-Farben aus aktuellem Theme
+            const isD  = document.documentElement.getAttribute('data-theme') === 'dark';
+            const cStroke = isD ? '#8b949e' : '#57606a';
+            const cFill   = isD ? '#1d4e89aa' : '#bfdbfe99';
+            const cFillB  = isD ? '#1d4e89'   : '#3b82f6';
+            const cNozzle = isD ? '#6e7681'   : '#8c959f';
+            const cLRV    = isD ? '#f59e0b88' : '#f59e0b66';
+            const cURV    = isD ? '#22c55e88' : '#16a34a66';
+            const cBeam   = isD ? '#f97316aa' : '#fb923c66';
+
+            const outline   = document.getElementById('tankOutline');
+            const clipPath  = document.getElementById('tankClipPath');
+            const fillRect  = document.getElementById('svgFill');
+            const nozzleGrp = document.getElementById('svgNozzle');
+            const deviceGrp = document.getElementById('svgDevice');
+            const labelsGrp = document.getElementById('svgLabels');
+            [nozzleGrp, deviceGrp, labelsGrp].forEach(g => { while (g.firstChild) g.removeChild(g.firstChild); });
+
+            outline.setAttribute('stroke', cStroke);
+
+            if (activeShape === 'vCyl' && g.d > 0) {
+                const scale = Math.min(drawW / g.d, drawH / (totalH || 1));
+                const yTop  = MARGIN_Y + (drawH - totalH * scale) / 2;
+                const { d, yTopApex, yBotApex, yTopShoulder, yBotShoulder, r_px } = buildVerticalPath(
+                    g.d, g.lcyl, g.botHead, g.topHead, scale, cx, yTop);
+
+                outline.setAttribute('d', d);
+                clipPath.setAttribute('d', d);
+
+                // Füllhöhe
+                const fillFrac = res.total > 0 ? res.fill / res.total : 0;
+                const yFill = yBotApex - (g.level || 0) * scale;
+                fillRect.setAttribute('fill', cFill);
+                fillRect.setAttribute('x', '0');
+                fillRect.setAttribute('y', yFill.toFixed(1));
+                fillRect.setAttribute('width', '300');
+                fillRect.setAttribute('height', (yBotApex - yFill + 5).toFixed(1));
+
+                // LRV / URV Linien
+                const lrv = parseFloat(document.getElementById('cfg_lrv').value) || 0;
+                const urv = parseFloat(document.getElementById('cfg_urv').value) || 0;
+                const yLRV = yBotApex - lrv / 1000 * scale;
+                const yURV = yBotApex - urv / 1000 * scale;
+                if (lrv > 0) {
+                    labelsGrp.appendChild(svgEl('line', { x1: cx - r_px - 2, y1: yLRV.toFixed(1), x2: cx + r_px + 2, y2: yLRV.toFixed(1), stroke: cLRV, 'stroke-width': '1.5', 'stroke-dasharray': '4,3' }));
+                    labelsGrp.appendChild(svgEl('text', { x: cx + r_px + 4, y: (yLRV + 4).toFixed(1), class: 'svg-label' }, 'LRV'));
+                }
+                if (urv > 0 && urv !== lrv) {
+                    labelsGrp.appendChild(svgEl('line', { x1: cx - r_px - 2, y1: yURV.toFixed(1), x2: cx + r_px + 2, y2: yURV.toFixed(1), stroke: cURV, 'stroke-width': '1.5', 'stroke-dasharray': '4,3' }));
+                    labelsGrp.appendChild(svgEl('text', { x: cx + r_px + 4, y: (yURV + 4).toFixed(1), class: 'svg-label' }, 'URV'));
+                }
+
+                // Füllstand-Linie (blau)
+                if ((g.level || 0) > 0 && yFill > yTopApex) {
+                    labelsGrp.appendChild(svgEl('line', { x1: (cx - r_px + 2).toFixed(1), y1: yFill.toFixed(1), x2: (cx + r_px - 2).toFixed(1), y2: yFill.toFixed(1), stroke: cFillB, 'stroke-width': '2' }));
+                }
+
+                // Füllgrad-Text mittig in der Flüssigkeit
+                const pct = res.total > 0 ? (res.fill / res.total * 100) : 0;
+                if (pct > 5) {
+                    const yTxt = yFill + Math.min((yBotApex - yFill) / 2 + 6, (yBotApex - yFill) * 0.6);
+                    labelsGrp.appendChild(svgEl('text', { x: cx, y: yTxt.toFixed(1), class: 'svg-val', 'text-anchor': 'middle' }, pct.toFixed(1) + ' %'));
+                }
+
+                // Maßpfeil links: Gesamthöhe
+                const xArr = Math.max(8, cx - r_px - 16);
+                labelsGrp.appendChild(svgEl('line', { x1: xArr, y1: yTopApex.toFixed(1), x2: xArr, y2: yBotApex.toFixed(1), stroke: cStroke, 'stroke-width': '1' }));
+                labelsGrp.appendChild(svgEl('line', { x1: (xArr - 3), y1: yTopApex.toFixed(1), x2: (xArr + 3), y2: yTopApex.toFixed(1), stroke: cStroke, 'stroke-width': '1' }));
+                labelsGrp.appendChild(svgEl('line', { x1: (xArr - 3), y1: yBotApex.toFixed(1), x2: (xArr + 3), y2: yBotApex.toFixed(1), stroke: cStroke, 'stroke-width': '1' }));
+                labelsGrp.appendChild(svgEl('text', { x: xArr - 3, y: ((yTopApex + yBotApex) / 2 + 4).toFixed(1), class: 'svg-dim', transform: `rotate(-90,${xArr - 3},${((yTopApex + yBotApex) / 2 + 4).toFixed(1)})`, 'text-anchor': 'middle' }, totalH.toFixed(2) + ' m'));
+
+                // Maßpfeil rechts: Füllstand
+                if ((g.level || 0) > 0) {
+                    const xArrR = Math.min(SVG_W - 6, cx + r_px + 16);
+                    labelsGrp.appendChild(svgEl('line', { x1: xArrR, y1: yFill.toFixed(1), x2: xArrR, y2: yBotApex.toFixed(1), stroke: cFillB, 'stroke-width': '1' }));
+                    labelsGrp.appendChild(svgEl('line', { x1: (xArrR - 3), y1: yFill.toFixed(1), x2: (xArrR + 3), y2: yFill.toFixed(1), stroke: cFillB, 'stroke-width': '1' }));
+                    labelsGrp.appendChild(svgEl('line', { x1: (xArrR - 3), y1: yBotApex.toFixed(1), x2: (xArrR + 3), y2: yBotApex.toFixed(1), stroke: cFillB, 'stroke-width': '1' }));
+                    labelsGrp.appendChild(svgEl('text', { x: xArrR + 3, y: ((yFill + yBotApex) / 2 + 4).toFixed(1), class: 'svg-val', transform: `rotate(-90,${xArrR + 3},${((yFill + yBotApex) / 2 + 4).toFixed(1)})`, 'text-anchor': 'middle' }, (g.level || 0).toFixed(2) + ' m'));
+                }
+
+                // Durchmesser unten
+                const yDimLine = Math.min(SVG_H - 16, yBotApex + 14);
+                labelsGrp.appendChild(svgEl('line', { x1: (cx - r_px).toFixed(1), y1: yDimLine, x2: (cx + r_px).toFixed(1), y2: yDimLine, stroke: cStroke, 'stroke-width': '1' }));
+                labelsGrp.appendChild(svgEl('text', { x: cx, y: yDimLine + 11, class: 'svg-dim', 'text-anchor': 'middle' }, 'Ø ' + g.d.toFixed(2) + ' m'));
+
+                // Stutzen zeichnen
+                const pos   = document.getElementById('nozzle_pos').value;
+                const nOut  = (parseFloat(document.getElementById('nozzle_outside').value) || 0) / 1000 * scale;
+                const nIns  = (parseFloat(document.getElementById('nozzle_insertion').value) || 0) / 1000 * scale;
+                const nW    = Math.max(8, r_px * 0.18);
+
+                if (pos === 'top') {
+                    const yFlange = yTopApex - nOut;
+                    nozzleGrp.appendChild(svgEl('rect', { x: (cx - nW / 2).toFixed(1), y: yFlange.toFixed(1), width: nW.toFixed(1), height: (nOut + nIns + 1).toFixed(1), fill: cNozzle, rx: '2' }));
+                    nozzleGrp.appendChild(svgEl('text', { x: (cx + nW / 2 + 3).toFixed(1), y: (yFlange + 9).toFixed(1), class: 'svg-label' }, 'Stutzen'));
+                } else if (pos === 'side') {
+                    const nh_mm = parseFloat(document.getElementById('nozzle_height').value) || 0;
+                    const ySide = yBotApex - nh_mm / 1000 * scale;
+                    nozzleGrp.appendChild(svgEl('rect', { x: (cx + r_px).toFixed(1), y: (ySide - nW / 2).toFixed(1), width: nOut.toFixed(1), height: nW.toFixed(1), fill: cNozzle, rx: '2' }));
+                    nozzleGrp.appendChild(svgEl('text', { x: (cx + r_px + nOut + 3).toFixed(1), y: (ySide + 4).toFixed(1), class: 'svg-label' }, 'Stutzen'));
+                }
+
+                // Messgerät zeichnen
+                const devKey = document.getElementById('device_sel').value;
+                const dev    = EH_DEVICES[devKey];
+                if (dev && pos === 'top') {
+                    const yRef = yTopApex - nOut;  // Sensor-Referenz
+                    const bdt  = (parseFloat(document.getElementById('bdt_mm').value) || 0) / 1000 * scale;
+
+                    if (dev.type === 'levelflex') {
+                        const probePx = (parseFloat(document.getElementById('probe_length').value) || 0) / 1000 * scale;
+                        const bdb     = (parseFloat(document.getElementById('bdb_mm').value) || 0) / 1000 * scale;
+                        // Sperrzone oben (rot)
+                        deviceGrp.appendChild(svgEl('rect', { x: (cx - 3).toFixed(1), y: yRef.toFixed(1), width: '6', height: bdt.toFixed(1), fill: '#ef444466', rx: '2' }));
+                        // Sonde
+                        deviceGrp.appendChild(svgEl('line', { x1: cx, y1: yRef.toFixed(1), x2: cx, y2: (yRef + probePx).toFixed(1), stroke: '#6b7280', 'stroke-width': '3' }));
+                        // Sperrzone unten (rot)
+                        deviceGrp.appendChild(svgEl('rect', { x: (cx - 3).toFixed(1), y: (yRef + probePx - bdb).toFixed(1), width: '6', height: bdb.toFixed(1), fill: '#ef444466', rx: '2' }));
+                        // Sensor-Kopf
+                        deviceGrp.appendChild(svgEl('rect', { x: (cx - 7).toFixed(1), y: (yRef - 8).toFixed(1), width: '14', height: '8', fill: '#374151', rx: '2' }));
+                    } else {
+                        // Radar / Ultraschall: Abstrahlkegel
+                        const beamHalf = ((parseFloat(document.getElementById('beam_angle').value) || 4) / 2) * Math.PI / 180;
+                        const beamH    = yBotApex - yRef;
+                        const beamR    = beamH * Math.tan(beamHalf);
+                        const beamPts  = [
+                            { x: cx, y: yRef },
+                            { x: cx + Math.min(beamR, r_px * 0.95), y: yBotApex },
+                            { x: cx - Math.min(beamR, r_px * 0.95), y: yBotApex }
+                        ];
+                        deviceGrp.appendChild(svgEl('polygon', { points: beamPts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' '), fill: cBeam }));
+                        // BDT-Sperrzone
+                        deviceGrp.appendChild(svgEl('rect', { x: (cx - 8).toFixed(1), y: yRef.toFixed(1), width: '16', height: bdt.toFixed(1), fill: '#ef444488' }));
+                        // Sensor-Kopf
+                        deviceGrp.appendChild(svgEl('rect', { x: (cx - 10).toFixed(1), y: (yRef - 10).toFixed(1), width: '20', height: '10', fill: '#374151', rx: '3' }));
+                        // Abstrahlwinkel-Label
+                        const beamDeg = parseFloat(document.getElementById('beam_angle').value) || 4;
+                        labelsGrp.appendChild(svgEl('text', { x: (cx + Math.min(beamR, r_px * 0.95) + 3).toFixed(1), y: (yBotApex - 10).toFixed(1), class: 'svg-label' }, beamDeg + '°'));
+                    }
+                }
+
+            } else if (activeShape === 'hCyl' && g.d > 0) {
+                // Liegender Zylinder: Seitenansicht mit Oval-Stirnflächen
+                const { hb } = headParams(g.d, g.headType);
+                const totalL  = g.lcyl + 2 * hb;
+                const scale   = Math.min(drawW / totalL, drawH / g.d);
+                const r_px    = g.d / 2 * scale;
+                const hb_px   = Math.max(1, hb * scale);
+                const xCylL   = cx - totalL * scale / 2 + hb_px;
+                const xCylR   = cx + totalL * scale / 2 - hb_px;
+                const xLeft   = xCylL - hb_px;
+                const xRight  = xCylR + hb_px;
+                const yMid    = SVG_H / 2;
+
+                // Umriss: Rechteck-Mitte + Ellipsen-Hälften an den Enden
+                let hcylD;
+                if (hb <= 0) {
+                    hcylD = `M ${xLeft},${yMid - r_px} L ${xRight},${yMid - r_px} L ${xRight},${yMid + r_px} L ${xLeft},${yMid + r_px} Z`;
+                } else {
+                    hcylD = `M ${xCylL},${yMid - r_px} L ${xCylR},${yMid - r_px}`
+                          + ` A ${hb_px},${r_px} 0 0 1 ${xCylR},${yMid + r_px}`
+                          + ` L ${xCylL},${yMid + r_px}`
+                          + ` A ${hb_px},${r_px} 0 0 1 ${xCylL},${yMid - r_px} Z`;
+                }
+                outline.setAttribute('d', hcylD);
+                clipPath.setAttribute('d', hcylD);
+
+                const yFill = yMid + r_px - g.level * scale;
+                fillRect.setAttribute('fill', cFill);
+                fillRect.setAttribute('x', (xLeft - 2).toFixed(1));
+                fillRect.setAttribute('y', yFill.toFixed(1));
+                fillRect.setAttribute('width', (xRight - xLeft + 4).toFixed(1));
+                fillRect.setAttribute('height', (g.level * scale + 5).toFixed(1));
+
+                // Füllstand-Linie und %-Label
+                if ((g.level || 0) > 0) {
+                    labelsGrp.appendChild(svgEl('line', { x1: xLeft.toFixed(1), y1: yFill.toFixed(1), x2: xRight.toFixed(1), y2: yFill.toFixed(1), stroke: cFillB, 'stroke-width': '2' }));
+                    const pct = res.total > 0 ? res.fill / res.total * 100 : 0;
+                    if (pct > 5) {
+                        labelsGrp.appendChild(svgEl('text', { x: cx, y: (yFill + (yMid + r_px - yFill) * 0.6 + 5).toFixed(1), class: 'svg-val', 'text-anchor': 'middle' }, pct.toFixed(1) + ' %'));
+                    }
+                }
+                labelsGrp.appendChild(svgEl('text', { x: cx, y: Math.min(SVG_H - 4, yMid + r_px + 18), class: 'svg-dim', 'text-anchor': 'middle' }, 'L = ' + totalL.toFixed(2) + ' m,  Ø ' + g.d.toFixed(2) + ' m'));
+
+            } else if (activeShape === 'sphere' && g.d > 0) {
+                const r = g.d / 2;
+                const scale = Math.min(drawW / g.d, drawH / g.d);
+                const r_px  = r * scale;
+                const cy    = SVG_H / 2;
+
+                const circD = `M ${(cx - r_px).toFixed(1)} ${cy} A ${r_px.toFixed(1)} ${r_px.toFixed(1)} 0 1 1 ${(cx + r_px).toFixed(1)} ${cy} A ${r_px.toFixed(1)} ${r_px.toFixed(1)} 0 1 1 ${(cx - r_px).toFixed(1)} ${cy} Z`;
+                outline.setAttribute('d', circD);
+                clipPath.setAttribute('d', circD);
+
+                const yFill = cy + r_px - g.level * scale;
+                fillRect.setAttribute('fill', cFill);
+                fillRect.setAttribute('x', (cx - r_px - 2).toFixed(1));
+                fillRect.setAttribute('y', yFill.toFixed(1));
+                fillRect.setAttribute('width', (2 * r_px + 4).toFixed(1));
+                fillRect.setAttribute('height', (g.level * scale + r_px + 5).toFixed(1));
+                labelsGrp.appendChild(svgEl('text', { x: cx, y: cy + r_px + 18, class: 'svg-dim', 'text-anchor': 'middle' }, 'Ø ' + g.d.toFixed(2) + ' m'));
+                const pctSph = res.total > 0 ? res.fill / res.total * 100 : 0;
+                if (pctSph > 5) {
+                    const yFillSph = cy + r_px - g.level * scale;
+                    labelsGrp.appendChild(svgEl('text', { x: cx, y: (yFillSph + (cy + r_px - yFillSph) * 0.55 + 5).toFixed(1), class: 'svg-val', 'text-anchor': 'middle' }, pctSph.toFixed(1) + ' %'));
+                }
+
+            } else if (activeShape === 'cone' && g.h > 0) {
+                const maxD  = Math.max(g.d1, g.d2);
+                const scale = Math.min(drawW / maxD, drawH / g.h);
+                const yTop  = MARGIN_Y + (drawH - g.h * scale) / 2;
+                const yBot  = yTop + g.h * scale;
+                const r1 = g.d1 / 2 * scale, r2 = g.d2 / 2 * scale;
+
+                const coneD = `M ${(cx - r2).toFixed(1)} ${yTop.toFixed(1)} L ${(cx + r2).toFixed(1)} ${yTop.toFixed(1)} L ${(cx + r1).toFixed(1)} ${yBot.toFixed(1)} L ${(cx - r1).toFixed(1)} ${yBot.toFixed(1)} Z`;
+                outline.setAttribute('d', coneD);
+                clipPath.setAttribute('d', coneD);
+
+                const yFill = yBot - g.level * scale;
+                fillRect.setAttribute('fill', cFill);
+                fillRect.setAttribute('x', '0');
+                fillRect.setAttribute('y', yFill.toFixed(1));
+                fillRect.setAttribute('width', '300');
+                fillRect.setAttribute('height', (g.level * scale + 5).toFixed(1));
+                labelsGrp.appendChild(svgEl('text', { x: cx, y: Math.min(SVG_H - 4, yBot + 16), class: 'svg-dim', 'text-anchor': 'middle' }, 'H = ' + g.h.toFixed(2) + ' m'));
+                const pctCone = res.total > 0 ? res.fill / res.total * 100 : 0;
+                if (pctCone > 3) {
+                    labelsGrp.appendChild(svgEl('text', { x: cx, y: (yBot - g.level * scale / 2).toFixed(1), class: 'svg-val', 'text-anchor': 'middle' }, pctCone.toFixed(1) + ' %'));
+                }
+            }
         }
 
         // ============ MAIN CALC ============
+
         function calc() {
-            let result;
-            switch (activeShape) {
-                case 'vCyl': result = calcVCyl(); break;
-                case 'hCyl': result = calcHCyl(); break;
-                case 'sphere': result = calcSphere(); break;
-                case 'cone': result = calcCone(); break;
-                default: return;
+            const g = getGeom();
+            const res = getVolumeAtLevel(g.level);
+            const density = parseFloat(document.getElementById('cfg_density').value) || 1000;
+            const pct = res.total > 0 ? (res.fill / res.total) * 100 : 0;
+            const massKg = res.fill * density;
+
+            document.getElementById('res_vol_m3').textContent = res.fill.toFixed(3);
+            document.getElementById('res_vol_l').textContent = (res.fill * 1000).toFixed(1);
+            document.getElementById('res_total_m3').textContent = res.total.toFixed(3);
+            document.getElementById('res_pct').textContent = pct.toFixed(1) + '%';
+            document.getElementById('res_mass_kg').textContent = massKg.toFixed(1);
+            document.getElementById('res_mass_t').textContent = (massKg / 1000).toFixed(3);
+
+            const cp = Math.max(0, Math.min(100, pct));
+            document.getElementById('fillBarFill').style.width = cp + '%';
+            document.getElementById('fillPctLabel').textContent = cp.toFixed(1) + '%';
+
+            // Gesamthöhe anzeigen (stehender Zylinder)
+            const thEl = document.getElementById('vCyl_totalH');
+            if (thEl) {
+                const totalH = getTotalHeight();
+                thEl.textContent = totalH > 0 ? totalH.toFixed(3) + ' m' : '—';
             }
 
-            const pct = result.totalVol > 0 ? (result.fillVol / result.totalVol) * 100 : 0;
+            // Sensor-Referenzhöhe anzeigen
+            const hSensor = getSensorHeight();
+            const hSensorEl = document.getElementById('h_sensor_display');
+            if (hSensorEl) hSensorEl.textContent = hSensor.toFixed(0) + ' mm';
 
-            document.getElementById('res_vol_m3').textContent = result.fillVol.toFixed(3);
-            document.getElementById('res_vol_l').textContent = (result.fillVol * 1000).toFixed(1);
-            document.getElementById('res_total_m3').textContent = result.totalVol.toFixed(3);
-            document.getElementById('res_pct').textContent = pct.toFixed(1) + '%';
-
-            // Fill bar
-            const clampPct = Math.max(0, Math.min(100, pct));
-            document.getElementById('fillBarFill').style.width = clampPct + '%';
-            document.getElementById('fillPctLabel').textContent = clampPct.toFixed(1) + '%';
-
-            // Reverse calc
-            calcReverse(result);
+            updateCalibBox();
+            calcReverse(res);
+            updateLinTable();
+            drawTank();
         }
 
         // ============ REVERSE: Volume → Level ============
+
         function calcReverse(fwdResult) {
             let vol = parseFloat(document.getElementById('rev_vol').value) || 0;
             const unit = document.getElementById('rev_unit').value;
-            if (unit === 'l') vol = vol / 1000; // to m³
+            if (unit === 'l') vol /= 1000;
 
-            if (vol <= 0 || fwdResult.totalVol <= 0) {
-                document.getElementById('rev_level').textContent = '';
-                return;
-            }
+            const el = document.getElementById('rev_level');
+            if (vol <= 0 || fwdResult.total <= 0) { el.textContent = ''; return; }
+            if (vol > fwdResult.total) { el.textContent = 'Volumen überschreitet Tankkapazität!'; return; }
 
-            // Bisection search for level
-            let lo = 0, hi = fwdResult.maxLevel;
+            let lo = 0, hi = fwdResult.maxH;
             for (let i = 0; i < 100; i++) {
                 const mid = (lo + hi) / 2;
-                setTempLevel(mid);
-                let r;
-                switch (activeShape) {
-                    case 'vCyl': r = calcVCyl(); break;
-                    case 'hCyl': r = calcHCyl(); break;
-                    case 'sphere': r = calcSphere(); break;
-                    case 'cone': r = calcCone(); break;
-                }
-                if (Math.abs(r.fillVol - vol) < 0.00001) { lo = hi = mid; break; }
-                if (r.fillVol < vol) lo = mid; else hi = mid;
+                const r = getVolumeAtLevel(mid);
+                if (Math.abs(r.fill - vol) < 1e-7) { lo = hi = mid; break; }
+                if (r.fill < vol) lo = mid; else hi = mid;
             }
-            restoreLevel();
             const level = (lo + hi) / 2;
+            el.textContent = level.toFixed(3) + ' m  (' + (level * 1000).toFixed(0) + ' mm)';
+        }
 
-            if (vol > fwdResult.totalVol) {
-                document.getElementById('rev_level').textContent = 'Volumen überschreitet Tankkapazität!';
-            } else {
-                document.getElementById('rev_level').textContent = level.toFixed(3) + ' m (' + (level * 1000).toFixed(0) + ' mm)';
+        // ============ LINEARIZATION TABLE ============
+
+        function updateLinTable() {
+            const N = parseInt(document.getElementById('lin_n').value) || 10;
+            const lrv = parseFloat(document.getElementById('cfg_lrv').value) || 0;
+            const urv = parseFloat(document.getElementById('cfg_urv').value) || 0;
+            const density = parseFloat(document.getElementById('cfg_density').value) || 1000;
+
+            const res0 = getVolumeAtLevel(0);
+            const maxH_mm = res0.maxH * 1000;
+
+            const tbody = document.getElementById('lin_body');
+            tbody.innerHTML = '';
+
+            for (let i = 0; i < N; i++) {
+                const level_mm = lrv + (N === 1 ? 0 : (i / (N - 1)) * (urv - lrv));
+                const level_m = level_mm / 1000;
+                const r = getVolumeAtLevel(level_m);
+                const pct = r.total > 0 ? (r.fill / r.total) * 100 : 0;
+                const massKg = r.fill * density;
+
+                const tr = document.createElement('tr');
+                if (i === 0 || i === N - 1) tr.classList.add('lin-row-edge');
+
+                tr.innerHTML =
+                    '<td>' + (i + 1) + '</td>' +
+                    '<td>' + level_mm.toFixed(0) + '</td>' +
+                    '<td>' + pct.toFixed(2) + '</td>' +
+                    '<td>' + r.fill.toFixed(4) + '</td>' +
+                    '<td>' + (r.fill * 1000).toFixed(2) + '</td>' +
+                    '<td>' + massKg.toFixed(1) + '</td>' +
+                    '<td>' + (massKg / 1000).toFixed(4) + '</td>';
+
+                tbody.appendChild(tr);
             }
         }
 
-        // Temp level manipulation for reverse calc
-        let savedLevel = null;
-        function setTempLevel(val) {
-            const fields = { vCyl: 'vCyl_level', hCyl: 'hCyl_level', sphere: 'sph_level', cone: 'cone_level' };
-            const f = document.getElementById(fields[activeShape]);
-            if (savedLevel === null) savedLevel = f.value;
-            f.value = val;
-        }
-        function restoreLevel() {
-            if (savedLevel !== null) {
-                const fields = { vCyl: 'vCyl_level', hCyl: 'hCyl_level', sphere: 'sph_level', cone: 'cone_level' };
-                document.getElementById(fields[activeShape]).value = savedLevel;
-                savedLevel = null;
+        // ============ CSV EXPORT ============
+
+        function exportCSV() {
+            const N = parseInt(document.getElementById('lin_n').value) || 10;
+            const lrv = parseFloat(document.getElementById('cfg_lrv').value) || 0;
+            const urv = parseFloat(document.getElementById('cfg_urv').value) || 0;
+            const density = parseFloat(document.getElementById('cfg_density').value) || 1000;
+
+            const header = 'Nr.;Füllstand (mm);Füllstand (%);Volumen (m³);Volumen (l);Masse (kg);Masse (t)\r\n';
+            let rows = '';
+
+            for (let i = 0; i < N; i++) {
+                const level_mm = lrv + (N === 1 ? 0 : (i / (N - 1)) * (urv - lrv));
+                const level_m = level_mm / 1000;
+                const r = getVolumeAtLevel(level_m);
+                const pct = r.total > 0 ? (r.fill / r.total) * 100 : 0;
+                const massKg = r.fill * density;
+
+                rows +=
+                    (i + 1) + ';' +
+                    level_mm.toFixed(0) + ';' +
+                    pct.toFixed(2).replace('.', ',') + ';' +
+                    r.fill.toFixed(4).replace('.', ',') + ';' +
+                    (r.fill * 1000).toFixed(2).replace('.', ',') + ';' +
+                    massKg.toFixed(1).replace('.', ',') + ';' +
+                    (massKg / 1000).toFixed(4).replace('.', ',') + '\r\n';
             }
+
+            const bom = '﻿';
+            const blob = new Blob([bom + header + rows], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Linearisierungstabelle.csv';
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
         // ============ EVENTS ============
-        document.querySelectorAll('input[type="number"]').forEach(el => {
-            el.addEventListener('input', calc);
-        });
-        document.getElementById('rev_unit').addEventListener('change', calc);
 
-        // Init
+        document.querySelectorAll('input[type="number"]').forEach(el => el.addEventListener('input', calc));
+        document.querySelectorAll('select').forEach(el => el.addEventListener('change', calc));
+
+        // SVG bei Theme-Wechsel neu zeichnen
+        onThemeChanged(drawTank);
+
         calc();
     </script>
 
