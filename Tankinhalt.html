@@ -585,12 +585,11 @@
 
         function headParamsDIN_mm(Da_mm, S_mm, headType) {
             const Di_mm = Da_mm - 2 * S_mm;
-            if (headType === 'flat')       return { h2: 0, h1def: 0, Di: Di_mm };
-            if (headType === 'hemisphere') return { h2: Di_mm / 2, h1def: S_mm, Di: Di_mm };
-            let h2, h1def;
-            if (headType === 'kloepperboden') { h2 = 0.1935 * Da_mm - 0.455 * S_mm; h1def = 3.5 * S_mm; }
-            else                              { h2 = 0.255  * Da_mm - 0.635 * S_mm; h1def = 3.0 * S_mm; }
-            return { h2: Math.max(0, h2), h1def, Di: Di_mm };
+            if (headType === 'flat')          return { h2: 0, h1def: 0, Di: Di_mm };
+            if (headType === 'hemisphere')    return { h2: Di_mm / 2, h1def: S_mm, Di: Di_mm };
+            if (headType === 'kloepperboden') return { h2: Math.max(0, 0.1935*Da_mm - 0.455*S_mm), h1def: 3.5*S_mm, Di: Di_mm };
+            if (headType === 'korbbogen')     return { h2: Math.max(0, 0.255 *Da_mm - 0.635*S_mm), h1def: 3.0*S_mm, Di: Di_mm };
+            return { h2: 0, h1def: S_mm, Di: Di_mm }; // freierRadius, konisch, schraeg
         }
 
         // Sensor-Referenzhöhe berechnen (mm über Tankboden-Innenfläche)
@@ -1396,6 +1395,33 @@
                 if (pctCone > 3) {
                     labelsGrp.appendChild(svgEl('text', { x: cx, y: (yBot - g.level * scale / 2).toFixed(1), class: 'svg-val', 'text-anchor': 'middle' }, pctCone.toFixed(1) + ' %'));
                 }
+
+            } else if (activeShape === 'rect' && g.B > 0) {
+                const Bi = Math.max(0, g.B - 2*g.S);
+                const Ti = Math.max(0, g.T - 2*g.S);
+                const ratio = Ti > 0 ? Bi / Ti : 1;   // B/T ratio for perspective hint
+                const scale = Math.min(drawW / (g.B/1000), drawH / (totalH || 1));
+                const w_px  = (g.B/1000) * scale;
+                const xL = cx - w_px/2, xR = cx + w_px/2;
+                const yTop = MARGIN_Y + (drawH - totalH * scale) / 2;
+                const yBot = yTop + totalH * scale;
+                const rectD = `M ${xL.toFixed(1)} ${yTop.toFixed(1)} L ${xR.toFixed(1)} ${yTop.toFixed(1)} L ${xR.toFixed(1)} ${yBot.toFixed(1)} L ${xL.toFixed(1)} ${yBot.toFixed(1)} Z`;
+                outline.setAttribute('d', rectD);
+                clipPath.setAttribute('d', rectD);
+                const yFill = yBot - g.level * scale;
+                fillRect.setAttribute('fill', cFill);
+                fillRect.setAttribute('x', xL.toFixed(1));
+                fillRect.setAttribute('y', yFill.toFixed(1));
+                fillRect.setAttribute('width', w_px.toFixed(1));
+                fillRect.setAttribute('height', (yBot - yFill + 5).toFixed(1));
+                if (g.level > 0) {
+                    labelsGrp.appendChild(svgEl('line', { x1: xL.toFixed(1), y1: yFill.toFixed(1), x2: xR.toFixed(1), y2: yFill.toFixed(1), stroke: cFillB, 'stroke-width': '2' }));
+                }
+                const pctRect = res.total > 0 ? res.fill / res.total * 100 : 0;
+                if (pctRect > 3) {
+                    labelsGrp.appendChild(svgEl('text', { x: cx, y: (yFill + (yBot-yFill)*0.55).toFixed(1), class: 'svg-val', 'text-anchor': 'middle' }, pctRect.toFixed(1) + ' %'));
+                }
+                labelsGrp.appendChild(svgEl('text', { x: cx, y: Math.min(SVG_H-4, yBot+16), class: 'svg-dim', 'text-anchor': 'middle' }, g.B.toFixed(0)+'×'+g.T.toFixed(0)+' mm'));
             }
         }
 
