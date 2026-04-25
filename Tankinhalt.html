@@ -132,6 +132,7 @@
                             <option value="flat">Flachboden</option>
                         </select>
                     </td></tr>
+                    <tr><td colspan="2">Bördel (gerade Länge je Boden)</td><td colspan="4"><input class="input-field" type="number" id="vCyl_bordel" value="40" min="0" step="1"> mm <span style="font-size:11px;color:var(--text-tertiary)">entfällt bei Flachboden</span></td></tr>
                     <tr><td colspan="2">Berechnete Gesamthöhe</td><td colspan="4" class="result-field" style="padding:6px 8px;"><span id="vCyl_totalH">—</span></td></tr>
                     <tr><td colspan="2">Füllstand (ab Bodenspiegel)</td><td colspan="4"><input class="input-field" type="number" id="vCyl_level" value="3" min="0" step="0.001"> m</td></tr>
                 </table>
@@ -194,8 +195,12 @@
                     <td colspan="4"><input class="input-field" type="number" id="nozzle_height" value="0" min="0" step="1"> mm</td>
                 </tr>
                 <tr>
-                    <td colspan="2">Außenlänge (über Tank)</td>
+                    <td colspan="2">Stutzen-Länge (über Tank)</td>
                     <td colspan="4"><input class="input-field" type="number" id="nozzle_outside" value="150" min="0" step="1"> mm</td>
+                </tr>
+                <tr>
+                    <td colspan="2">Flanschdicke (oben)</td>
+                    <td colspan="4"><input class="input-field" type="number" id="nozzle_flansch" value="20" min="0" step="1"> mm <span style="font-size:11px;color:var(--text-tertiary)">Flansch am Sensor-Anschluss</span></td>
                 </tr>
                 <tr>
                     <td colspan="2">Tauchtiefe (in Tank)</td>
@@ -461,11 +466,13 @@
         function getSensorHeight() {
             const pos     = document.getElementById('nozzle_pos').value;
             const outside = parseFloat(document.getElementById('nozzle_outside').value) || 0;
+            const flansch = parseFloat(document.getElementById('nozzle_flansch').value) || 0;
             const insert  = parseFloat(document.getElementById('nozzle_insertion').value) || 0;
             const totalH_mm = getTotalHeight() * 1000;
-            if (pos === 'top')    return totalH_mm + outside - insert;
+            // Flanschdicke liegt zwischen Stutzenflansch und Tankwand → addiert zur Außenhöhe
+            if (pos === 'top')    return totalH_mm + outside + flansch - insert;
             if (pos === 'side')   return parseFloat(document.getElementById('nozzle_height').value) || 0;
-            if (pos === 'bottom') return insert - outside; // negativ = unter Tankboden
+            if (pos === 'bottom') return insert - outside - flansch;
             return 0;
         }
 
@@ -554,22 +561,65 @@
 
         // ============ HANDY NEIGUNGSSENSOR ============
         function readTiltFromPhone() {
-            if (!window.DeviceOrientationEvent) {
-                alert('Neigungssensor nicht verfügbar auf diesem Gerät.');
+            const btn = document.querySelector('button[onclick="readTiltFromPhone()"]');
+            if (!window.DeviceMotionEvent) {
+                alert('Beschleunigungssensor nicht verfügbar auf diesem Gerät.');
                 return;
             }
-            const handler = (e) => {
-                const tilt = Math.sqrt((e.beta || 0) ** 2 + (e.gamma || 0) ** 2);
-                document.getElementById('tilt_angle').value = Math.min(45, tilt).toFixed(1);
-                window.removeEventListener('deviceorientation', handler);
+
+            const SAMPLES = 20;
+            const TIMEOUT_MS = 6000;
+            let samples = [];
+            let handler = null;
+            let timer = null;
+
+            function finish() {
+                window.removeEventListener('devicemotion', handler);
+                clearTimeout(timer);
+                if (btn) btn.textContent = '📱 Handy-Sensor';
+
+                if (samples.length === 0) {
+                    alert('Keine Sensordaten empfangen. Bitte Browserberechtigungen prüfen.');
+                    return;
+                }
+
+                // Mittelwert der Z-Komponente (senkrecht zur Bodenfläche des Geräts)
+                const avgAz = samples.reduce((s, v) => s + v, 0) / samples.length;
+                const g = 9.81;
+                // |az| ≈ g·cos(θ) wenn das Gerät flach liegt — θ ist Neigung gegen Waagrechte
+                // Für eine senkrechte Wand: Gerät aufrecht → az≈0 → θ≈90°
+                // Neigung des Behälters gegen die Senkrechte = 90° - θ_gerät
+                const clampedRatio = Math.min(1, Math.abs(avgAz) / g);
+                const tiltDeg = (Math.PI / 2 - Math.acos(clampedRatio)) * 180 / Math.PI;
+                document.getElementById('tilt_angle').value = Math.max(0, tiltDeg).toFixed(1);
                 calc();
-            };
-            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                DeviceOrientationEvent.requestPermission()
-                    .then(r => { if (r === 'granted') window.addEventListener('deviceorientation', handler); })
-                    .catch(() => alert('Berechtigung verweigert.'));
+            }
+
+            function startListening() {
+                if (btn) btn.textContent = '📡 Messen...';
+                samples = [];
+                handler = (e) => {
+                    const acc = e.accelerationIncludingGravity;
+                    if (!acc) return;
+                    // Z-Achse = senkrecht zur Displayfläche des Geräts
+                    const az = acc.z !== null ? acc.z : 0;
+                    samples.push(az);
+                    if (samples.length >= SAMPLES) finish();
+                };
+                window.addEventListener('devicemotion', handler);
+                timer = setTimeout(() => finish(), TIMEOUT_MS);
+            }
+
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                // iOS 13+ braucht explizite Nutzergenehmigung
+                DeviceMotionEvent.requestPermission()
+                    .then(r => {
+                        if (r === 'granted') startListening();
+                        else alert('Sensorberechtigungen wurden verweigert.');
+                    })
+                    .catch(() => alert('Berechtigung nicht erteilt.'));
             } else {
-                window.addEventListener('deviceorientation', handler);
+                startListening();
             }
         }
 
@@ -640,18 +690,33 @@
 
         // ============ VOLUMEN-FUNKTIONEN ============
 
-        function volVCyl(D, Lcyl, botHead, topHead, levelM) {
-            const r = D / 2;
+        // bordel_m = gerade Länge (Bördel) je Boden in Metern (0 bei Flachboden)
+        function volVCyl(D, Lcyl, botHead, topHead, bordel_m, levelM) {
+            const r   = D / 2;
+            const A   = Math.PI * r * r;
+            // Bördel entfällt bei Flachboden
+            const bBot = botHead === 'flat' ? 0 : bordel_m;
+            const bTop = topHead === 'flat' ? 0 : bordel_m;
             const hbot = headParams(D, botHead).hb;
             const htop = headParams(D, topHead).hb;
-            const maxH = hbot + Lcyl + htop;
-            const total = headTotalVol(D, botHead) + Math.PI * r * r * Lcyl + headTotalVol(D, topHead);
+            // Zonen von unten: Bördel-unten | Kopf-unten | Zylinder | Kopf-oben | Bördel-oben
+            const zones = [
+                { h: bBot,  vol: h => A * h },
+                { h: hbot,  vol: h => headPartialVol(h, D, botHead) },
+                { h: Lcyl,  vol: h => A * h },
+                { h: htop,  vol: h => headPartialVol(h, D, topHead) },
+                { h: bTop,  vol: h => A * h },
+            ];
+            const maxH = zones.reduce((s, z) => s + z.h, 0);
+            const total = A * bBot + headTotalVol(D, botHead) + A * Lcyl + headTotalVol(D, topHead) + A * bTop;
             const lv = Math.max(0, Math.min(levelM, maxH));
-            let fill;
-            if      (lv <= hbot)              fill = headPartialVol(lv, D, botHead);
-            else if (lv <= hbot + Lcyl)       fill = headTotalVol(D, botHead) + Math.PI * r * r * (lv - hbot);
-            else                              fill = headTotalVol(D, botHead) + Math.PI * r * r * Lcyl
-                                                   + headPartialVol(lv - hbot - Lcyl, D, topHead);
+            let fill = 0, cursor = 0;
+            for (const z of zones) {
+                if (cursor >= lv) break;
+                const take = Math.min(lv - cursor, z.h);
+                fill += z.vol(take);
+                cursor += z.h;
+            }
             return { fill, total, maxH };
         }
 
@@ -707,7 +772,7 @@
         function getGeom() {
             function n(id) { return parseFloat(document.getElementById(id).value) || 0; }
             switch (activeShape) {
-                case 'vCyl':   return { d: n('vCyl_d'), lcyl: n('vCyl_lcyl'), botHead: sel('vCyl_botHead'), topHead: sel('vCyl_topHead'), level: n('vCyl_level') };
+                case 'vCyl':   return { d: n('vCyl_d'), lcyl: n('vCyl_lcyl'), bordel: n('vCyl_bordel') / 1000, botHead: sel('vCyl_botHead'), topHead: sel('vCyl_topHead'), level: n('vCyl_level') };
                 case 'hCyl':   return { d: n('hCyl_d'), lcyl: n('hCyl_lcyl'), headType: sel('hCyl_headType'), level: n('hCyl_level') };
                 case 'sphere': return { d: n('sph_d'), level: n('sph_level') };
                 case 'cone':   return { d1: n('cone_d1'), d2: n('cone_d2'), h: n('cone_h'), level: n('cone_level') };
@@ -717,7 +782,7 @@
         function getVolumeAtLevel(levelM) {
             const g = getGeom();
             switch (activeShape) {
-                case 'vCyl':   return volVCyl(g.d, g.lcyl, g.botHead, g.topHead, levelM);
+                case 'vCyl':   return volVCyl(g.d, g.lcyl, g.botHead, g.topHead, g.bordel, levelM);
                 case 'hCyl':   return volHCyl(g.d, g.lcyl, g.headType, levelM);
                 case 'sphere': return volSphere(g.d, levelM);
                 case 'cone':   return volCone(g.d1, g.d2, g.h, levelM);
@@ -728,7 +793,11 @@
         function getTotalHeight() {
             const g = getGeom();
             switch (activeShape) {
-                case 'vCyl':   return headParams(g.d, g.botHead).hb + g.lcyl + headParams(g.d, g.topHead).hb;
+                case 'vCyl': {
+                    const bBot = g.botHead === 'flat' ? 0 : g.bordel;
+                    const bTop = g.topHead === 'flat' ? 0 : g.bordel;
+                    return bBot + headParams(g.d, g.botHead).hb + g.lcyl + headParams(g.d, g.topHead).hb + bTop;
+                }
                 case 'hCyl':   return g.d;
                 case 'sphere': return g.d;
                 case 'cone':   return g.h;
@@ -841,8 +910,11 @@
             if (activeShape === 'vCyl' && g.d > 0) {
                 const scale = Math.min(drawW / g.d, drawH / (totalH || 1));
                 const yTop  = MARGIN_Y + (drawH - totalH * scale) / 2;
+                // Bördel visuell als Verlängerung des Zylinders — entfällt bei Flachboden
+                const bBotVis = g.botHead === 'flat' ? 0 : g.bordel;
+                const bTopVis = g.topHead === 'flat' ? 0 : g.bordel;
                 const { d, yTopApex, yBotApex, yTopShoulder, yBotShoulder, r_px } = buildVerticalPath(
-                    g.d, g.lcyl, g.botHead, g.topHead, scale, cx, yTop);
+                    g.d, g.lcyl + bBotVis + bTopVis, g.botHead, g.topHead, scale, cx, yTop);
 
                 outline.setAttribute('d', d);
                 clipPath.setAttribute('d', d);
