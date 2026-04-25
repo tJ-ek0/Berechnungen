@@ -108,33 +108,59 @@
                 <button class="shape-btn" onclick="setShape('hCyl', this)"><span class="shape-icon">🛢️</span> Liegender Zylinder</button>
                 <button class="shape-btn" onclick="setShape('sphere', this)"><span class="shape-icon">🔵</span> Kugeltank</button>
                 <button class="shape-btn" onclick="setShape('cone', this)"><span class="shape-icon">🔻</span> Konus (stehend)</button>
+                <button class="shape-btn" onclick="setShape('rect', this)"><span class="shape-icon">📦</span> Rechteckiger Tank</button>
             </div>
 
             <!-- Stehender Zylinder -->
             <div class="param-section active" id="sec_vCyl">
                 <table>
                     <tr><th colspan="6">Stehender Zylinder</th></tr>
-                    <tr><td colspan="2">Innendurchmesser</td><td colspan="4"><input class="input-field" type="number" id="vCyl_d" value="2" min="0" step="0.01"> m</td></tr>
-                    <tr><td colspan="2">Zylinderlänge (Naht–Naht)</td><td colspan="4"><input class="input-field" type="number" id="vCyl_lcyl" value="4" min="0" step="0.01"> m <span style="font-size:11px;color:var(--text-tertiary)">nur gerader Teil</span></td></tr>
+                    <tr><td colspan="2">Außendurchmesser Da</td><td colspan="4"><input class="input-field" type="number" id="vCyl_Da" value="2000" min="0" step="1"> mm</td></tr>
+                    <tr><td colspan="2">Wandstärke S</td><td colspan="4"><input class="input-field" type="number" id="vCyl_S" value="10" min="0" step="0.5"> mm</td></tr>
+                    <tr><td colspan="2">Innendurchmesser Di</td><td colspan="4" class="result-field" style="padding:6px 8px;"><span id="vCyl_Di_display">—</span></td></tr>
+                    <tr><td colspan="2">Zylinderlänge L (Naht–Naht)</td><td colspan="4"><input class="input-field" type="number" id="vCyl_L" value="4000" min="0" step="10"> mm <span style="font-size:11px;color:var(--text-tertiary)">gerader Teil</span></td></tr>
                     <tr><td colspan="2">Bodenart (unten)</td><td colspan="4">
-                        <select class="input-field" id="vCyl_botHead" onchange="calc()">
+                        <select class="input-field" id="vCyl_botHead" onchange="onVCylHeadChange(); updateTiltVisibility(); calc()">
                             <option value="flat">Flachboden</option>
                             <option value="kloepperboden" selected>Klöpperboden DIN 28011</option>
                             <option value="korbbogen">Korbbogenboden DIN 28013</option>
                             <option value="hemisphere">Halbkugelboden</option>
+                            <option value="freierRadius">Freier Radius (Kugelkappe)</option>
+                            <option value="konischBoden">Konischer Boden</option>
+                            <option value="schraegBoden">Schräger Boden</option>
                         </select>
                     </td></tr>
+                    <tr id="vCyl_R_bot_row" class="hidden-row"><td colspan="2" style="padding-left:20px">Radius R (Kugelkappe)</td><td colspan="4"><input class="input-field" type="number" id="vCyl_R_bot" value="1500" min="0" step="10"> mm</td></tr>
+                    <tr id="vCyl_da_bot_row" class="hidden-row"><td colspan="2" style="padding-left:20px">Außen-∅ Konus-Spitze da</td><td colspan="4"><input class="input-field" type="number" id="vCyl_da_bot" value="200" min="0" step="10"> mm</td></tr>
+                    <tr id="vCyl_H_bot_row" class="hidden-row"><td colspan="2" style="padding-left:20px">Konus- / Schräghöhe H</td><td colspan="4"><input class="input-field" type="number" id="vCyl_H_bot" value="500" min="0" step="10"> mm</td></tr>
+                    <tr id="vCyl_h1_bot_row"><td colspan="2">h1 Bördel (Boden)</td><td colspan="4"><input class="input-field" type="number" id="vCyl_h1_bot" value="35" min="0" step="1"> mm <button class="action-btn" onclick="setH1Default('bot')" style="margin-left:4px;padding:3px 8px;font-size:11px">↺ Standard</button></td></tr>
+                    <tr id="vCyl_h2_bot_row"><td colspan="2" style="color:var(--text-tertiary)">h2 (Bodentiefe) · h3=h1+h2</td><td colspan="4" class="result-field" style="padding:6px 8px;"><span id="vCyl_h2h3_bot">—</span></td></tr>
                     <tr><td colspan="2">Deckelart (oben)</td><td colspan="4">
-                        <select class="input-field" id="vCyl_topHead" onchange="calc()">
+                        <select class="input-field" id="vCyl_topHead" onchange="onVCylHeadChange(); calc()">
                             <option value="kloepperboden" selected>Klöpperboden DIN 28011</option>
                             <option value="korbbogen">Korbbogenboden DIN 28013</option>
                             <option value="hemisphere">Halbkugelboden</option>
                             <option value="flat">Flachboden</option>
+                            <option value="freierRadius">Freier Radius (Kugelkappe)</option>
+                            <option value="konischDeckel">Konischer Deckel</option>
                         </select>
                     </td></tr>
-                    <tr><td colspan="2">Bördel (gerade Länge je Boden)</td><td colspan="4"><input class="input-field" type="number" id="vCyl_bordel" value="40" min="0" step="1"> mm <span style="font-size:11px;color:var(--text-tertiary)">entfällt bei Flachboden</span></td></tr>
+                    <tr id="vCyl_R_top_row" class="hidden-row"><td colspan="2" style="padding-left:20px">Radius R (Kugelkappe)</td><td colspan="4"><input class="input-field" type="number" id="vCyl_R_top" value="1500" min="0" step="10"> mm</td></tr>
+                    <tr id="vCyl_da_top_row" class="hidden-row"><td colspan="2" style="padding-left:20px">Außen-∅ Konus-Spitze da</td><td colspan="4"><input class="input-field" type="number" id="vCyl_da_top" value="200" min="0" step="10"> mm</td></tr>
+                    <tr id="vCyl_H_top_row" class="hidden-row"><td colspan="2" style="padding-left:20px">Konushöhe H</td><td colspan="4"><input class="input-field" type="number" id="vCyl_H_top" value="500" min="0" step="10"> mm</td></tr>
+                    <tr id="vCyl_h1_top_row"><td colspan="2">h1 Bördel (Deckel)</td><td colspan="4"><input class="input-field" type="number" id="vCyl_h1_top" value="35" min="0" step="1"> mm <button class="action-btn" onclick="setH1Default('top')" style="margin-left:4px;padding:3px 8px;font-size:11px">↺ Standard</button></td></tr>
+                    <tr id="vCyl_h2_top_row"><td colspan="2" style="color:var(--text-tertiary)">h2 (Decktiefe) · h3=h1+h2</td><td colspan="4" class="result-field" style="padding:6px 8px;"><span id="vCyl_h2h3_top">—</span></td></tr>
+                    <tr><td colspan="2">Kammerung</td><td colspan="4">
+                        <select class="input-field" id="vCyl_kammerung" onchange="calc()">
+                            <option value="1" selected>1 Kammer</option>
+                            <option value="2">2 Kammern</option>
+                            <option value="3">3 Kammern</option>
+                            <option value="4">4 Kammern</option>
+                        </select>
+                    </td></tr>
+                    <tr id="vCyl_warn_row" class="hidden-row"><td colspan="6" id="vCyl_warnings" style="color:#b45309;font-size:12px;padding:4px 8px;background:#fef3c7;border-radius:4px;"></td></tr>
                     <tr><td colspan="2">Berechnete Gesamthöhe</td><td colspan="4" class="result-field" style="padding:6px 8px;"><span id="vCyl_totalH">—</span></td></tr>
-                    <tr><td colspan="2">Füllstand (ab Bodenspiegel)</td><td colspan="4"><input class="input-field" type="number" id="vCyl_level" value="3" min="0" step="0.001"> m</td></tr>
+                    <tr><td colspan="2">Füllstand (ab Bodenspiegel)</td><td colspan="4"><input class="input-field" type="number" id="vCyl_level" value="3000" min="0" step="1"> mm</td></tr>
                 </table>
             </div>
 
@@ -176,6 +202,34 @@
                 </table>
             </div>
 
+            <!-- Rechteckiger Tank -->
+            <div class="param-section" id="sec_rect">
+                <table>
+                    <tr><th colspan="6">Rechteckiger Tank</th></tr>
+                    <tr><td colspan="2">Breite B (außen)</td><td colspan="4"><input class="input-field" type="number" id="rect_B" value="2000" min="0" step="10"> mm</td></tr>
+                    <tr><td colspan="2">Tiefe T (außen)</td><td colspan="4"><input class="input-field" type="number" id="rect_T" value="1500" min="0" step="10"> mm</td></tr>
+                    <tr><td colspan="2">Höhe L (außen, Mantel)</td><td colspan="4"><input class="input-field" type="number" id="rect_L" value="3000" min="0" step="10"> mm</td></tr>
+                    <tr><td colspan="2">Wandstärke S</td><td colspan="4"><input class="input-field" type="number" id="rect_S" value="5" min="0" step="0.5"> mm</td></tr>
+                    <tr><td colspan="2">Deckelform (oben)</td><td colspan="4">
+                        <select class="input-field" id="rect_topType" onchange="onRectHeadChange(); calc()">
+                            <option value="flat" selected>Flachdeckel</option>
+                            <option value="pyramid">Pyramidendeckel</option>
+                        </select>
+                    </td></tr>
+                    <tr id="rect_Htop_row" class="hidden-row"><td colspan="2" style="padding-left:20px">Pyramidenhöhe H</td><td colspan="4"><input class="input-field" type="number" id="rect_Htop" value="300" min="0" step="10"> mm</td></tr>
+                    <tr><td colspan="2">Bodenform (unten)</td><td colspan="4">
+                        <select class="input-field" id="rect_botType" onchange="onRectHeadChange(); calc()">
+                            <option value="flat" selected>Flachboden</option>
+                            <option value="pyramid">Pyramidenboden</option>
+                            <option value="sloped">Schräger Boden</option>
+                        </select>
+                    </td></tr>
+                    <tr id="rect_Hbot_row" class="hidden-row"><td colspan="2" style="padding-left:20px">Höhe (Pyramide / Schräge)</td><td colspan="4"><input class="input-field" type="number" id="rect_Hbot" value="300" min="0" step="10"> mm</td></tr>
+                    <tr><td colspan="2">Berechnete Gesamthöhe</td><td colspan="4" class="result-field" style="padding:6px 8px;"><span id="rect_totalH">—</span></td></tr>
+                    <tr><td colspan="2">Füllstand (ab Innenboden)</td><td colspan="4"><input class="input-field" type="number" id="rect_level" value="2000" min="0" step="1"> mm</td></tr>
+                </table>
+            </div>
+
             <!-- Stutzen-Konfiguration -->
             <hr class="section-divider">
             <p class="section-title">Stutzen &amp; Einbau</p>
@@ -207,6 +261,18 @@
                     <td colspan="4"><input class="input-field" type="number" id="nozzle_insertion" value="0" min="0" step="1"> mm <span style="font-size:11px;color:var(--text-tertiary)">für eingesch. Sonden</span></td>
                 </tr>
                 <tr>
+                    <td colspan="2">Passstück-Höhe H<sub>P</sub></td>
+                    <td colspan="4"><input class="input-field" type="number" id="nozzle_HP" value="0" min="0" step="1"> mm <span style="font-size:11px;color:var(--text-tertiary)">Adapter zwischen Flansch und Sensor</span></td>
+                </tr>
+                <tr>
+                    <td colspan="2">Stutzen-Innenradius R<sub>St</sub></td>
+                    <td colspan="4"><input class="input-field" type="number" id="nozzle_RSt" value="0" min="0" step="1"> mm <span style="font-size:11px;color:var(--text-tertiary)">leer = nicht prüfen</span></td>
+                </tr>
+                <tr id="nozzle_HmSt_row" class="hidden-row">
+                    <td colspan="2">Stutzen-Mitte: Abstand von Tankachse</td>
+                    <td colspan="4"><input class="input-field" type="number" id="nozzle_HmSt" value="0" min="0" step="10"> mm <span style="font-size:11px;color:var(--text-tertiary)">wenn Stutzen nicht mittig</span></td>
+                </tr>
+                <tr id="tilt_row" class="hidden-row">
                     <td colspan="2">Neigungswinkel</td>
                     <td colspan="4">
                         <input class="input-field" type="number" id="tilt_angle" value="0" min="0" max="45" step="0.1" style="width:80px"> °
@@ -381,13 +447,14 @@
             <p class="section-title">Linearisierungstabelle (LRV → URV)</p>
             <div class="lin-controls">
                 <label>Punkte:
-                    <select class="input-field" id="lin_n" style="width:auto;padding:4px 8px;">
+                    <select class="input-field" id="lin_n" style="width:auto;padding:4px 8px;" onchange="calc()">
                         <option value="5">5</option>
                         <option value="10" selected>10</option>
                         <option value="16">16</option>
                         <option value="20">20</option>
                         <option value="25">25</option>
                         <option value="32">32</option>
+                        <option value="stuetz20">20 Stützpunkte (DIN)</option>
                     </select>
                 </label>
                 <button class="action-btn" onclick="exportCSV()">
@@ -459,7 +526,71 @@
         function onNozzlePosChange() {
             const pos = document.getElementById('nozzle_pos').value;
             document.getElementById('nozzle_height_row').classList.toggle('hidden-row', pos !== 'side');
+            const hmRow = document.getElementById('nozzle_HmSt_row');
+            if (hmRow) hmRow.classList.toggle('hidden-row', pos !== 'top');
+            updateTiltVisibility();
             calc();
+        }
+
+        // Neigungswinkel nur bei schiefen/konischen Böden relevant
+        function updateTiltVisibility() {
+            let show = false;
+            if (activeShape === 'cone') {
+                show = true;
+            } else if (activeShape === 'vCyl') {
+                const botHead = document.getElementById('vCyl_botHead').value;
+                show = (botHead === 'flat' || botHead === 'schraegBoden' || botHead === 'konischBoden');
+            } else if (activeShape === 'rect') {
+                const el = document.getElementById('rect_botType');
+                show = el && el.value === 'sloped';
+            }
+            document.getElementById('tilt_row').classList.toggle('hidden-row', !show);
+        }
+
+        // vCyl: show/hide extra head input rows
+        function onVCylHeadChange() {
+            const bot = document.getElementById('vCyl_botHead').value;
+            const top = document.getElementById('vCyl_topHead').value;
+            const hide = id => { const el = document.getElementById(id); if(el) el.classList.add('hidden-row'); };
+            const show = id => { const el = document.getElementById(id); if(el) el.classList.remove('hidden-row'); };
+            ['vCyl_R_bot_row','vCyl_da_bot_row','vCyl_H_bot_row','vCyl_h1_bot_row','vCyl_h2_bot_row'].forEach(hide);
+            if (bot === 'freierRadius')    { show('vCyl_R_bot_row'); show('vCyl_h1_bot_row'); show('vCyl_h2_bot_row'); }
+            else if (bot === 'konischBoden') { show('vCyl_da_bot_row'); show('vCyl_H_bot_row'); }
+            else if (bot === 'schraegBoden') { show('vCyl_H_bot_row'); }
+            else if (bot !== 'flat')       { show('vCyl_h1_bot_row'); show('vCyl_h2_bot_row'); }
+            ['vCyl_R_top_row','vCyl_da_top_row','vCyl_H_top_row','vCyl_h1_top_row','vCyl_h2_top_row'].forEach(hide);
+            if (top === 'freierRadius')     { show('vCyl_R_top_row'); show('vCyl_h1_top_row'); show('vCyl_h2_top_row'); }
+            else if (top === 'konischDeckel') { show('vCyl_da_top_row'); show('vCyl_H_top_row'); }
+            else if (top !== 'flat')       { show('vCyl_h1_top_row'); show('vCyl_h2_top_row'); }
+        }
+
+        function onRectHeadChange() {
+            const topType = document.getElementById('rect_topType').value;
+            const botType = document.getElementById('rect_botType').value;
+            document.getElementById('rect_Htop_row').classList.toggle('hidden-row', topType === 'flat');
+            document.getElementById('rect_Hbot_row').classList.toggle('hidden-row', botType === 'flat');
+            updateTiltVisibility();
+        }
+
+        function setH1Default(which) {
+            const S  = parseFloat(document.getElementById('vCyl_S').value) || 0;
+            const headType = document.getElementById(which === 'bot' ? 'vCyl_botHead' : 'vCyl_topHead').value;
+            let def = 0;
+            if (headType === 'kloepperboden') def = 3.5 * S;
+            else if (headType === 'korbbogen') def = 3.0 * S;
+            else def = S;
+            document.getElementById(which === 'bot' ? 'vCyl_h1_bot' : 'vCyl_h1_top').value = Math.round(def) || 0;
+            calc();
+        }
+
+        function headParamsDIN_mm(Da_mm, S_mm, headType) {
+            const Di_mm = Da_mm - 2 * S_mm;
+            if (headType === 'flat')       return { h2: 0, h1def: 0, Di: Di_mm };
+            if (headType === 'hemisphere') return { h2: Di_mm / 2, h1def: S_mm, Di: Di_mm };
+            let h2, h1def;
+            if (headType === 'kloepperboden') { h2 = 0.1935 * Da_mm - 0.455 * S_mm; h1def = 3.5 * S_mm; }
+            else                              { h2 = 0.255  * Da_mm - 0.635 * S_mm; h1def = 3.0 * S_mm; }
+            return { h2: Math.max(0, h2), h1def, Di: Di_mm };
         }
 
         // Sensor-Referenzhöhe berechnen (mm über Tankboden-Innenfläche)
@@ -770,37 +901,181 @@
         function sel(id) { const el = document.getElementById(id); return el ? el.value : 'flat'; }
 
         function getGeom() {
-            function n(id) { return parseFloat(document.getElementById(id).value) || 0; }
+            function n(id) { const el = document.getElementById(id); return el ? (parseFloat(el.value) || 0) : 0; }
             switch (activeShape) {
-                case 'vCyl':   return { d: n('vCyl_d'), lcyl: n('vCyl_lcyl'), bordel: n('vCyl_bordel') / 1000, botHead: sel('vCyl_botHead'), topHead: sel('vCyl_topHead'), level: n('vCyl_level') };
+                case 'vCyl': {
+                    const Da_mm = n('vCyl_Da'), S_mm = n('vCyl_S');
+                    const Di_mm = Math.max(0, Da_mm - 2 * S_mm);
+                    return {
+                        Da_mm, S_mm, Di_mm, d: Di_mm / 1000,
+                        lcyl: n('vCyl_L') / 1000,
+                        h1_bot: n('vCyl_h1_bot') / 1000, h1_top: n('vCyl_h1_top') / 1000,
+                        botHead: sel('vCyl_botHead'), topHead: sel('vCyl_topHead'),
+                        R_bot: n('vCyl_R_bot') / 1000, da_bot: n('vCyl_da_bot') / 1000, H_bot: n('vCyl_H_bot') / 1000,
+                        R_top: n('vCyl_R_top') / 1000, da_top: n('vCyl_da_top') / 1000, H_top: n('vCyl_H_top') / 1000,
+                        kammerung: parseInt(sel('vCyl_kammerung')) || 1,
+                        level: n('vCyl_level') / 1000
+                    };
+                }
                 case 'hCyl':   return { d: n('hCyl_d'), lcyl: n('hCyl_lcyl'), headType: sel('hCyl_headType'), level: n('hCyl_level') };
                 case 'sphere': return { d: n('sph_d'), level: n('sph_level') };
                 case 'cone':   return { d1: n('cone_d1'), d2: n('cone_d2'), h: n('cone_h'), level: n('cone_level') };
+                case 'rect': {
+                    const B=n('rect_B'), T=n('rect_T'), L=n('rect_L'), S=n('rect_S');
+                    return { B, T, L, S, topType: sel('rect_topType'), botType: sel('rect_botType'),
+                             Htop: n('rect_Htop'), Hbot: n('rect_Hbot'), level: n('rect_level') / 1000 };
+                }
             }
+        }
+
+        // Append head zones for one side (bot or top) into zones array
+        // Bot: bördel first, then head (apex at top); Top: head first (apex at top), then bördel
+        function pushHeadZones(zones, g, side, Di, S, A) {
+            const headType = side === 'bot' ? g.botHead : g.topHead;
+            const h1 = side === 'bot' ? g.h1_bot : g.h1_top;
+            if (headType === 'flat') return;
+
+            // Conical head: frustum V(0→yc) = π·yc/3·(r1²+r1·r(yc)+r(yc)²)
+            if (headType === 'konischBoden' || headType === 'konischDeckel') {
+                const da_mm = (side === 'bot' ? g.da_bot : g.da_top) * 1000;
+                const H_mm  = (side === 'bot' ? g.H_bot  : g.H_top)  * 1000;
+                const H = H_mm / 1000;
+                if (H <= 0) return;
+                const sinA = Math.sin(Math.atan2(g.Da_mm/2 - da_mm/2, H_mm) || (Math.PI/2));
+                const SWkorr_mm = sinA > 0 ? g.S_mm / sinA : g.S_mm;
+                const da_i_mm   = Math.max(0, da_mm - 2 * SWkorr_mm);
+                // konischBoden: y=0 apex (da_i/2), y=H shoulder (Di/2)
+                // konischDeckel: y=0 shoulder (Di/2), y=H apex (da_i/2)
+                const r1 = side === 'bot' ? da_i_mm / 2000 : Di / 2;
+                const r2 = side === 'bot' ? Di / 2         : da_i_mm / 2000;
+                zones.push({ h: H, vol: y => {
+                    const yc = Math.min(y, H);
+                    const ry = r1 + (r2 - r1) * yc / H;
+                    return Math.PI * yc / 3 * (r1*r1 + r1*ry + ry*ry);
+                }});
+                return;
+            }
+
+            if (headType === 'schraegBoden') {
+                const h_eff = Math.max(0, g.H_bot - S);
+                if (h_eff > 0) zones.push({ h: h_eff, vol: y => A * Math.min(y, h_eff) / 2 });
+                return;
+            }
+
+            if (headType === 'freierRadius') {
+                const R = side === 'bot' ? g.R_bot : g.R_top;
+                const hb = (R > 0 && R >= Di/2) ? R - Math.sqrt(Math.max(0, R*R - Di*Di/4)) : Di/2;
+                const capVol = y => { const yc=Math.min(y,hb); return Math.PI*yc*yc*(3*R-yc)/3; };
+                if (side === 'bot') {
+                    if (h1 > 0) zones.push({ h: h1, vol: y => A*y });
+                    zones.push({ h: hb, vol: capVol });
+                } else {
+                    zones.push({ h: hb, vol: capVol });
+                    if (h1 > 0) zones.push({ h: h1, vol: y => A*y });
+                }
+                return;
+            }
+
+            // Standard DIN: kloepperboden, korbbogen, hemisphere
+            const hb = headParams(Di, headType).hb;
+            if (side === 'bot') {
+                if (h1 > 0) zones.push({ h: h1, vol: y => A*y });
+                zones.push({ h: hb, vol: y => headPartialVol(y, Di, headType) });
+            } else {
+                zones.push({ h: hb, vol: y => headPartialVol(y, Di, headType) });
+                if (h1 > 0) zones.push({ h: h1, vol: y => A*y });
+            }
+        }
+
+        function volVCyl(g, levelM) {
+            const Di = g.d, S = g.S_mm / 1000, A = Math.PI * Di * Di / 4;
+            const zones = [];
+            pushHeadZones(zones, g, 'bot', Di, S, A);
+            const cylStart = zones.reduce((s, z) => s + z.h, 0);
+            zones.push({ h: g.lcyl, vol: y => A * y });
+            pushHeadZones(zones, g, 'top', Di, S, A);
+
+            const maxH = zones.reduce((s, z) => s + z.h, 0);
+            let total = 0, fill = 0;
+            const lv = Math.max(0, Math.min(levelM, maxH));
+            let cursor = 0;
+            for (const z of zones) {
+                total += z.vol(z.h);
+                if (cursor < lv) fill += z.vol(Math.min(lv - cursor, z.h));
+                cursor += z.h;
+            }
+            const kamm = g.kammerung || 1;
+            if (kamm > 1 && g.lcyl > 0) {
+                const walls     = (kamm-1) * Di * g.lcyl * S;
+                const cylFill   = Math.max(0, Math.min(lv - cylStart, g.lcyl));
+                const fillWalls = (kamm-1) * Di * cylFill * S;
+                fill  = Math.max(0, fill  - fillWalls);
+                total = Math.max(0, total - walls);
+            }
+            return { fill, total, maxH };
+        }
+
+        function volRect(g, levelM) {
+            const Bi = Math.max(0, g.B - 2*g.S) / 1000;  // m
+            const Ti = Math.max(0, g.T - 2*g.S) / 1000;
+            const Ab = Bi * Ti;
+            // L = outer mantle height; inner mantle = L - S (bottom plate)
+            const Li = Math.max(0, g.L - g.S) / 1000;
+            const zones = [];
+            // Bottom head
+            if (g.botType === 'pyramid') {
+                const Hb = Math.max(0, g.Hbot - g.S) / 1000;
+                if (Hb > 0) zones.push({ h: Hb, vol: y => {
+                    const yc = Math.min(y, Hb);
+                    // pyramid from point at y=0 to Bi×Ti at y=Hb
+                    return Ab * yc*yc*yc / (3 * Hb*Hb);
+                }});
+            } else if (g.botType === 'sloped') {
+                const Hb = Math.max(0, g.Hbot - g.S) / 1000;
+                if (Hb > 0) zones.push({ h: Hb, vol: y => Ab * Math.min(y, Hb) / 2 });
+            }
+            zones.push({ h: Li, vol: y => Ab * y });
+            // Top head
+            if (g.topType === 'pyramid') {
+                const Ht = Math.max(0, g.Htop - g.S) / 1000;
+                if (Ht > 0) zones.push({ h: Ht, vol: y => {
+                    const yc = Math.min(y, Ht), f = 1 - yc/Ht;
+                    // pyramid from Bi×Ti at y=0 to point at y=Ht
+                    return Ab * yc * (1 + f + f*f) / 3;
+                }});
+            }
+            const maxH = zones.reduce((s, z) => s + z.h, 0);
+            let total = 0, fill = 0;
+            const lv = Math.max(0, Math.min(levelM, maxH));
+            let cursor = 0;
+            for (const z of zones) {
+                total += z.vol(z.h);
+                if (cursor < lv) fill += z.vol(Math.min(lv - cursor, z.h));
+                cursor += z.h;
+            }
+            return { fill, total, maxH };
         }
 
         function getVolumeAtLevel(levelM) {
             const g = getGeom();
             switch (activeShape) {
-                case 'vCyl':   return volVCyl(g.d, g.lcyl, g.botHead, g.topHead, g.bordel, levelM);
+                case 'vCyl':   return volVCyl(g, levelM);
                 case 'hCyl':   return volHCyl(g.d, g.lcyl, g.headType, levelM);
                 case 'sphere': return volSphere(g.d, levelM);
                 case 'cone':   return volCone(g.d1, g.d2, g.h, levelM);
+                case 'rect':   return volRect(g, levelM);
+                default:       return { fill: 0, total: 0, maxH: 0 };
             }
         }
 
-        // Gesamthöhe des Tanks (für Anzeige und Stutzen-Berechnung)
         function getTotalHeight() {
             const g = getGeom();
             switch (activeShape) {
-                case 'vCyl': {
-                    const bBot = g.botHead === 'flat' ? 0 : g.bordel;
-                    const bTop = g.topHead === 'flat' ? 0 : g.bordel;
-                    return bBot + headParams(g.d, g.botHead).hb + g.lcyl + headParams(g.d, g.topHead).hb + bTop;
-                }
+                case 'vCyl':   return volVCyl(g, 0).maxH;
                 case 'hCyl':   return g.d;
                 case 'sphere': return g.d;
                 case 'cone':   return g.h;
+                case 'rect':   return volRect(g, 0).maxH;
                 default:       return 0;
             }
         }
@@ -910,11 +1185,13 @@
             if (activeShape === 'vCyl' && g.d > 0) {
                 const scale = Math.min(drawW / g.d, drawH / (totalH || 1));
                 const yTop  = MARGIN_Y + (drawH - totalH * scale) / 2;
-                // Bördel visuell als Verlängerung des Zylinders — entfällt bei Flachboden
-                const bBotVis = g.botHead === 'flat' ? 0 : g.bordel;
-                const bTopVis = g.topHead === 'flat' ? 0 : g.bordel;
+                // For SVG: map new head types to simpler equivalents for drawing
+                const svgBot = ['kloepperboden','korbbogen','hemisphere','flat'].includes(g.botHead) ? g.botHead : 'flat';
+                const svgTop = ['kloepperboden','korbbogen','hemisphere','flat'].includes(g.topHead) ? g.topHead : 'flat';
+                const bBotVis = (svgBot !== 'flat') ? g.h1_bot : 0;
+                const bTopVis = (svgTop !== 'flat') ? g.h1_top : 0;
                 const { d, yTopApex, yBotApex, yTopShoulder, yBotShoulder, r_px } = buildVerticalPath(
-                    g.d, g.lcyl + bBotVis + bTopVis, g.botHead, g.topHead, scale, cx, yTop);
+                    g.d, g.lcyl + bBotVis + bTopVis, svgBot, svgTop, scale, cx, yTop);
 
                 outline.setAttribute('d', d);
                 clipPath.setAttribute('d', d);
@@ -959,7 +1236,7 @@
                 labelsGrp.appendChild(svgEl('line', { x1: xArr, y1: yTopApex.toFixed(1), x2: xArr, y2: yBotApex.toFixed(1), stroke: cStroke, 'stroke-width': '1' }));
                 labelsGrp.appendChild(svgEl('line', { x1: (xArr - 3), y1: yTopApex.toFixed(1), x2: (xArr + 3), y2: yTopApex.toFixed(1), stroke: cStroke, 'stroke-width': '1' }));
                 labelsGrp.appendChild(svgEl('line', { x1: (xArr - 3), y1: yBotApex.toFixed(1), x2: (xArr + 3), y2: yBotApex.toFixed(1), stroke: cStroke, 'stroke-width': '1' }));
-                labelsGrp.appendChild(svgEl('text', { x: xArr - 3, y: ((yTopApex + yBotApex) / 2 + 4).toFixed(1), class: 'svg-dim', transform: `rotate(-90,${xArr - 3},${((yTopApex + yBotApex) / 2 + 4).toFixed(1)})`, 'text-anchor': 'middle' }, totalH.toFixed(2) + ' m'));
+                labelsGrp.appendChild(svgEl('text', { x: xArr - 3, y: ((yTopApex + yBotApex) / 2 + 4).toFixed(1), class: 'svg-dim', transform: `rotate(-90,${xArr - 3},${((yTopApex + yBotApex) / 2 + 4).toFixed(1)})`, 'text-anchor': 'middle' }, Math.round(totalH*1000) + ' mm'));
 
                 // Maßpfeil rechts: Füllstand
                 if ((g.level || 0) > 0) {
@@ -967,13 +1244,13 @@
                     labelsGrp.appendChild(svgEl('line', { x1: xArrR, y1: yFill.toFixed(1), x2: xArrR, y2: yBotApex.toFixed(1), stroke: cFillB, 'stroke-width': '1' }));
                     labelsGrp.appendChild(svgEl('line', { x1: (xArrR - 3), y1: yFill.toFixed(1), x2: (xArrR + 3), y2: yFill.toFixed(1), stroke: cFillB, 'stroke-width': '1' }));
                     labelsGrp.appendChild(svgEl('line', { x1: (xArrR - 3), y1: yBotApex.toFixed(1), x2: (xArrR + 3), y2: yBotApex.toFixed(1), stroke: cFillB, 'stroke-width': '1' }));
-                    labelsGrp.appendChild(svgEl('text', { x: xArrR + 3, y: ((yFill + yBotApex) / 2 + 4).toFixed(1), class: 'svg-val', transform: `rotate(-90,${xArrR + 3},${((yFill + yBotApex) / 2 + 4).toFixed(1)})`, 'text-anchor': 'middle' }, (g.level || 0).toFixed(2) + ' m'));
+                    labelsGrp.appendChild(svgEl('text', { x: xArrR + 3, y: ((yFill + yBotApex) / 2 + 4).toFixed(1), class: 'svg-val', transform: `rotate(-90,${xArrR + 3},${((yFill + yBotApex) / 2 + 4).toFixed(1)})`, 'text-anchor': 'middle' }, Math.round((g.level||0)*1000) + ' mm'));
                 }
 
-                // Durchmesser unten
+                // Durchmesser unten (Di in mm)
                 const yDimLine = Math.min(SVG_H - 16, yBotApex + 14);
                 labelsGrp.appendChild(svgEl('line', { x1: (cx - r_px).toFixed(1), y1: yDimLine, x2: (cx + r_px).toFixed(1), y2: yDimLine, stroke: cStroke, 'stroke-width': '1' }));
-                labelsGrp.appendChild(svgEl('text', { x: cx, y: yDimLine + 11, class: 'svg-dim', 'text-anchor': 'middle' }, 'Ø ' + g.d.toFixed(2) + ' m'));
+                labelsGrp.appendChild(svgEl('text', { x: cx, y: yDimLine + 11, class: 'svg-dim', 'text-anchor': 'middle' }, 'Di ' + g.Di_mm.toFixed(0) + ' mm'));
 
                 // Stutzen zeichnen
                 const pos   = document.getElementById('nozzle_pos').value;
@@ -1142,11 +1419,53 @@
             document.getElementById('fillBarFill').style.width = cp + '%';
             document.getElementById('fillPctLabel').textContent = cp.toFixed(1) + '%';
 
-            // Gesamthöhe anzeigen (stehender Zylinder)
-            const thEl = document.getElementById('vCyl_totalH');
-            if (thEl) {
+            // vCyl: Di display, h2/h3 display, Gesamthöhe, warnings
+            if (activeShape === 'vCyl') {
+                const diEl = document.getElementById('vCyl_Di_display');
+                if (diEl) diEl.textContent = g.Di_mm.toFixed(0) + ' mm';
+
                 const totalH = getTotalHeight();
-                thEl.textContent = totalH > 0 ? totalH.toFixed(3) + ' m' : '—';
+                const thEl = document.getElementById('vCyl_totalH');
+                if (thEl) thEl.textContent = totalH > 0 ? (totalH * 1000).toFixed(0) + ' mm  (' + totalH.toFixed(3) + ' m)' : '—';
+
+                // h2/h3 display for DIN heads
+                function showH2H3(which) {
+                    const ht  = which === 'bot' ? g.botHead : g.topHead;
+                    const h1m = which === 'bot' ? g.h1_bot  : g.h1_top;
+                    const el  = document.getElementById(which === 'bot' ? 'vCyl_h2h3_bot' : 'vCyl_h2h3_top');
+                    if (!el) return;
+                    const p = headParamsDIN_mm(g.Da_mm, g.S_mm, ht);
+                    if (p.h2 > 0) {
+                        const h3 = h1m * 1000 + p.h2;
+                        el.textContent = 'h2 = ' + p.h2.toFixed(1) + ' mm   h3 = ' + h3.toFixed(1) + ' mm';
+                    } else {
+                        el.textContent = '—';
+                    }
+                }
+                showH2H3('bot'); showH2H3('top');
+
+                // Validation warnings
+                const warns = [];
+                const S = g.S_mm;
+                // Check |S_bot - S_top| > 11mm (using same S for both here; extend if separate S inputs added)
+                const RSt = parseFloat(document.getElementById('nozzle_RSt').value) || 0;
+                if (RSt > 0) {
+                    const a_halb = g.Di_mm / 2;  // Halbbreite = Di/2 for top nozzle
+                    if (RSt > a_halb) warns.push('RSt (' + RSt + ' mm) > Di/2 (' + a_halb.toFixed(0) + ' mm) — Stutzen passt nicht auf Deckel.');
+                }
+                const warnRow = document.getElementById('vCyl_warn_row');
+                const warnEl  = document.getElementById('vCyl_warnings');
+                if (warnRow && warnEl) {
+                    warnEl.textContent = warns.join(' | ');
+                    warnRow.classList.toggle('hidden-row', warns.length === 0);
+                }
+            } else {
+                // Gesamthöhe for other shapes
+                const thEl = document.getElementById('vCyl_totalH');
+                if (thEl && activeShape !== 'vCyl') thEl.textContent = '—';
+                const totalH = getTotalHeight();
+                const rectEl = document.getElementById('rect_totalH');
+                if (rectEl && activeShape === 'rect') rectEl.textContent = totalH > 0 ? (totalH * 1000).toFixed(0) + ' mm' : '—';
             }
 
             // Sensor-Referenzhöhe anzeigen
@@ -1184,28 +1503,83 @@
 
         // ============ LINEARIZATION TABLE ============
 
+        // Build 20 zone-based Stützpunkte for vCyl with DIN heads
+        function buildStuetzpunkte20() {
+            const g = getGeom();
+            if (activeShape !== 'vCyl') return null;
+            const lrv = parseFloat(document.getElementById('cfg_lrv').value) || 0;
+            const urv = parseFloat(document.getElementById('cfg_urv').value) || 0;
+            const Di_mm = g.Di_mm, Da_mm = g.Da_mm, S_mm = g.S_mm;
+            const L_mm = g.lcyl * 1000, h1b = g.h1_bot * 1000, h1t = g.h1_top * 1000;
+
+            function headH2(headType) {
+                const p = headParamsDIN_mm(Da_mm, S_mm, headType);
+                return p.h2;
+            }
+            const h2b = headH2(g.botHead), h2t = headH2(g.topHead);
+            const h3b = h1b + h2b, h3t = h1t + h2t;
+
+            // Crown portion: 0 to 4/5 * h2 (5 equally spaced inside)
+            // Knuckle: 4/5*h2 to h2 (4 steps of h2/5 each? or 3 steps?)
+            // Per spec: 5 pts in crown (0, h2/5, 2h2/5, 3h2/5, 4h2/5)
+            //           4 pts in knuckle (h2/5 steps: 4h2/5, h2)  → just 2 boundary
+            // Simplified 20-point structure:
+            const pts = [];
+            if (h2b > 0) {
+                // Bottom crown zone: 5 intervals (6 pts incl. 0)
+                for (let i = 0; i <= 5; i++) pts.push(i * h2b / 5);
+            } else {
+                pts.push(0);
+            }
+            // h3_bot → end of bottom head
+            if (h3b > 0 && h3b > (pts[pts.length-1] || 0)) pts.push(h3b);
+            // Mid-cylinder
+            const midBot = h3b, midTop = h3b + L_mm;
+            if (L_mm > 0) pts.push(midBot + L_mm / 2);
+            // Top head start
+            if (midTop > (pts[pts.length-1] || 0)) pts.push(midTop);
+            const Hges = h3b + L_mm + h3t;
+            if (h2t > 0) {
+                // Top knuckle zone (from top head start upward)
+                for (let i = 1; i <= 5; i++) pts.push(midTop + i * h2t / 5);
+            }
+            if (Hges > (pts[pts.length-1] || 0)) pts.push(Hges);
+
+            // Clamp to lrv..urv range, add boundary points
+            const inRange = pts.filter(p => p >= lrv && p <= urv);
+            const all = [...new Set([lrv, ...inRange, urv])].sort((a, b) => a - b);
+            return all.slice(0, 20);
+        }
+
         function updateLinTable() {
-            const N = parseInt(document.getElementById('lin_n').value) || 10;
+            const linNVal = document.getElementById('lin_n').value;
+            const isStuetz = linNVal === 'stuetz20';
+            const N = isStuetz ? 0 : (parseInt(linNVal) || 10);
             const lrv = parseFloat(document.getElementById('cfg_lrv').value) || 0;
             const urv = parseFloat(document.getElementById('cfg_urv').value) || 0;
             const density = parseFloat(document.getElementById('cfg_density').value) || 1000;
 
-            const res0 = getVolumeAtLevel(0);
-            const maxH_mm = res0.maxH * 1000;
-
             const tbody = document.getElementById('lin_body');
             tbody.innerHTML = '';
 
-            for (let i = 0; i < N; i++) {
-                const level_mm = lrv + (N === 1 ? 0 : (i / (N - 1)) * (urv - lrv));
-                const level_m = level_mm / 1000;
-                const r = getVolumeAtLevel(level_m);
+            let levels_mm;
+            if (isStuetz) {
+                levels_mm = buildStuetzpunkte20() || [];
+                if (!levels_mm.length) {
+                    // Fallback: 20 equidistant points
+                    levels_mm = Array.from({length: 20}, (_, i) => lrv + i/(19)*(urv-lrv));
+                }
+            } else {
+                levels_mm = Array.from({length: N}, (_, i) => lrv + (N===1?0:(i/(N-1))*(urv-lrv)));
+            }
+
+            levels_mm.forEach((level_mm, i) => {
+                const r = getVolumeAtLevel(level_mm / 1000);
                 const pct = r.total > 0 ? (r.fill / r.total) * 100 : 0;
                 const massKg = r.fill * density;
-
                 const tr = document.createElement('tr');
-                if (i === 0 || i === N - 1) tr.classList.add('lin-row-edge');
-
+                const isEdge = i === 0 || i === levels_mm.length - 1;
+                if (isEdge) tr.classList.add('lin-row-edge');
                 tr.innerHTML =
                     '<td>' + (i + 1) + '</td>' +
                     '<td>' + level_mm.toFixed(0) + '</td>' +
@@ -1214,39 +1588,39 @@
                     '<td>' + (r.fill * 1000).toFixed(2) + '</td>' +
                     '<td>' + massKg.toFixed(1) + '</td>' +
                     '<td>' + (massKg / 1000).toFixed(4) + '</td>';
-
                 tbody.appendChild(tr);
-            }
+            });
         }
 
         // ============ CSV EXPORT ============
 
         function exportCSV() {
-            const N = parseInt(document.getElementById('lin_n').value) || 10;
+            const linNVal = document.getElementById('lin_n').value;
+            const isStuetz = linNVal === 'stuetz20';
             const lrv = parseFloat(document.getElementById('cfg_lrv').value) || 0;
             const urv = parseFloat(document.getElementById('cfg_urv').value) || 0;
             const density = parseFloat(document.getElementById('cfg_density').value) || 1000;
-
+            let levels_mm;
+            if (isStuetz) {
+                levels_mm = buildStuetzpunkte20() || [];
+                if (!levels_mm.length) levels_mm = Array.from({length:20},(_,i)=>lrv+i/19*(urv-lrv));
+            } else {
+                const N = parseInt(linNVal) || 10;
+                levels_mm = Array.from({length:N},(_,i)=>lrv+(N===1?0:(i/(N-1))*(urv-lrv)));
+            }
             const header = 'Nr.;Füllstand (mm);Füllstand (%);Volumen (m³);Volumen (l);Masse (kg);Masse (t)\r\n';
             let rows = '';
-
-            for (let i = 0; i < N; i++) {
-                const level_mm = lrv + (N === 1 ? 0 : (i / (N - 1)) * (urv - lrv));
-                const level_m = level_mm / 1000;
-                const r = getVolumeAtLevel(level_m);
+            levels_mm.forEach((level_mm, i) => {
+                const r = getVolumeAtLevel(level_mm / 1000);
                 const pct = r.total > 0 ? (r.fill / r.total) * 100 : 0;
                 const massKg = r.fill * density;
-
-                rows +=
-                    (i + 1) + ';' +
-                    level_mm.toFixed(0) + ';' +
-                    pct.toFixed(2).replace('.', ',') + ';' +
-                    r.fill.toFixed(4).replace('.', ',') + ';' +
-                    (r.fill * 1000).toFixed(2).replace('.', ',') + ';' +
-                    massKg.toFixed(1).replace('.', ',') + ';' +
-                    (massKg / 1000).toFixed(4).replace('.', ',') + '\r\n';
-            }
-
+                rows += (i+1) + ';' + level_mm.toFixed(0) + ';' +
+                    pct.toFixed(2).replace('.',',') + ';' +
+                    r.fill.toFixed(4).replace('.',',') + ';' +
+                    (r.fill*1000).toFixed(2).replace('.',',') + ';' +
+                    massKg.toFixed(1).replace('.',',') + ';' +
+                    (massKg/1000).toFixed(4).replace('.',',') + '\r\n';
+            });
             const bom = '﻿';
             const blob = new Blob([bom + header + rows], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
@@ -1265,6 +1639,8 @@
         // SVG bei Theme-Wechsel neu zeichnen
         onThemeChanged(drawTank);
 
+        // Init vCyl head visibility
+        onVCylHeadChange();
         calc();
     </script>
 
