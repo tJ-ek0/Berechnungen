@@ -117,7 +117,7 @@
                     <tr><td colspan="2">Innendurchmesser</td><td colspan="4"><input class="input-field" type="number" id="vCyl_d" value="2" min="0" step="0.01"> m</td></tr>
                     <tr><td colspan="2">Zylinderlänge (Naht–Naht)</td><td colspan="4"><input class="input-field" type="number" id="vCyl_lcyl" value="4" min="0" step="0.01"> m <span style="font-size:11px;color:var(--text-tertiary)">nur gerader Teil</span></td></tr>
                     <tr><td colspan="2">Bodenart (unten)</td><td colspan="4">
-                        <select class="input-field" id="vCyl_botHead" onchange="calc()">
+                        <select class="input-field" id="vCyl_botHead" onchange="updateTiltVisibility(); calc()">
                             <option value="flat">Flachboden</option>
                             <option value="kloepperboden" selected>Klöpperboden DIN 28011</option>
                             <option value="korbbogen">Korbbogenboden DIN 28013</option>
@@ -191,26 +191,31 @@
                     </td>
                 </tr>
                 <tr id="nozzle_height_row" class="hidden-row">
-                    <td colspan="2">Stutzen-Höhe über Tankboden</td>
-                    <td colspan="4"><input class="input-field" type="number" id="nozzle_height" value="0" min="0" step="1"> mm</td>
+                    <td colspan="2">Stutzen-Mitte: Höhe ab Innenboden</td>
+                    <td colspan="4"><input class="input-field" type="number" id="nozzle_height" value="0" min="0" step="1"> mm <span style="font-size:11px;color:var(--text-tertiary)">gemessen von Bodenspiegel bis Stutzen-Mittellinie</span></td>
+                </tr>
+                <tr id="nozzle_offset_row" class="hidden-row">
+                    <td colspan="2">Abstand von Tankachse</td>
+                    <td colspan="4"><input class="input-field" type="number" id="nozzle_offset" value="0" min="0" step="10"> mm <span style="font-size:11px;color:var(--text-tertiary)">wenn Stutzen nicht mittig auf Deckel</span></td>
                 </tr>
                 <tr>
-                    <td colspan="2">Stutzen-Länge (über Tank)</td>
-                    <td colspan="4"><input class="input-field" type="number" id="nozzle_outside" value="150" min="0" step="1"> mm</td>
+                    <td colspan="2">Stutzen-Länge (über Tankwand)</td>
+                    <td colspan="4"><input class="input-field" type="number" id="nozzle_outside" value="150" min="0" step="1"> mm <span style="font-size:11px;color:var(--text-tertiary)">bis Unterkante Flansch</span></td>
                 </tr>
                 <tr>
-                    <td colspan="2">Flanschdicke (oben)</td>
+                    <td colspan="2">Flanschdicke</td>
                     <td colspan="4"><input class="input-field" type="number" id="nozzle_flansch" value="20" min="0" step="1"> mm <span style="font-size:11px;color:var(--text-tertiary)">Flansch am Sensor-Anschluss</span></td>
                 </tr>
                 <tr>
                     <td colspan="2">Tauchtiefe (in Tank)</td>
-                    <td colspan="4"><input class="input-field" type="number" id="nozzle_insertion" value="0" min="0" step="1"> mm <span style="font-size:11px;color:var(--text-tertiary)">für eingesch. Sonden</span></td>
+                    <td colspan="4"><input class="input-field" type="number" id="nozzle_insertion" value="0" min="0" step="1"> mm <span style="font-size:11px;color:var(--text-tertiary)">für eingeschraubte Sonden</span></td>
                 </tr>
-                <tr>
-                    <td colspan="2">Neigungswinkel</td>
+                <tr id="tilt_row" class="hidden-row">
+                    <td colspan="2">Neigungswinkel (Behälter)</td>
                     <td colspan="4">
-                        <input class="input-field" type="number" id="tilt_angle" value="0" min="0" max="45" step="0.1" style="width:80px"> °
+                        <input class="input-field" type="number" id="tilt_angle" value="0" min="0" max="90" step="0.1" style="width:80px"> °
                         <button class="action-btn" onclick="readTiltFromPhone()" title="Handy-Neigungssensor" style="margin-left:6px">📱 Handy-Sensor</button>
+                        <span style="font-size:11px;color:var(--text-tertiary);margin-left:6px">flach=0°, senkrechte Wand=90°</span>
                     </td>
                 </tr>
                 <tr>
@@ -258,14 +263,14 @@
                     <td colspan="2">Sondenlänge</td>
                     <td colspan="4"><input class="input-field" type="number" id="probe_length" value="3000" min="0" step="10"> mm</td>
                 </tr>
-                <!-- Sperrbereich oben (alle Geräte) -->
+                <!-- Block Distanz oben (alle Geräte) -->
                 <tr id="bdt_row" class="hidden-row">
-                    <td colspan="2">Sperrbereich oben (BDT)</td>
-                    <td colspan="4"><input class="input-field" type="number" id="bdt_mm" value="0" min="0" step="1"> mm</td>
+                    <td colspan="2">Block Distanz oben (BDT)</td>
+                    <td colspan="4"><input class="input-field" type="number" id="bdt_mm" value="0" min="0" step="1"> mm <span style="font-size:11px;color:var(--text-tertiary)">ab Unterkante Flansch</span></td>
                 </tr>
-                <!-- Sperrbereich unten (Levelflex) -->
+                <!-- Block Distanz unten (Levelflex) -->
                 <tr id="bdb_row" class="hidden-row">
-                    <td colspan="2">Sperrbereich unten (BDB)</td>
+                    <td colspan="2">Block Distanz unten (BDB)</td>
                     <td colspan="4"><input class="input-field" type="number" id="bdb_mm" value="0" min="0" step="1"> mm</td>
                 </tr>
                 <!-- Abstrahlwinkel (Radar/US) -->
@@ -413,7 +418,7 @@
             </div>
 
             <div class="info-box" style="margin-top:16px;">
-                <strong>Hinweis:</strong> Klöpperboden nach DIN 28011 (R=D, r=0,1·D), Korbbogenboden nach DIN 28013 (R=0,8·D, r=0,154·D). Bodenvolumen per numerischer Integration. Kein Abzug für Einbauten. E+H Sperrbereich-Werte sind Richtwerte — die aktuellen Gerätedatenblätter prüfen. LRV/URV definieren den Linearisierungsbereich.
+                <strong>Hinweis:</strong> Klöpperboden nach DIN 28011 (R=D, r=0,1·D), Korbbogenboden nach DIN 28013 (R=0,8·D, r=0,154·D). Bodenvolumen per numerischer Integration. Kein Abzug für Einbauten. E+H Block-Distanz-Werte sind Richtwerte — die aktuellen Gerätedatenblätter prüfen. LRV/URV definieren den Linearisierungsbereich.
             </div>
 
             <div class="shortcuts-hint" style="margin-top:16px;">
@@ -459,7 +464,21 @@
         function onNozzlePosChange() {
             const pos = document.getElementById('nozzle_pos').value;
             document.getElementById('nozzle_height_row').classList.toggle('hidden-row', pos !== 'side');
+            document.getElementById('nozzle_offset_row').classList.toggle('hidden-row', pos !== 'top');
+            updateTiltVisibility();
             calc();
+        }
+
+        // Neigungswinkel nur bei Konus oder Flachboden-Zylindern relevant
+        function updateTiltVisibility() {
+            let show = false;
+            if (activeShape === 'cone') {
+                show = true;
+            } else if (activeShape === 'vCyl') {
+                const botHead = document.getElementById('vCyl_botHead').value;
+                show = (botHead === 'flat');
+            }
+            document.getElementById('tilt_row').classList.toggle('hidden-row', !show);
         }
 
         // Sensor-Referenzhöhe berechnen (mm über Tankboden-Innenfläche)
@@ -589,8 +608,10 @@
                 // |az| ≈ g·cos(θ) wenn das Gerät flach liegt — θ ist Neigung gegen Waagrechte
                 // Für eine senkrechte Wand: Gerät aufrecht → az≈0 → θ≈90°
                 // Neigung des Behälters gegen die Senkrechte = 90° - θ_gerät
+                // flach hingelegt: az≈g → arccos(1)=0° ✓
+                // an senkrechter Wand: az≈0 → arccos(0)=90° ✓
                 const clampedRatio = Math.min(1, Math.abs(avgAz) / g);
-                const tiltDeg = (Math.PI / 2 - Math.acos(clampedRatio)) * 180 / Math.PI;
+                const tiltDeg = Math.acos(clampedRatio) * 180 / Math.PI;
                 document.getElementById('tilt_angle').value = Math.max(0, tiltDeg).toFixed(1);
                 calc();
             }
@@ -629,6 +650,7 @@
             btn.classList.add('active');
             document.querySelectorAll('.param-section').forEach(s => s.classList.remove('active'));
             document.getElementById('sec_' + shape).classList.add('active');
+            updateTiltVisibility();
             calc();
         }
 
@@ -641,7 +663,9 @@
             let R, r;
             if (headType === 'kloepperboden') { R = D;       r = 0.1   * D; } // DIN 28011
             else                              { R = 0.8 * D; r = 0.154 * D; } // Korbbogen DIN 28013
-            const hb = R + r - Math.sqrt(Math.max(0, (R - r) * (R - r) - (D / 2 - r) * (D / 2 - r)));
+            // hb = Tiefe des Gewoelbes vom Scheitel bis zur Schulter (= y_k = R - sqrt(...))
+            // NICHT R+r-sqrt: der +r-Term ist falsch und verschiebt die Schulter um r nach innen
+            const hb = R - Math.sqrt(Math.max(0, (R - r) * (R - r) - (D / 2 - r) * (D / 2 - r)));
             return { R, r, hb };
         }
 
@@ -651,12 +675,13 @@
             const { R, r, hb } = headParams(D, headType);
             if (hb <= 0 || y >= hb) return D / 2;
             if (headType === 'hemisphere') return Math.sqrt(Math.max(0, D * y - y * y));
-            // Übergangshoehe Kalotte → Krempe
-            const yt = R * (hb - 2 * r) / (R - r);
+            // Krempenkreis-Mittelpunkt: kcy=hb (Schulter liegt bei y=hb), kcx=D/2-r
+            // Übergangshoehe Kalotte → Krempe: yt = R*(hb-r)/(R-r)
+            const yt = R * (hb - r) / (R - r);
             if (y <= yt) {
-                return Math.sqrt(Math.max(0, 2 * R * y - y * y)); // Kalotte
+                return Math.sqrt(Math.max(0, 2 * R * y - y * y)); // Kalotte (Kugelabschnitt)
             } else {
-                const kcy = hb - r, kcx = D / 2 - r;
+                const kcy = hb, kcx = D / 2 - r;
                 return kcx + Math.sqrt(Math.max(0, r * r - (y - kcy) * (y - kcy))); // Krempe
             }
         }
@@ -976,15 +1001,23 @@
                 labelsGrp.appendChild(svgEl('text', { x: cx, y: yDimLine + 11, class: 'svg-dim', 'text-anchor': 'middle' }, 'Ø ' + g.d.toFixed(2) + ' m'));
 
                 // Stutzen zeichnen
-                const pos   = document.getElementById('nozzle_pos').value;
-                const nOut  = (parseFloat(document.getElementById('nozzle_outside').value) || 0) / 1000 * scale;
-                const nIns  = (parseFloat(document.getElementById('nozzle_insertion').value) || 0) / 1000 * scale;
-                const nW    = Math.max(8, r_px * 0.18);
+                const pos      = document.getElementById('nozzle_pos').value;
+                const nOut     = (parseFloat(document.getElementById('nozzle_outside').value) || 0) / 1000 * scale;
+                const nFlansch = (parseFloat(document.getElementById('nozzle_flansch').value) || 0) / 1000 * scale;
+                const nIns     = (parseFloat(document.getElementById('nozzle_insertion').value) || 0) / 1000 * scale;
+                const nW       = Math.max(8, r_px * 0.18);
 
                 if (pos === 'top') {
-                    const yFlange = yTopApex - nOut;
-                    nozzleGrp.appendChild(svgEl('rect', { x: (cx - nW / 2).toFixed(1), y: yFlange.toFixed(1), width: nW.toFixed(1), height: (nOut + nIns + 1).toFixed(1), fill: cNozzle, rx: '2' }));
-                    nozzleGrp.appendChild(svgEl('text', { x: (cx + nW / 2 + 3).toFixed(1), y: (yFlange + 9).toFixed(1), class: 'svg-label' }, 'Stutzen'));
+                    // Stutzenhals (nOut = Länge bis Unterkante Flansch)
+                    const yUnterFlansch = yTopApex - nOut;
+                    const yOberFlansch  = yUnterFlansch - nFlansch;
+                    nozzleGrp.appendChild(svgEl('rect', { x: (cx - nW / 2).toFixed(1), y: yUnterFlansch.toFixed(1), width: nW.toFixed(1), height: (nOut + nIns + 1).toFixed(1), fill: cNozzle, rx: '2' }));
+                    // Flansch als breiterer Block
+                    if (nFlansch > 0) {
+                        const fW = nW * 1.8;
+                        nozzleGrp.appendChild(svgEl('rect', { x: (cx - fW / 2).toFixed(1), y: yOberFlansch.toFixed(1), width: fW.toFixed(1), height: nFlansch.toFixed(1), fill: cNozzle, rx: '2' }));
+                    }
+                    nozzleGrp.appendChild(svgEl('text', { x: (cx + nW + 3).toFixed(1), y: (yOberFlansch + 9).toFixed(1), class: 'svg-label' }, 'Stutzen'));
                 } else if (pos === 'side') {
                     const nh_mm = parseFloat(document.getElementById('nozzle_height').value) || 0;
                     const ySide = yBotApex - nh_mm / 1000 * scale;
@@ -996,18 +1029,27 @@
                 const devKey = document.getElementById('device_sel').value;
                 const dev    = EH_DEVICES[devKey];
                 if (dev && pos === 'top') {
-                    const yRef = yTopApex - nOut;  // Sensor-Referenz
+                    const yRef = yTopApex - nOut;  // Unterkante Flansch = Block Distanz Nullpunkt
                     const bdt  = (parseFloat(document.getElementById('bdt_mm').value) || 0) / 1000 * scale;
 
                     if (dev.type === 'levelflex') {
                         const probePx = (parseFloat(document.getElementById('probe_length').value) || 0) / 1000 * scale;
                         const bdb     = (parseFloat(document.getElementById('bdb_mm').value) || 0) / 1000 * scale;
-                        // Sperrzone oben (rot)
-                        deviceGrp.appendChild(svgEl('rect', { x: (cx - 3).toFixed(1), y: yRef.toFixed(1), width: '6', height: bdt.toFixed(1), fill: '#ef444466', rx: '2' }));
                         // Sonde
                         deviceGrp.appendChild(svgEl('line', { x1: cx, y1: yRef.toFixed(1), x2: cx, y2: (yRef + probePx).toFixed(1), stroke: '#6b7280', 'stroke-width': '3' }));
-                        // Sperrzone unten (rot)
-                        deviceGrp.appendChild(svgEl('rect', { x: (cx - 3).toFixed(1), y: (yRef + probePx - bdb).toFixed(1), width: '6', height: bdb.toFixed(1), fill: '#ef444466', rx: '2' }));
+                        // Block Distanz oben: rote Fläche + roter Strich an Grenze
+                        if (bdt > 0) {
+                            deviceGrp.appendChild(svgEl('rect', { x: (cx - 5).toFixed(1), y: yRef.toFixed(1), width: '10', height: bdt.toFixed(1), fill: '#ef444455', rx: '1' }));
+                            deviceGrp.appendChild(svgEl('line', { x1: (cx - 8).toFixed(1), y1: (yRef + bdt).toFixed(1), x2: (cx + 8).toFixed(1), y2: (yRef + bdt).toFixed(1), stroke: '#ef4444', 'stroke-width': '1.5' }));
+                            labelsGrp.appendChild(svgEl('text', { x: (cx + 10).toFixed(1), y: (yRef + bdt + 4).toFixed(1), class: 'svg-label', fill: '#ef4444' }, 'BD'));
+                        }
+                        // Block Distanz unten
+                        if (bdb > 0) {
+                            const yBDB = yRef + probePx - bdb;
+                            deviceGrp.appendChild(svgEl('rect', { x: (cx - 5).toFixed(1), y: yBDB.toFixed(1), width: '10', height: bdb.toFixed(1), fill: '#ef444455', rx: '1' }));
+                            deviceGrp.appendChild(svgEl('line', { x1: (cx - 8).toFixed(1), y1: yBDB.toFixed(1), x2: (cx + 8).toFixed(1), y2: yBDB.toFixed(1), stroke: '#ef4444', 'stroke-width': '1.5' }));
+                            labelsGrp.appendChild(svgEl('text', { x: (cx + 10).toFixed(1), y: (yBDB + 4).toFixed(1), class: 'svg-label', fill: '#ef4444' }, 'BD'));
+                        }
                         // Sensor-Kopf
                         deviceGrp.appendChild(svgEl('rect', { x: (cx - 7).toFixed(1), y: (yRef - 8).toFixed(1), width: '14', height: '8', fill: '#374151', rx: '2' }));
                     } else {
@@ -1021,8 +1063,13 @@
                             { x: cx - Math.min(beamR, r_px * 0.95), y: yBotApex }
                         ];
                         deviceGrp.appendChild(svgEl('polygon', { points: beamPts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' '), fill: cBeam }));
-                        // BDT-Sperrzone
-                        deviceGrp.appendChild(svgEl('rect', { x: (cx - 8).toFixed(1), y: yRef.toFixed(1), width: '16', height: bdt.toFixed(1), fill: '#ef444488' }));
+                        // BDT Block Distanz: rote Fläche auf Messstrahl + roter Strich an Grenze
+                        if (bdt > 0) {
+                            const bdtR = bdt * Math.tan(beamHalf);
+                            deviceGrp.appendChild(svgEl('polygon', { points: `${cx},${yRef.toFixed(1)} ${(cx+Math.min(bdtR,r_px*0.9)).toFixed(1)},${(yRef+bdt).toFixed(1)} ${(cx-Math.min(bdtR,r_px*0.9)).toFixed(1)},${(yRef+bdt).toFixed(1)}`, fill: '#ef444455' }));
+                            deviceGrp.appendChild(svgEl('line', { x1: (cx - Math.min(bdtR, r_px * 0.9)).toFixed(1), y1: (yRef + bdt).toFixed(1), x2: (cx + Math.min(bdtR, r_px * 0.9)).toFixed(1), y2: (yRef + bdt).toFixed(1), stroke: '#ef4444', 'stroke-width': '1.5' }));
+                            labelsGrp.appendChild(svgEl('text', { x: (cx + Math.min(bdtR, r_px * 0.9) + 3).toFixed(1), y: (yRef + bdt + 4).toFixed(1), class: 'svg-label', fill: '#ef4444' }, 'BD'));
+                        }
                         // Sensor-Kopf
                         deviceGrp.appendChild(svgEl('rect', { x: (cx - 10).toFixed(1), y: (yRef - 10).toFixed(1), width: '20', height: '10', fill: '#374151', rx: '3' }));
                         // Abstrahlwinkel-Label
