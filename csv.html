@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CSV-Umwandler – Techniker Berechnungstools</title>
+    <script>try{var t=JSON.parse(localStorage.getItem('techtools_state')||'{}').theme;if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#24292f">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="lib/jspdf.umd.min.js"></script>
+    <script src="lib/jspdf.plugin.autotable.min.js"></script>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
     <style>
         .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
@@ -183,6 +187,7 @@
 
     <footer class="bottom-header">
         <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+        <div class="footer-links"><a href="Impressum.html">Impressum</a><span>&#183;</span><a href="Kontakt.html">Kontakt</a><span>&#183;</span><a href="Statistiken.html">Statistiken</a></div>
     </footer>
 
     <script src="shared.js"></script>
@@ -410,15 +415,22 @@
             hr += '</tr>';
             thead.innerHTML = hr;
 
-            // Body
+            // Body — Vorschau auf 500 Zeilen begrenzen (verhindert Browser-Freeze bei Großdateien);
+            // Exporte (CSV/PDF) nutzen weiterhin die vollständigen Daten
+            const PREVIEW_LIMIT = 500;
+            const previewRows = parsedData.slice(0, PREVIEW_LIMIT);
             let html = '';
-            parsedData.forEach(row => {
+            previewRows.forEach(row => {
                 html += '<tr>';
                 row.forEach((cell, i) => {
                     html += '<td' + (colVisible[i] ? '' : ' class="col-hidden"') + '>' + escHtml(cell) + '</td>';
                 });
                 html += '</tr>';
             });
+            if (parsedData.length > PREVIEW_LIMIT) {
+                const rest = parsedData.length - PREVIEW_LIMIT;
+                html += '<tr><td colspan="' + headers.length + '" style="text-align:center;color:var(--text-tertiary);font-style:italic;padding:12px;">… und ' + rest.toLocaleString('de-DE') + ' weitere Zeilen (Export enthält alle Daten)</td></tr>';
+            }
             tbody.innerHTML = html;
 
             document.getElementById('previewWrap').style.display = 'block';

@@ -4,9 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tankinhalt-Rechner – Techniker Berechnungstools</title>
+    <script>try{var t=JSON.parse(localStorage.getItem('techtools_state')||'{}').theme;if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#24292f">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
     <style>
+        .status-bar { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-default); margin-bottom: 20px; font-size: 14px; font-weight: 500; transition: all 0.3s; }
+        .status-bar.status-ok { background: var(--bg-success); color: var(--text-success); border-color: var(--text-success); }
+        .status-bar.status-warn { background: var(--bg-attention); color: var(--text-attention); border-color: var(--text-attention); }
+        .status-bar.status-error { background: var(--bg-danger); color: var(--text-danger); border-color: var(--text-danger); }
+        .status-bar.status-idle { background: var(--bg-subtle); color: var(--text-tertiary); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .status-ok .status-dot { background: var(--text-success); }
+        .status-warn .status-dot { background: var(--text-attention); }
+        .status-error .status-dot { background: var(--text-danger); }
+        .status-idle .status-dot { background: var(--text-tertiary); }
+
         .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
         .action-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: var(--radius-md); border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; box-shadow: none; font-family: var(--font-sans); }
         .action-btn:hover { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--border-muted); }
@@ -45,6 +60,7 @@
         #lin_table td:first-child { text-align: center; color: var(--text-tertiary); font-family: var(--font-sans); font-size: 11px; }
         #lin_table tr:last-child td { border-bottom: none; }
         #lin_table tr.lin-row-edge td { background: var(--bg-attention); }
+        #lin_table tr.lin-row-over td { background: var(--bg-danger); color: var(--text-danger); }
         #lin_table .lin-num { color: var(--text-tertiary); }
 
         .lin-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
@@ -66,6 +82,13 @@
         .apply-btn:hover { background: var(--accent-fg); color: var(--text-on-emphasis); }
 
         .hidden-row { display: none; }
+
+        /* Feld-Hinweise: eigene Zeile statt wildem Umbruch neben dem Input */
+        .field-hint { display: block; font-size: 11px; color: var(--text-tertiary); margin-top: 3px; line-height: 1.4; }
+
+        /* Geordnete rechte Spalte: einheitliche Abstände zwischen den Blöcken */
+        .col-results > * { margin-top: 0 !important; margin-bottom: 14px !important; }
+        .col-results > *:last-child { margin-bottom: 0 !important; }
 
         .svg-wrapper { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 8px; margin-top: 16px; overflow: hidden; }
         #tankSVG { display: block; width: 100%; height: auto; }
@@ -99,7 +122,14 @@
             </div>
 
             <div class="description">
-                🛢️ Berechnet Füllvolumen, Füllmasse und Linearisierungstabelle für Füllstandsmessungen. Unterstützt stehende/liegende Zylinder, Kugeltanks und Kegelstümpfe mit LRV/URV-Konfiguration.
+                🛢️ Berechnet Füllvolumen, Füllmasse und Linearisierungstabelle für Füllstandsmessungen. Unterstützt stehende/liegende Zylinder, Kugeltanks, Kegelstümpfe und Rechtecktanks mit LRV/URV-Konfiguration.<br><br>
+                📡 Die <strong>Einbau-Bewertung</strong> (Ampel + Checkliste unter der Visualisierung) prüft die Einbausituation des Messgeräts: Strahlkegel gegen Tankwand und Stutzenrohr (inkl. Stutzen-Versatz von der Tankachse), Sondenlänge gegen Tankhöhe, Sperrbereiche gegen Stutzen sowie LRV/URV gegen die Tankgeometrie. Abstrahlwinkel und Blockdistanzen laut E+H-Datenblättern (Stand 06/2026).
+            </div>
+
+            <!-- Einbau-Ampel -->
+            <div class="status-bar status-idle" id="statusBar">
+                <div class="status-dot"></div>
+                <span id="statusText">Messgerät wählen für die vollständige Einbau-Bewertung</span>
             </div>
 
             <!-- Tankform -->
@@ -118,7 +148,7 @@
                     <tr><td colspan="2">Außendurchmesser Da</td><td colspan="4"><input class="input-field" type="number" id="vCyl_Da" value="2000" min="0" step="1"> mm</td></tr>
                     <tr><td colspan="2">Wandstärke S</td><td colspan="4"><input class="input-field" type="number" id="vCyl_S" value="10" min="0" step="0.5"> mm</td></tr>
                     <tr><td colspan="2">Innendurchmesser Di</td><td colspan="4" class="result-field" style="padding:6px 8px;"><span id="vCyl_Di_display">—</span></td></tr>
-                    <tr><td colspan="2">Zylinderlänge L (Naht–Naht)</td><td colspan="4"><input class="input-field" type="number" id="vCyl_L" value="4000" min="0" step="10"> mm <span style="font-size:11px;color:var(--text-tertiary)">gerader Teil</span></td></tr>
+                    <tr><td colspan="2">Zylinderlänge L (Naht–Naht)</td><td colspan="4"><input class="input-field" type="number" id="vCyl_L" value="4000" min="0" step="10"> mm <span class="field-hint">gerader Teil</span></td></tr>
                     <tr><td colspan="2">Bodenart (unten)</td><td colspan="4">
                         <select class="input-field" id="vCyl_botHead" onchange="onVCylHeadChange(); updateTiltVisibility(); calc()">
                             <option value="flat">Flachboden</option>
@@ -246,7 +276,7 @@
                 </tr>
                 <tr id="nozzle_height_row" class="hidden-row">
                     <td colspan="2">Stutzen-Mitte: Höhe ab Innenboden</td>
-                    <td colspan="4"><input class="input-field" type="number" id="nozzle_height" value="0" min="0" step="1"> mm <span style="font-size:11px;color:var(--text-tertiary)">von Bodenspiegel bis Stutzen-Mittellinie</span></td>
+                    <td colspan="4"><input class="input-field" type="number" id="nozzle_height" value="0" min="0" step="1"> mm <span class="field-hint">von Bodenspiegel bis Stutzen-Mittellinie</span></td>
                 </tr>
                 <tr>
                     <td colspan="2">Stutzen-Länge (über Tank)</td>
@@ -254,23 +284,23 @@
                 </tr>
                 <tr>
                     <td colspan="2">Flanschdicke (oben)</td>
-                    <td colspan="4"><input class="input-field" type="number" id="nozzle_flansch" value="20" min="0" step="1"> mm <span style="font-size:11px;color:var(--text-tertiary)">Flansch am Sensor-Anschluss</span></td>
+                    <td colspan="4"><input class="input-field" type="number" id="nozzle_flansch" value="20" min="0" step="1"> mm <span class="field-hint">Flansch am Sensor-Anschluss</span></td>
                 </tr>
                 <tr>
                     <td colspan="2">Tauchtiefe (in Tank)</td>
-                    <td colspan="4"><input class="input-field" type="number" id="nozzle_insertion" value="0" min="0" step="1"> mm <span style="font-size:11px;color:var(--text-tertiary)">für eingesch. Sonden</span></td>
+                    <td colspan="4"><input class="input-field" type="number" id="nozzle_insertion" value="0" min="0" step="1"> mm <span class="field-hint">für eingesch. Sonden</span></td>
                 </tr>
                 <tr>
                     <td colspan="2">Passstück-Höhe H<sub>P</sub></td>
-                    <td colspan="4"><input class="input-field" type="number" id="nozzle_HP" value="0" min="0" step="1"> mm <span style="font-size:11px;color:var(--text-tertiary)">Adapter zwischen Flansch und Sensor</span></td>
+                    <td colspan="4"><input class="input-field" type="number" id="nozzle_HP" value="0" min="0" step="1"> mm <span class="field-hint">Adapter zwischen Flansch und Sensor</span></td>
                 </tr>
                 <tr>
                     <td colspan="2">Stutzen-Innenradius R<sub>St</sub></td>
-                    <td colspan="4"><input class="input-field" type="number" id="nozzle_RSt" value="0" min="0" step="1"> mm <span style="font-size:11px;color:var(--text-tertiary)">leer = nicht prüfen</span></td>
+                    <td colspan="4"><input class="input-field" type="number" id="nozzle_RSt" value="0" min="0" step="1"> mm <span class="field-hint">leer = nicht prüfen</span></td>
                 </tr>
                 <tr id="nozzle_HmSt_row" class="hidden-row">
-                    <td colspan="2">Stutzen-Mitte: Abstand von Tankachse</td>
-                    <td colspan="4"><input class="input-field" type="number" id="nozzle_HmSt" value="0" min="0" step="10"> mm <span style="font-size:11px;color:var(--text-tertiary)">wenn Stutzen nicht mittig</span></td>
+                    <td colspan="2">Stutzen-Position auf dem Deckel</td>
+                    <td colspan="4"><input class="input-field" type="number" id="nozzle_HmSt" value="0" step="10"> mm <span class="field-hint">Versatz von der Tankmitte (0 = mittig); geht in Strahlkegel-Prüfung und Zeichnung ein</span></td>
                 </tr>
                 <tr id="tilt_row" class="hidden-row">
                     <td colspan="2">Neigungswinkel</td>
@@ -294,27 +324,32 @@
                     <td colspan="4">
                         <select class="input-field" id="device_sel" onchange="onDeviceChanged()">
                             <option value="none">Kein / Manuell</option>
-                            <optgroup label="── Levelflex (Geführtes Mikrowellenradar) ──">
+                            <optgroup label="── Levelflex (Geführtes Radar) ──">
                                 <option value="fmp51">Levelflex FMP51</option>
                                 <option value="fmp52">Levelflex FMP52</option>
                                 <option value="fmp54">Levelflex FMP54 (beheizbar)</option>
                                 <option value="fmp55">Levelflex FMP55 (Hygiene)</option>
                                 <option value="fmp56">Levelflex FMP56 (Ex)</option>
                             </optgroup>
-                            <optgroup label="── Micropilot (Freiraum-Radar) ──">
-                                <option value="fmr10">Micropilot FMR10 – 6 GHz, 10°</option>
-                                <option value="fmr20">Micropilot FMR20 – 26 GHz, 8°</option>
-                                <option value="fmr30">Micropilot FMR30 – 26 GHz, 4°</option>
-                                <option value="fmr50">Micropilot FMR50 – 76 GHz, 4°</option>
-                                <option value="fmr51">Micropilot FMR51 – 76 GHz, 3°</option>
-                                <option value="fmr54">Micropilot FMR54 – 76 GHz, 3°</option>
-                                <option value="fmr57">Micropilot FMR57 – 76 GHz, 4°</option>
+                            <optgroup label="── Micropilot B-Serie (Freiraum-Radar, 80 GHz) ──">
+                                <option value="fmr10b">Micropilot FMR10B</option>
+                                <option value="fmr20b">Micropilot FMR20B</option>
+                                <option value="fmr30b">Micropilot FMR30B</option>
+                                <option value="fmr43">Micropilot FMR43 (80/180 GHz)</option>
+                                <option value="fmr60b">Micropilot FMR60B</option>
+                                <option value="fmr62b">Micropilot FMR62B</option>
+                                <option value="fmr63b">Micropilot FMR63B</option>
+                                <option value="fmr66b">Micropilot FMR66B (Schüttgut)</option>
+                                <option value="fmr67b">Micropilot FMR67B (Schüttgut)</option>
                             </optgroup>
                             <optgroup label="── Prosonic (Ultraschall) ──">
-                                <option value="fmu41">Prosonic FMU41 – 12°</option>
-                                <option value="fmu42">Prosonic FMU42 – 12°</option>
-                                <option value="fmu43">Prosonic FMU43 – 8°</option>
-                                <option value="fmu44">Prosonic FMU44 – 8°</option>
+                                <option value="fmu30_15">Prosonic FMU30 (1½″) – 11°</option>
+                                <option value="fmu30_2">Prosonic FMU30 (2″) – 11°</option>
+                                <option value="fmu40">Prosonic FMU40 – 11°</option>
+                                <option value="fmu41">Prosonic FMU41 – 11°</option>
+                                <option value="fmu42">Prosonic FMU42 – 9°</option>
+                                <option value="fmu43">Prosonic FMU43 – 6°</option>
+                                <option value="fmu44">Prosonic FMU44 – 11°</option>
                             </optgroup>
                         </select>
                     </td>
@@ -333,6 +368,14 @@
                 <tr id="bdb_row" class="hidden-row">
                     <td colspan="2">Sperrbereich unten (BDB)</td>
                     <td colspan="4"><input class="input-field" type="number" id="bdb_mm" value="0" min="0" step="1"> mm</td>
+                </tr>
+                <!-- Antennen-Variante (setzt den Abstrahlwinkel) -->
+                <tr id="beam_variant_row" class="hidden-row">
+                    <td colspan="2">Antennen-Variante</td>
+                    <td colspan="4">
+                        <select class="input-field" id="beam_variant" onchange="onBeamVariantChange()"></select>
+                        <span class="field-hint">laut Typenschild/Bestellcode</span>
+                    </td>
                 </tr>
                 <!-- Abstrahlwinkel (Radar/US) -->
                 <tr id="beam_row" class="hidden-row">
@@ -371,7 +414,7 @@
             <table>
                 <tr>
                     <td colspan="2">Dichte des Mediums</td>
-                    <td colspan="4"><input class="input-field" type="number" id="cfg_density" value="1000" min="0" step="1"> kg/m³ <span style="font-size:11px;color:var(--text-tertiary)">(Wasser = 1000)</span></td>
+                    <td colspan="4"><input class="input-field" type="number" id="cfg_density" value="1000" min="0" step="1"> kg/m³ <span class="field-hint">(Wasser = 1000)</span></td>
                 </tr>
                 <tr>
                     <td colspan="2">LRV – Unterer Messbereich</td>
@@ -379,7 +422,7 @@
                 </tr>
                 <tr>
                     <td colspan="2">URV – Oberer Messbereich</td>
-                    <td colspan="4"><input class="input-field" type="number" id="cfg_urv" value="5000" min="0" step="1"> mm vom Tankboden</td>
+                    <td colspan="4"><input class="input-field" type="number" id="cfg_urv" value="4500" min="0" step="1"> mm vom Tankboden <span class="field-hint">über „LRV/URV übernehmen" aus dem Gerät ableitbar</span></td>
                 </tr>
             </table>
 
@@ -401,7 +444,7 @@
             </div>
 
             <!-- Tank-Visualisierung -->
-            <div class="svg-wrapper">
+            <div class="svg-wrapper" data-pane="results">
                 <p class="section-title" style="margin-bottom:6px">Tank-Visualisierung</p>
                 <svg id="tankSVG" viewBox="0 0 300 380" xmlns="http://www.w3.org/2000/svg">
                     <defs>
@@ -418,6 +461,12 @@
                     <!-- Beschriftungen -->
                     <g id="svgLabels"></g>
                 </svg>
+            </div>
+
+            <!-- Einbau-Bewertung -->
+            <div class="calib-box" id="installBox" data-pane="results">
+                <div style="font-weight:600;font-size:13px;margin-bottom:6px">📡 Einbau-Bewertung</div>
+                <div id="installChecks"></div>
             </div>
 
             <hr class="section-divider">
@@ -468,7 +517,8 @@
                         <tr>
                             <th>Nr.</th>
                             <th>Füllstand (mm)</th>
-                            <th>Füllstand (%)</th>
+                            <th>Füllstand (% v. MB)</th>
+                            <th>Volumen (%)</th>
                             <th>Volumen (m³)</th>
                             <th>Volumen (l)</th>
                             <th>Masse (kg)</th>
@@ -480,7 +530,7 @@
             </div>
 
             <div class="info-box" style="margin-top:16px;">
-                <strong>Hinweis:</strong> Klöpperboden nach DIN 28011 (R=D, r=0,1·D), Korbbogenboden nach DIN 28013 (R=0,8·D, r=0,154·D). Bodenvolumen per numerischer Integration. Kein Abzug für Einbauten. E+H Sperrbereich-Werte sind Richtwerte — die aktuellen Gerätedatenblätter prüfen. LRV/URV definieren den Linearisierungsbereich.
+                <strong>Hinweis:</strong> Klöpperboden nach DIN 28011 (R=D, r=0,1·D), Korbbogenboden nach DIN 28013 (R=0,8·D, r=0,154·D). Bodenvolumen per numerischer Integration. Kein Abzug für Einbauten. LRV/URV definieren den Linearisierungsbereich: <strong>„Füllstand (% v. MB)"</strong> ist der Füllstand bezogen auf die Messspanne (das, was der Transmitter als Prozent ausgibt), <strong>„Volumen (%)"</strong> der Anteil am Gesamtvolumen. Rot markierte Zeilen liegen über der Tankhöhe. Abstrahlwinkel/Blockdistanzen laut E+H-Datenblättern (Stand 06/2026); Levelflex-Sperrbereiche sind sonden-/medienabhängige Richtwerte. Micropilot-B-Serie: messbar bis ~10 mm vor Antennenspitze — Vollabgleich sollte den Stutzen abdecken (siehe Einbau-Bewertung).
             </div>
 
             <div class="shortcuts-hint" style="margin-top:16px;">
@@ -493,6 +543,7 @@
 
     <footer class="bottom-header">
         <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+        <div class="footer-links"><a href="Impressum.html">Impressum</a><span>&#183;</span><a href="Kontakt.html">Kontakt</a><span>&#183;</span><a href="Statistiken.html">Statistiken</a></div>
     </footer>
 
     <script src="shared.js"></script>
@@ -500,26 +551,44 @@
         let activeShape = 'vCyl';
 
         // ============ E+H GERÄTEDATENBANK ============
+        // Abstrahlwinkel & Blockdistanzen laut Datenblättern (Stand 06/2026).
+        // beams: wählbare Antennen-Varianten; bdt/bdb in mm.
+        // Micropilot B-Serie (80 GHz): keine feste Blockdistanz — messbar bis
+        // ~10 mm vor Antennenspitze, Vollabgleich sollte den Stutzen abdecken.
         const EH_DEVICES = {
-            // Levelflex – Geführtes Mikrowellenradar
-            fmp51: { name:'Levelflex FMP51', type:'levelflex', bdt:100, bdb:100,  beam:null },
-            fmp52: { name:'Levelflex FMP52', type:'levelflex', bdt:100, bdb:100,  beam:null },
-            fmp54: { name:'Levelflex FMP54', type:'levelflex', bdt:200, bdb:150,  beam:null },
-            fmp55: { name:'Levelflex FMP55', type:'levelflex', bdt:100, bdb:100,  beam:null },
-            fmp56: { name:'Levelflex FMP56', type:'levelflex', bdt:100, bdb:100,  beam:null },
-            // Micropilot – Freiraum-Radar
-            fmr10: { name:'Micropilot FMR10', type:'radar',    bdt:300, bdb:0,    beam:10  },
-            fmr20: { name:'Micropilot FMR20', type:'radar',    bdt:300, bdb:0,    beam:8   },
-            fmr30: { name:'Micropilot FMR30', type:'radar',    bdt:300, bdb:0,    beam:4   },
-            fmr50: { name:'Micropilot FMR50', type:'radar',    bdt:500, bdb:0,    beam:4   },
-            fmr51: { name:'Micropilot FMR51', type:'radar',    bdt:500, bdb:0,    beam:3   },
-            fmr54: { name:'Micropilot FMR54', type:'radar',    bdt:500, bdb:0,    beam:3   },
-            fmr57: { name:'Micropilot FMR57', type:'radar',    bdt:400, bdb:0,    beam:4   },
-            // Prosonic – Ultraschall
-            fmu41: { name:'Prosonic FMU41',   type:'ultrasonic',bdt:250, bdb:0,   beam:12  },
-            fmu42: { name:'Prosonic FMU42',   type:'ultrasonic',bdt:250, bdb:0,   beam:12  },
-            fmu43: { name:'Prosonic FMU43',   type:'ultrasonic',bdt:250, bdb:0,   beam:8   },
-            fmu44: { name:'Prosonic FMU44',   type:'ultrasonic',bdt:250, bdb:0,   beam:8   },
+            // Levelflex – Geführtes Radar (BD = Richtwerte, sonden-/medienabhängig)
+            fmp51: { name:'Levelflex FMP51', type:'levelflex', bdt:100, bdb:100, beams:null },
+            fmp52: { name:'Levelflex FMP52', type:'levelflex', bdt:100, bdb:100, beams:null },
+            fmp54: { name:'Levelflex FMP54', type:'levelflex', bdt:200, bdb:150, beams:null },
+            fmp55: { name:'Levelflex FMP55', type:'levelflex', bdt:100, bdb:100, beams:null },
+            fmp56: { name:'Levelflex FMP56', type:'levelflex', bdt:100, bdb:100, beams:null },
+            // Micropilot B-Serie – Freiraum-Radar 80 GHz
+            fmr10b: { name:'Micropilot FMR10B', type:'radar', bdt:0, bdb:0,
+                      beams:[ {deg:8, label:'8° — 40-mm-Antenne'}, {deg:4, label:'4° — 80-mm-Antenne'} ] },
+            fmr20b: { name:'Micropilot FMR20B', type:'radar', bdt:0, bdb:0,
+                      beams:[ {deg:8, label:'8° — 40-mm-Antenne'}, {deg:4, label:'4° — 80-mm-Antenne'} ] },
+            fmr30b: { name:'Micropilot FMR30B', type:'radar', bdt:0, bdb:0,
+                      beams:[ {deg:8, label:'8° — 40-mm-Antenne'}, {deg:4, label:'4° — 80-mm-Antenne'} ] },
+            fmr43:  { name:'Micropilot FMR43 (80/180 GHz)', type:'radar', bdt:0, bdb:0,
+                      beams:[ {deg:6, label:'6°'}, {deg:7, label:'7°'}, {deg:8, label:'8°'}, {deg:14, label:'14°'} ] },
+            fmr60b: { name:'Micropilot FMR60B', type:'radar', bdt:0, bdb:0,
+                      beams:[ {deg:6, label:'6°'}, {deg:7, label:'7°'}, {deg:8, label:'8°'}, {deg:14, label:'14°'} ] },
+            fmr62b: { name:'Micropilot FMR62B', type:'radar', bdt:0, bdb:0,
+                      beams:[ {deg:3, label:'3°'}, {deg:4, label:'4°'}, {deg:6, label:'6°'}, {deg:7, label:'7°'} ] },
+            fmr63b: { name:'Micropilot FMR63B', type:'radar', bdt:0, bdb:0,
+                      beams:[ {deg:3, label:'3°'}, {deg:7, label:'7°'}, {deg:14, label:'14°'} ] },
+            fmr66b: { name:'Micropilot FMR66B (Schüttgut)', type:'radar', bdt:0, bdb:0,
+                      beams:[ {deg:6, label:'6°'}, {deg:7, label:'7°'} ] },
+            fmr67b: { name:'Micropilot FMR67B (Schüttgut)', type:'radar', bdt:0, bdb:0,
+                      beams:[ {deg:4, label:'4°'}, {deg:6, label:'6°'} ] },
+            // Prosonic – Ultraschall (BD laut Datenblatt)
+            fmu30_15: { name:'Prosonic FMU30 (1½″)', type:'ultrasonic', bdt:250, bdb:0, beams:[ {deg:11, label:'11°'} ] },
+            fmu30_2:  { name:'Prosonic FMU30 (2″)',  type:'ultrasonic', bdt:350, bdb:0, beams:[ {deg:11, label:'11°'} ] },
+            fmu40:    { name:'Prosonic FMU40', type:'ultrasonic', bdt:250, bdb:0, beams:[ {deg:11, label:'11°'} ] },
+            fmu41:    { name:'Prosonic FMU41', type:'ultrasonic', bdt:350, bdb:0, beams:[ {deg:11, label:'11°'} ] },
+            fmu42:    { name:'Prosonic FMU42', type:'ultrasonic', bdt:400, bdb:0, beams:[ {deg:9,  label:'9°'}  ] },
+            fmu43:    { name:'Prosonic FMU43', type:'ultrasonic', bdt:600, bdb:0, beams:[ {deg:6,  label:'6°'}  ] },
+            fmu44:    { name:'Prosonic FMU44', type:'ultrasonic', bdt:500, bdb:0, beams:[ {deg:11, label:'11°'} ] },
         };
 
         // ============ STUTZEN UI ============
@@ -598,11 +667,12 @@
             const outside = parseFloat(document.getElementById('nozzle_outside').value) || 0;
             const flansch = parseFloat(document.getElementById('nozzle_flansch').value) || 0;
             const insert  = parseFloat(document.getElementById('nozzle_insertion').value) || 0;
+            const hp      = parseFloat(document.getElementById('nozzle_HP').value) || 0;
             const totalH_mm = getTotalHeight() * 1000;
-            // Flanschdicke liegt zwischen Stutzenflansch und Tankwand → addiert zur Außenhöhe
-            if (pos === 'top')    return totalH_mm + outside + flansch - insert;
+            // Aufbau oben: Tankdecke + Stutzen + Flansch + Passstück = Sensor-Referenz
+            if (pos === 'top')    return totalH_mm + outside + flansch + hp - insert;
             if (pos === 'side')   return parseFloat(document.getElementById('nozzle_height').value) || 0;
-            if (pos === 'bottom') return insert - outside - flansch;
+            if (pos === 'bottom') return insert - outside - flansch - hp;
             return 0;
         }
 
@@ -612,20 +682,31 @@
             const dev = EH_DEVICES[key];
 
             const isLevelflex   = dev && dev.type === 'levelflex';
-            const isRadarOrUS   = dev && (dev.type === 'radar' || dev.type === 'ultrasonic');
+            const hasBeams      = !!(dev && Array.isArray(dev.beams) && dev.beams.length);
             const hasDevice     = !!dev;
 
             document.getElementById('probe_row').classList.toggle('hidden-row', !isLevelflex);
             document.getElementById('bdb_row').classList.toggle('hidden-row', !isLevelflex);
             document.getElementById('bdt_row').classList.toggle('hidden-row', !hasDevice);
-            document.getElementById('beam_row').classList.toggle('hidden-row', !isRadarOrUS);
+            document.getElementById('beam_row').classList.toggle('hidden-row', !hasBeams);
+            document.getElementById('beam_variant_row').classList.toggle('hidden-row', !(hasBeams && dev.beams.length > 1));
             document.getElementById('calibBox').style.display = hasDevice ? '' : 'none';
 
             if (dev) {
                 document.getElementById('bdt_mm').value  = dev.bdt;
                 document.getElementById('bdb_mm').value  = dev.bdb;
-                if (dev.beam !== null) document.getElementById('beam_angle').value = dev.beam;
+                if (hasBeams) {
+                    const sel = document.getElementById('beam_variant');
+                    sel.innerHTML = dev.beams.map(b => '<option value="' + b.deg + '">' + b.label + '</option>').join('');
+                    document.getElementById('beam_angle').value = dev.beams[0].deg;
+                }
             }
+            calc();
+        }
+
+        function onBeamVariantChange() {
+            const v = parseFloat(document.getElementById('beam_variant').value);
+            if (isFinite(v)) document.getElementById('beam_angle').value = v;
             calc();
         }
 
@@ -687,6 +768,147 @@
             document.getElementById('cfg_lrv').value = Math.max(0, Math.round(hSensor - E_mm));
             document.getElementById('cfg_urv').value = Math.max(0, Math.round(hSensor - bdt));
             calc();
+        }
+
+        // ============ EINBAU-BEWERTUNG ============
+        // Verfügbarer Radius (mm) von der Tankachse bis zur Innenwand
+        function getWallRadius_mm() {
+            const g = getGeom();
+            if (activeShape === 'vCyl')   return g.Di_mm / 2;
+            if (activeShape === 'rect')   return Math.min(Math.max(0, g.B - 2 * g.S), Math.max(0, g.T - 2 * g.S)) / 2;
+            if (activeShape === 'sphere') return g.d * 1000 / 2;
+            if (activeShape === 'cone')   return Math.min(g.d1, g.d2) * 1000 / 2; // engste Stelle
+            return null; // hCyl: Seitenansicht, Radius variiert über die Länge
+        }
+
+        function evalInstallation() {
+            const checks = [];
+            const add = (sev, text) => checks.push({ sev, text });
+            const fmtMM = v => Math.round(v).toLocaleString('de-DE');
+
+            const totalH_mm = getTotalHeight() * 1000;
+            const lrv = parseFloat(document.getElementById('cfg_lrv').value) || 0;
+            const urv = parseFloat(document.getElementById('cfg_urv').value) || 0;
+
+            // --- Messbereich vs. Tankgeometrie ---
+            if (urv <= lrv) {
+                add('err', 'URV ≤ LRV — Messspanne ungültig.');
+            } else if (totalH_mm > 0 && urv > totalH_mm + 0.5) {
+                add('err', 'URV (' + fmtMM(urv) + ' mm) liegt über der Tankhöhe (' + fmtMM(totalH_mm) + ' mm) — die Linearisierungstabelle läuft oben ins Leere (konstantes Volumen).');
+            } else {
+                add('ok', 'Messspanne ' + fmtMM(urv - lrv) + ' mm innerhalb der Tankhöhe (' + fmtMM(totalH_mm) + ' mm).');
+            }
+
+            const key = document.getElementById('device_sel').value;
+            const dev = EH_DEVICES[key];
+            if (!dev) return checks;
+
+            const pos = document.getElementById('nozzle_pos').value;
+            if (pos !== 'top') {
+                add('err', dev.name + ' misst von oben — Stutzen-Position „' + (pos === 'side' ? 'Seite' : 'Boden') + '" ist dafür ungeeignet.');
+                return checks;
+            }
+
+            const hSensor = getSensorHeight();
+            const bdt     = parseFloat(document.getElementById('bdt_mm').value) || 0;
+            const nOut    = parseFloat(document.getElementById('nozzle_outside').value) || 0;
+            const flansch = parseFloat(document.getElementById('nozzle_flansch').value) || 0;
+            const insert  = parseFloat(document.getElementById('nozzle_insertion').value) || 0;
+
+            // --- Sperrbereich / Vollabgleich vs. Stutzen und Tankdecke ---
+            const maxLevel = hSensor - bdt; // höchster messbarer Füllstand (mm ab Boden)
+            if (maxLevel > totalH_mm + 0.5) {
+                add('warn', 'Sperrbereich endet im Stutzen: max. messbarer Füllstand ' + fmtMM(maxLevel) + ' mm > Tankdecke ' + fmtMM(totalH_mm) + ' mm — Vollabgleich F ≥ ' + fmtMM(hSensor - totalH_mm + 10) + ' mm wählen (Stutzen + 10 mm).');
+            } else if (urv > maxLevel + 0.5) {
+                add('err', 'URV (' + fmtMM(urv) + ' mm) liegt über dem max. messbaren Füllstand (' + fmtMM(maxLevel) + ' mm = Sensor − Sperrbereich).');
+            } else {
+                add('ok', 'Sperrbereich passt: messbar bis ' + fmtMM(maxLevel) + ' mm, URV ' + fmtMM(urv) + ' mm.');
+            }
+
+            if (dev.type === 'levelflex') {
+                const probe = parseFloat(document.getElementById('probe_length').value) || 0;
+                const bdb   = parseFloat(document.getElementById('bdb_mm').value) || 0;
+                const clearance = hSensor - probe; // Sondenende über Boden
+                if (probe <= 0) {
+                    add('warn', 'Sondenlänge eingeben — ohne Sonde keine Längenprüfung.');
+                } else if (clearance < 0) {
+                    add('err', 'Sonde ist ' + fmtMM(-clearance) + ' mm zu lang — sie liegt auf dem Tankboden auf (Bodenabstand ≥ 10 mm einhalten).');
+                } else if (clearance < 10) {
+                    add('warn', 'Sondenende nur ' + fmtMM(clearance) + ' mm über dem Boden — E+H empfiehlt ≥ 10 mm Abstand.');
+                } else {
+                    add('ok', 'Sondenende ' + fmtMM(clearance) + ' mm über dem Tankboden.');
+                }
+                const minLevel = Math.max(0, clearance) + bdb; // niedrigster messbarer Füllstand
+                if (probe > 0 && lrv < minLevel - 0.5) {
+                    add('warn', 'LRV (' + fmtMM(lrv) + ' mm) liegt unter dem messbaren Minimum (Sondenende + BDB = ' + fmtMM(minLevel) + ' mm).');
+                }
+            } else {
+                // --- Radar / Ultraschall: Strahlkegel ---
+                const beam = parseFloat(document.getElementById('beam_angle').value) || 0;
+                const tanH = Math.tan(beam / 2 * Math.PI / 180);
+                const off  = Math.abs(parseFloat(document.getElementById('nozzle_HmSt').value) || 0);
+                const rWall = getWallRadius_mm();
+                if (beam <= 0) {
+                    add('warn', 'Abstrahlwinkel eingeben.');
+                } else if (rWall === null) {
+                    add('warn', 'Strahlkegel-Prüfung gegen die Wand ist für den liegenden Zylinder nicht implementiert.');
+                } else {
+                    const dist  = Math.max(0, hSensor - lrv); // weitester Messweg (bis LRV)
+                    const rBeam = dist * tanH;
+                    const avail = rWall - off;
+                    if (avail <= 0) {
+                        add('err', 'Stutzen-Versatz (' + fmtMM(off) + ' mm) liegt außerhalb des Tankradius (' + fmtMM(rWall) + ' mm).');
+                    } else if (rBeam > avail) {
+                        add('err', 'Strahlkegel trifft die Tankwand: Ø ' + fmtMM(2 * rBeam) + ' mm auf LRV-Höhe, verfügbar Ø ' + fmtMM(2 * avail) + ' mm' + (off > 0 ? ' (Versatz ' + fmtMM(off) + ' mm)' : '') + ' — größere Antenne (kleinerer Winkel) oder mittiger einbauen.');
+                    } else if (rBeam > 0.8 * avail) {
+                        add('warn', 'Strahlkegel knapp: ' + Math.round(rBeam / avail * 100) + '% des Wandabstands genutzt (Ø ' + fmtMM(2 * rBeam) + ' von Ø ' + fmtMM(2 * avail) + ' mm auf LRV-Höhe).');
+                    } else {
+                        add('ok', 'Strahlkegel frei: Ø ' + fmtMM(2 * rBeam) + ' mm auf LRV-Höhe, Wandabstand Ø ' + fmtMM(2 * avail) + ' mm (' + Math.round(rBeam / avail * 100) + '%).');
+                    }
+
+                    // Strahl im Stutzenrohr
+                    const RSt = parseFloat(document.getElementById('nozzle_RSt').value) || 0;
+                    const nozLen = Math.max(0, nOut + flansch - insert);
+                    if (RSt > 0 && nozLen > 0) {
+                        const rNoz = nozLen * tanH;
+                        if (rNoz > RSt) {
+                            add('err', 'Strahl trifft das Stutzenrohr: Ø ' + fmtMM(2 * rNoz) + ' mm am Stutzenende > Innen-Ø ' + fmtMM(2 * RSt) + ' mm — Antenne sollte aus dem Stutzen ragen.');
+                        } else {
+                            add('ok', 'Strahl passiert den Stutzen (Ø ' + fmtMM(2 * rNoz) + ' ≤ Innen-Ø ' + fmtMM(2 * RSt) + ' mm).');
+                        }
+                    }
+                }
+            }
+            return checks;
+        }
+
+        function renderInstallation() {
+            const checks = evalInstallation();
+            const wrap = document.getElementById('installChecks');
+            wrap.innerHTML = '';
+            const ICON = { ok: '✓', warn: '⚠', err: '✕' };
+            const COL  = { ok: 'var(--text-success)', warn: 'var(--text-attention)', err: 'var(--text-danger)' };
+            checks.forEach(c => {
+                const row = document.createElement('div');
+                row.className = 'calib-row';
+                const span = document.createElement('span');
+                span.className = 'calib-label';
+                span.style.color = COL[c.sev];
+                span.textContent = ICON[c.sev] + ' ' + c.text;
+                row.appendChild(span);
+                wrap.appendChild(row);
+            });
+
+            const bar = document.getElementById('statusBar');
+            const txt = document.getElementById('statusText');
+            const errs  = checks.filter(c => c.sev === 'err');
+            const warns = checks.filter(c => c.sev === 'warn');
+            const dev = EH_DEVICES[document.getElementById('device_sel').value];
+            const more = n => n > 1 ? '  (+' + (n - 1) + ' weitere)' : '';
+            if (errs.length)       { bar.className = 'status-bar status-error'; txt.textContent = '✕ ' + errs[0].text + more(errs.length); }
+            else if (warns.length) { bar.className = 'status-bar status-warn';  txt.textContent = '⚠ ' + warns[0].text + more(warns.length); }
+            else if (dev)          { bar.className = 'status-bar status-ok';    txt.textContent = '✓ Einbausituation plausibel — alle Prüfungen bestanden'; }
+            else                   { bar.className = 'status-bar status-idle';  txt.textContent = 'Messgerät wählen für die vollständige Einbau-Bewertung'; }
         }
 
         // ============ HANDY NEIGUNGSSENSOR ============
@@ -771,7 +993,9 @@
             let R, r;
             if (headType === 'kloepperboden') { R = D;       r = 0.1   * D; } // DIN 28011
             else                              { R = 0.8 * D; r = 0.154 * D; } // Korbbogen DIN 28013
-            const hb = R + r - Math.sqrt(Math.max(0, (R - r) * (R - r) - (D / 2 - r) * (D / 2 - r)));
+            // Schulterhöhe (Tangente Krempe→Zylinder): hb = R − √((R−r)² − (D/2−r)²)
+            // Klöpper: hb ≈ 0,1938·D (DIN 28011: h2 ≈ 0,1935·Da)
+            const hb = R - Math.sqrt(Math.max(0, (R - r) * (R - r) - (D / 2 - r) * (D / 2 - r)));
             return { R, r, hb };
         }
 
@@ -781,12 +1005,12 @@
             const { R, r, hb } = headParams(D, headType);
             if (hb <= 0 || y >= hb) return D / 2;
             if (headType === 'hemisphere') return Math.sqrt(Math.max(0, D * y - y * y));
-            // Übergangshoehe Kalotte → Krempe
-            const yt = R * (hb - 2 * r) / (R - r);
+            // Übergangshoehe Kalotte → Krempe (Krempenmittelpunkt liegt auf Schulterhöhe hb)
+            const yt = R * (hb - r) / (R - r);
             if (y <= yt) {
                 return Math.sqrt(Math.max(0, 2 * R * y - y * y)); // Kalotte
             } else {
-                const kcy = hb - r, kcx = D / 2 - r;
+                const kcy = hb, kcx = D / 2 - r;
                 return kcx + Math.sqrt(Math.max(0, r * r - (y - kcy) * (y - kcy))); // Krempe
             }
         }
@@ -819,36 +1043,6 @@
         }
 
         // ============ VOLUMEN-FUNKTIONEN ============
-
-        // bordel_m = gerade Länge (Bördel) je Boden in Metern (0 bei Flachboden)
-        function volVCyl(D, Lcyl, botHead, topHead, bordel_m, levelM) {
-            const r   = D / 2;
-            const A   = Math.PI * r * r;
-            // Bördel entfällt bei Flachboden
-            const bBot = botHead === 'flat' ? 0 : bordel_m;
-            const bTop = topHead === 'flat' ? 0 : bordel_m;
-            const hbot = headParams(D, botHead).hb;
-            const htop = headParams(D, topHead).hb;
-            // Zonen von unten: Bördel-unten | Kopf-unten | Zylinder | Kopf-oben | Bördel-oben
-            const zones = [
-                { h: bBot,  vol: h => A * h },
-                { h: hbot,  vol: h => headPartialVol(h, D, botHead) },
-                { h: Lcyl,  vol: h => A * h },
-                { h: htop,  vol: h => headPartialVol(h, D, topHead) },
-                { h: bTop,  vol: h => A * h },
-            ];
-            const maxH = zones.reduce((s, z) => s + z.h, 0);
-            const total = A * bBot + headTotalVol(D, botHead) + A * Lcyl + headTotalVol(D, topHead) + A * bTop;
-            const lv = Math.max(0, Math.min(levelM, maxH));
-            let fill = 0, cursor = 0;
-            for (const z of zones) {
-                if (cursor >= lv) break;
-                const take = Math.min(lv - cursor, z.h);
-                fill += z.vol(take);
-                cursor += z.h;
-            }
-            return { fill, total, maxH };
-        }
 
         // Liegender Zylinder – Füllstand vom untersten Scheitelpunkt (Boden der Kreisfläche)
         function volHCyl(D, Lcyl, headType, levelM) {
@@ -1088,67 +1282,79 @@
             return el;
         }
 
-        // Kopfprofil-Punkte: rechte Hälfte, von Schulter (t=0) → Scheitel (t=1)
-        // Profil-Punkte einer Hälfte des Bodens: pts[0]=Schulter (cx+r), pts[N]=Scheitel (cx)
-        function headProfilePts(D, headType, scale, cx, yShoulderSvg, apexBelow) {
-            const { hb } = headParams(D, headType);
-            // Flachboden: nur die Schulter zurückgeben (kein Scheitel)
-            if (hb <= 0) return [{ x: cx + D / 2 * scale, y: yShoulderSvg }];
-            const N = 20, dir = apexBelow ? 1 : -1;
-            const pts = [];
-            for (let i = 0; i <= N; i++) {
-                const t      = i / N;
-                const yLocal = (1 - t) * hb;   // hb bei Schulter (t=0), 0 beim Scheitel (t=1)
-                const r      = headRadiusAtY(yLocal, D, headType);
-                pts.push({ x: cx + r * scale, y: yShoulderSvg + dir * t * hb * scale });
+        // Zeichenprofil einer Tankseite: hb = Höhe des gewölbten/konischen Teils (m),
+        // h1 = Bördel (m, nur DIN/freier Radius — wie in der Volumenrechnung),
+        // rAt(yLocal) = Innenradius (m) bei Höhe yLocal über dem Scheitel,
+        // tipR = Radius der flachen Spitze (m, z. B. Konus-Stumpf)
+        function sideDrawProfile(g, side) {
+            const Di = g.d, S = g.S_mm / 1000;
+            const type = side === 'bot' ? g.botHead : g.topHead;
+            const h1   = side === 'bot' ? g.h1_bot : g.h1_top;
+            if (type === 'flat') return { hb: 0, h1: 0, rAt: null, tipR: Di / 2 };
+            if (type === 'konischBoden' || type === 'konischDeckel') {
+                const H  = side === 'bot' ? g.H_bot : g.H_top;
+                const da = side === 'bot' ? g.da_bot : g.da_top;
+                if (H <= 0) return { hb: 0, h1: 0, rAt: null, tipR: Di / 2 };
+                const tipR = Math.max(0, Math.min(Di / 2, da / 2 - S));
+                return { hb: H, h1: 0, tipR, rAt: y => tipR + (Di / 2 - tipR) * Math.min(1, y / H) };
             }
-            return pts; // pts[0]=Schulter (cx+r), pts[N]=Scheitel (cx)
+            if (type === 'schraegBoden') {
+                const H = Math.max(0, (side === 'bot' ? g.H_bot : 0) - S);
+                if (H <= 0) return { hb: 0, h1: 0, rAt: null, tipR: Di / 2 };
+                // vereinfachte symmetrische Keil-Darstellung (höhen-/volumengleich)
+                return { hb: H, h1: 0, tipR: 0, rAt: y => (Di / 2) * Math.min(1, y / H) };
+            }
+            if (type === 'freierRadius') {
+                const R = side === 'bot' ? g.R_bot : g.R_top;
+                const hb = (R > 0 && R >= Di / 2) ? R - Math.sqrt(Math.max(0, R * R - Di * Di / 4)) : Di / 2;
+                if (hb <= 0) return { hb: 0, h1: 0, rAt: null, tipR: Di / 2 };
+                return { hb, h1, tipR: 0, rAt: y => Math.sqrt(Math.max(0, 2 * R * y - y * y)) };
+            }
+            // DIN-Böden: Klöpper, Korbbogen, Halbkugel
+            return { hb: headParams(Di, type).hb, h1, tipR: 0, rAt: y => headRadiusAtY(y, Di, type) };
         }
 
-        function ptsToD(pts, close = true) {
-            let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
-            for (let i = 1; i < pts.length; i++) d += ` L ${pts[i].x.toFixed(1)} ${pts[i].y.toFixed(1)}`;
-            return close ? d + ' Z' : d;
-        }
+        // Kompletter Umriss des stehenden Zylinders aus den Seitenprofilen —
+        // Höhe stimmt damit für ALLE Bodenarten mit der Volumenrechnung überein
+        function buildVerticalPath(g, scale, cx, yTopApex) {
+            const r_px = g.d / 2 * scale;
+            const pT = sideDrawProfile(g, 'top');
+            const pB = sideDrawProfile(g, 'bot');
+            const wallLen = pT.h1 + g.lcyl + pB.h1;
+            const yTopShoulder = yTopApex + pT.hb * scale;
+            const yBotShoulder = yTopShoulder + wallLen * scale;
+            const yBotApex     = yBotShoulder + pB.hb * scale;
+            const N = 20;
 
-        function buildVerticalPath(D, Lcyl, botHead, topHead, scale, cx, yTopApex) {
-            const r_px = D / 2 * scale;
-            const htop = headParams(D, topHead).hb;
-            const hbot = headParams(D, botHead).hb;
-            const yTopShoulder = yTopApex + htop * scale;
-            const yBotShoulder = yTopShoulder + Lcyl * scale;
-            const yBotApex     = yBotShoulder + hbot * scale;
+            // Rechte Kontur von oben nach unten
+            const right = [];
+            if (pT.rAt) {
+                for (let i = 0; i <= N; i++) {
+                    const yLocal = pT.hb * (i / N); // 0 = Scheitel … hb = Schulter
+                    right.push({ x: cx + pT.rAt(yLocal) * scale, y: yTopApex + yLocal * scale });
+                }
+            } else {
+                right.push({ x: cx + r_px, y: yTopApex });
+            }
+            right.push({ x: cx + r_px, y: yBotShoulder });
+            if (pB.rAt) {
+                for (let i = N; i >= 0; i--) {
+                    const yLocal = pB.hb * (i / N);
+                    right.push({ x: cx + pB.rAt(yLocal) * scale, y: yBotShoulder + (pB.hb - yLocal) * scale });
+                }
+            } else {
+                right.push({ x: cx + r_px, y: yBotApex });
+            }
 
-            // pts[0]=Schulter(cx+r), pts[N]=Scheitel(cx) — für Flachboden nur 1 Punkt
-            const topPts = headProfilePts(D, topHead, scale, cx, yTopShoulder, false);
-            const botPts = headProfilePts(D, botHead, scale, cx, yBotShoulder, true);
-
-            const all = [];
-
-            // 1. Rechte Seite Deckel: von Scheitel/Ecke hinunter zur Schulter
-            for (let i = topPts.length - 1; i >= 0; i--) all.push(topPts[i]);
-
-            // 2. Rechte Zylinderwand
-            all.push({ x: cx + r_px, y: yBotShoulder });
-
-            // 3. Rechte Seite Boden: Schulter → Scheitel
-            for (let i = 1; i < botPts.length; i++) all.push(botPts[i]);
-
-            // 4. Linke Seite Boden: Scheitel → linke Schulter (gespiegelt)
-            //    Für Flachboden (1 Punkt): startIndex=0 → erzeugt linke untere Ecke
-            //    Für Gewölbt (N+1 Punkte): startIndex=N-1 → überspringt Scheitel-Duplikat
-            const botMirrorStart = botPts.length > 1 ? botPts.length - 2 : 0;
-            for (let i = botMirrorStart; i >= 0; i--)
-                all.push({ x: cx - (botPts[i].x - cx), y: botPts[i].y });
-
-            // 5. Linke Zylinderwand
-            all.push({ x: cx - r_px, y: yTopShoulder });
-
-            // 6. Linke Seite Deckel: linke Schulter → Scheitel (gespiegelt, Schulter bereits oben)
-            for (let i = 1; i < topPts.length; i++)
-                all.push({ x: cx - (topPts[i].x - cx), y: topPts[i].y });
-
-            return { d: ptsToD(all), yTopApex, yBotApex, yTopShoulder, yBotShoulder, r_px };
+            // Pfad: obere Spitze → rechte Kontur → untere Spitze → linke Kontur (gespiegelt)
+            const tipT_px = (pT.rAt ? pT.tipR : g.d / 2) * scale;
+            const tipB_px = (pB.rAt ? pB.tipR : g.d / 2) * scale;
+            let d = `M ${(cx - tipT_px).toFixed(1)} ${yTopApex.toFixed(1)} L ${(cx + tipT_px).toFixed(1)} ${yTopApex.toFixed(1)}`;
+            right.forEach(p => { d += ` L ${p.x.toFixed(1)} ${p.y.toFixed(1)}`; });
+            d += ` L ${(cx - tipB_px).toFixed(1)} ${yBotApex.toFixed(1)}`;
+            for (let i = right.length - 1; i >= 0; i--) d += ` L ${(cx - (right[i].x - cx)).toFixed(1)} ${right[i].y.toFixed(1)}`;
+            d += ' Z';
+            return { d, yTopApex, yBotApex, yTopShoulder, yBotShoulder, r_px };
         }
 
         function drawTank() {
@@ -1184,13 +1390,7 @@
             if (activeShape === 'vCyl' && g.d > 0) {
                 const scale = Math.min(drawW / g.d, drawH / (totalH || 1));
                 const yTop  = MARGIN_Y + (drawH - totalH * scale) / 2;
-                // For SVG: map new head types to simpler equivalents for drawing
-                const svgBot = ['kloepperboden','korbbogen','hemisphere','flat'].includes(g.botHead) ? g.botHead : 'flat';
-                const svgTop = ['kloepperboden','korbbogen','hemisphere','flat'].includes(g.topHead) ? g.topHead : 'flat';
-                const bBotVis = (svgBot !== 'flat') ? g.h1_bot : 0;
-                const bTopVis = (svgTop !== 'flat') ? g.h1_top : 0;
-                const { d, yTopApex, yBotApex, yTopShoulder, yBotShoulder, r_px } = buildVerticalPath(
-                    g.d, g.lcyl + bBotVis + bTopVis, svgBot, svgTop, scale, cx, yTop);
+                const { d, yTopApex, yBotApex, yTopShoulder, yBotShoulder, r_px } = buildVerticalPath(g, scale, cx, yTop);
 
                 outline.setAttribute('d', d);
                 clipPath.setAttribute('d', d);
@@ -1251,16 +1451,23 @@
                 labelsGrp.appendChild(svgEl('line', { x1: (cx - r_px).toFixed(1), y1: yDimLine, x2: (cx + r_px).toFixed(1), y2: yDimLine, stroke: cStroke, 'stroke-width': '1' }));
                 labelsGrp.appendChild(svgEl('text', { x: cx, y: yDimLine + 11, class: 'svg-dim', 'text-anchor': 'middle' }, 'Di ' + g.Di_mm.toFixed(0) + ' mm'));
 
-                // Stutzen zeichnen
+                // Stutzen zeichnen (inkl. Versatz von der Tankachse)
                 const pos   = document.getElementById('nozzle_pos').value;
                 const nOut  = (parseFloat(document.getElementById('nozzle_outside').value) || 0) / 1000 * scale;
                 const nIns  = (parseFloat(document.getElementById('nozzle_insertion').value) || 0) / 1000 * scale;
                 const nW    = Math.max(8, r_px * 0.18);
+                const offMm = parseFloat(document.getElementById('nozzle_HmSt').value) || 0;
+                const devX  = pos === 'top' ? Math.max(cx - r_px + nW / 2, Math.min(cx + r_px - nW / 2, cx + offMm / 1000 * scale)) : cx;
 
                 if (pos === 'top') {
                     const yFlange = yTopApex - nOut;
-                    nozzleGrp.appendChild(svgEl('rect', { x: (cx - nW / 2).toFixed(1), y: yFlange.toFixed(1), width: nW.toFixed(1), height: (nOut + nIns + 1).toFixed(1), fill: cNozzle, rx: '2' }));
-                    nozzleGrp.appendChild(svgEl('text', { x: (cx + nW / 2 + 3).toFixed(1), y: (yFlange + 9).toFixed(1), class: 'svg-label' }, 'Stutzen'));
+                    nozzleGrp.appendChild(svgEl('rect', { x: (devX - nW / 2).toFixed(1), y: yFlange.toFixed(1), width: nW.toFixed(1), height: (nOut + nIns + 1).toFixed(1), fill: cNozzle, rx: '2' }));
+                    nozzleGrp.appendChild(svgEl('text', { x: (devX + nW / 2 + 3).toFixed(1), y: (yFlange + 9).toFixed(1), class: 'svg-label' }, 'Stutzen'));
+                    // Versatz-Markierung zur Tankachse
+                    if (Math.abs(offMm) > 1) {
+                        nozzleGrp.appendChild(svgEl('line', { x1: cx, y1: (yTopApex - 4).toFixed(1), x2: cx, y2: (yTopApex + 10).toFixed(1), stroke: cStroke, 'stroke-width': '1', 'stroke-dasharray': '2,2' }));
+                        nozzleGrp.appendChild(svgEl('text', { x: ((cx + devX) / 2).toFixed(1), y: (yTopApex - 6).toFixed(1), class: 'svg-dim', 'text-anchor': 'middle' }, offMm + ' mm'));
+                    }
                 } else if (pos === 'side') {
                     const nh_mm = parseFloat(document.getElementById('nozzle_height').value) || 0;
                     const ySide = yBotApex - nh_mm / 1000 * scale;
@@ -1279,31 +1486,48 @@
                         const probePx = (parseFloat(document.getElementById('probe_length').value) || 0) / 1000 * scale;
                         const bdb     = (parseFloat(document.getElementById('bdb_mm').value) || 0) / 1000 * scale;
                         // Sperrzone oben (rot)
-                        deviceGrp.appendChild(svgEl('rect', { x: (cx - 3).toFixed(1), y: yRef.toFixed(1), width: '6', height: bdt.toFixed(1), fill: '#ef444466', rx: '2' }));
-                        // Sonde
-                        deviceGrp.appendChild(svgEl('line', { x1: cx, y1: yRef.toFixed(1), x2: cx, y2: (yRef + probePx).toFixed(1), stroke: '#6b7280', 'stroke-width': '3' }));
+                        deviceGrp.appendChild(svgEl('rect', { x: (devX - 3).toFixed(1), y: yRef.toFixed(1), width: '6', height: bdt.toFixed(1), fill: '#ef444466', rx: '2' }));
+                        // Sonde — rot ab Tankboden, falls zu lang
+                        const yProbeEnd = yRef + probePx;
+                        deviceGrp.appendChild(svgEl('line', { x1: devX, y1: yRef.toFixed(1), x2: devX, y2: Math.min(yProbeEnd, yBotApex).toFixed(1), stroke: '#6b7280', 'stroke-width': '3' }));
+                        if (yProbeEnd > yBotApex + 0.5) {
+                            deviceGrp.appendChild(svgEl('line', { x1: devX, y1: yBotApex.toFixed(1), x2: devX, y2: yProbeEnd.toFixed(1), stroke: '#ef4444', 'stroke-width': '3' }));
+                            deviceGrp.appendChild(svgEl('circle', { cx: devX, cy: yBotApex.toFixed(1), r: '4', fill: '#ef4444' }));
+                        }
                         // Sperrzone unten (rot)
-                        deviceGrp.appendChild(svgEl('rect', { x: (cx - 3).toFixed(1), y: (yRef + probePx - bdb).toFixed(1), width: '6', height: bdb.toFixed(1), fill: '#ef444466', rx: '2' }));
+                        deviceGrp.appendChild(svgEl('rect', { x: (devX - 3).toFixed(1), y: (yRef + probePx - bdb).toFixed(1), width: '6', height: bdb.toFixed(1), fill: '#ef444466', rx: '2' }));
                         // Sensor-Kopf
-                        deviceGrp.appendChild(svgEl('rect', { x: (cx - 7).toFixed(1), y: (yRef - 8).toFixed(1), width: '14', height: '8', fill: '#374151', rx: '2' }));
+                        deviceGrp.appendChild(svgEl('rect', { x: (devX - 7).toFixed(1), y: (yRef - 8).toFixed(1), width: '14', height: '8', fill: '#374151', rx: '2' }));
                     } else {
-                        // Radar / Ultraschall: Abstrahlkegel
-                        const beamHalf = ((parseFloat(document.getElementById('beam_angle').value) || 4) / 2) * Math.PI / 180;
-                        const beamH    = yBotApex - yRef;
-                        const beamR    = beamH * Math.tan(beamHalf);
-                        const beamPts  = [
-                            { x: cx, y: yRef },
-                            { x: cx + Math.min(beamR, r_px * 0.95), y: yBotApex },
-                            { x: cx - Math.min(beamR, r_px * 0.95), y: yBotApex }
-                        ];
-                        deviceGrp.appendChild(svgEl('polygon', { points: beamPts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' '), fill: cBeam }));
+                        // Radar / Ultraschall: echter Abstrahlkegel — Wandkontakt wird
+                        // nicht mehr weggeclippt, sondern rot markiert
+                        const beamDeg  = parseFloat(document.getElementById('beam_angle').value) || 4;
+                        const beamHalf = (beamDeg / 2) * Math.PI / 180;
+                        const tanH     = Math.tan(beamHalf);
+                        const xWallR   = cx + r_px, xWallL = cx - r_px;
+
+                        // Kegelkanten: y, an dem die Kante die Wand erreicht
+                        const yHitR = tanH > 0 ? yRef + (xWallR - devX) / tanH : Infinity;
+                        const yHitL = tanH > 0 ? yRef + (devX - xWallL) / tanH : Infinity;
+
+                        const pts = [{ x: devX, y: yRef }];
+                        if (yHitR < yBotApex) { pts.push({ x: xWallR, y: yHitR }); pts.push({ x: xWallR, y: yBotApex }); }
+                        else pts.push({ x: devX + (yBotApex - yRef) * tanH, y: yBotApex });
+                        if (yHitL < yBotApex) { pts.push({ x: xWallL, y: yBotApex }); pts.push({ x: xWallL, y: yHitL }); }
+                        else pts.push({ x: devX - (yBotApex - yRef) * tanH, y: yBotApex });
+                        deviceGrp.appendChild(svgEl('polygon', { points: pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' '), fill: cBeam }));
+
+                        // Wandkontakt rot markieren
+                        if (yHitR < yBotApex) deviceGrp.appendChild(svgEl('circle', { cx: xWallR.toFixed(1), cy: yHitR.toFixed(1), r: '4', fill: '#ef4444' }));
+                        if (yHitL < yBotApex) deviceGrp.appendChild(svgEl('circle', { cx: xWallL.toFixed(1), cy: yHitL.toFixed(1), r: '4', fill: '#ef4444' }));
+
                         // BDT-Sperrzone
-                        deviceGrp.appendChild(svgEl('rect', { x: (cx - 8).toFixed(1), y: yRef.toFixed(1), width: '16', height: bdt.toFixed(1), fill: '#ef444488' }));
+                        if (bdt > 0.5) deviceGrp.appendChild(svgEl('rect', { x: (devX - 8).toFixed(1), y: yRef.toFixed(1), width: '16', height: bdt.toFixed(1), fill: '#ef444488' }));
                         // Sensor-Kopf
-                        deviceGrp.appendChild(svgEl('rect', { x: (cx - 10).toFixed(1), y: (yRef - 10).toFixed(1), width: '20', height: '10', fill: '#374151', rx: '3' }));
+                        deviceGrp.appendChild(svgEl('rect', { x: (devX - 10).toFixed(1), y: (yRef - 10).toFixed(1), width: '20', height: '10', fill: '#374151', rx: '3' }));
                         // Abstrahlwinkel-Label
-                        const beamDeg = parseFloat(document.getElementById('beam_angle').value) || 4;
-                        labelsGrp.appendChild(svgEl('text', { x: (cx + Math.min(beamR, r_px * 0.95) + 3).toFixed(1), y: (yBotApex - 10).toFixed(1), class: 'svg-label' }, beamDeg + '°'));
+                        const xLbl = Math.min(xWallR - 2, devX + (yBotApex - yRef) * tanH + 3);
+                        labelsGrp.appendChild(svgEl('text', { x: xLbl.toFixed(1), y: (yBotApex - 10).toFixed(1), class: 'svg-label' }, beamDeg + '°'));
                     }
                 }
 
@@ -1500,6 +1724,7 @@
             if (hSensorEl) hSensorEl.textContent = hSensor.toFixed(0) + ' mm';
 
             updateCalibBox();
+            renderInstallation();
             calcReverse(res);
             updateLinTable();
             drawTank();
@@ -1574,7 +1799,9 @@
             // Clamp to lrv..urv range, add boundary points
             const inRange = pts.filter(p => p >= lrv && p <= urv);
             const all = [...new Set([lrv, ...inRange, urv])].sort((a, b) => a - b);
-            return all.slice(0, 20);
+            // Auf 20 Punkte kürzen, aber LRV und URV immer behalten
+            if (all.length > 20) return all.slice(0, 19).concat(all[all.length - 1]);
+            return all;
         }
 
         function updateLinTable() {
@@ -1599,17 +1826,25 @@
                 levels_mm = Array.from({length: N}, (_, i) => lrv + (N===1?0:(i/(N-1))*(urv-lrv)));
             }
 
+            const span = urv - lrv;
+            const totalH_mm = getTotalHeight() * 1000;
             levels_mm.forEach((level_mm, i) => {
                 const r = getVolumeAtLevel(level_mm / 1000);
-                const pct = r.total > 0 ? (r.fill / r.total) * 100 : 0;
+                const pctMB  = span > 0 ? (level_mm - lrv) / span * 100 : 0;   // Füllstand in % der Messspanne
+                const pctVol = r.total > 0 ? (r.fill / r.total) * 100 : 0;     // Volumen in % vom Gesamtvolumen
                 const massKg = r.fill * density;
                 const tr = document.createElement('tr');
                 const isEdge = i === 0 || i === levels_mm.length - 1;
                 if (isEdge) tr.classList.add('lin-row-edge');
+                if (totalH_mm > 0 && level_mm > totalH_mm + 0.5) {
+                    tr.classList.add('lin-row-over');
+                    tr.title = 'Füllstand liegt über der Tankhöhe (' + totalH_mm.toFixed(0) + ' mm) — Punkt ist physikalisch nicht erreichbar';
+                }
                 tr.innerHTML =
                     '<td>' + (i + 1) + '</td>' +
                     '<td>' + level_mm.toFixed(0) + '</td>' +
-                    '<td>' + pct.toFixed(2) + '</td>' +
+                    '<td>' + pctMB.toFixed(2) + '</td>' +
+                    '<td>' + pctVol.toFixed(2) + '</td>' +
                     '<td>' + r.fill.toFixed(4) + '</td>' +
                     '<td>' + (r.fill * 1000).toFixed(2) + '</td>' +
                     '<td>' + massKg.toFixed(1) + '</td>' +
@@ -1634,14 +1869,17 @@
                 const N = parseInt(linNVal) || 10;
                 levels_mm = Array.from({length:N},(_,i)=>lrv+(N===1?0:(i/(N-1))*(urv-lrv)));
             }
-            const header = 'Nr.;Füllstand (mm);Füllstand (%);Volumen (m³);Volumen (l);Masse (kg);Masse (t)\r\n';
+            const header = 'Nr.;Füllstand (mm);Füllstand (% v. MB);Volumen (%);Volumen (m³);Volumen (l);Masse (kg);Masse (t)\r\n';
+            const span = urv - lrv;
             let rows = '';
             levels_mm.forEach((level_mm, i) => {
                 const r = getVolumeAtLevel(level_mm / 1000);
-                const pct = r.total > 0 ? (r.fill / r.total) * 100 : 0;
+                const pctMB  = span > 0 ? (level_mm - lrv) / span * 100 : 0;
+                const pctVol = r.total > 0 ? (r.fill / r.total) * 100 : 0;
                 const massKg = r.fill * density;
                 rows += (i+1) + ';' + level_mm.toFixed(0) + ';' +
-                    pct.toFixed(2).replace('.',',') + ';' +
+                    pctMB.toFixed(2).replace('.',',') + ';' +
+                    pctVol.toFixed(2).replace('.',',') + ';' +
                     r.fill.toFixed(4).replace('.',',') + ';' +
                     (r.fill*1000).toFixed(2).replace('.',',') + ';' +
                     massKg.toFixed(1).replace('.',',') + ';' +
@@ -1665,9 +1903,10 @@
         // SVG bei Theme-Wechsel neu zeichnen
         onThemeChanged(drawTank);
 
-        // Init vCyl head visibility
+        // Init: Kopf-Zeilen UND Stutzen-Zeilen sichtbar schalten — der
+        // HmSt-Versatz war sonst beim Laden unsichtbar, obwohl „Oben" aktiv ist
         onVCylHeadChange();
-        calc();
+        onNozzlePosChange();
     </script>
 
 </body>

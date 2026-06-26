@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Techniker Berechnungstools</title>
+    <script>try{var t=JSON.parse(localStorage.getItem('techtools_state')||'{}').theme;if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#24292f">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
     <style>
@@ -17,6 +21,22 @@
         .search-bar input:focus { border-color: var(--accent-fg); box-shadow: 0 0 0 3px rgba(9,105,218,0.15); }
         .search-bar input::placeholder { color: var(--text-tertiary); }
         .search-bar svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; fill: var(--text-tertiary); pointer-events: none; }
+        .search-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 26px; height: 26px; padding: 0; display: none; align-items: center; justify-content: center; border: none; border-radius: 50%; background: var(--bg-subtle); color: var(--text-tertiary); font-size: 16px; line-height: 1; cursor: pointer; box-shadow: none; }
+        .search-clear:hover { color: var(--text-primary); background: var(--bg-inset); filter: none; transform: translateY(-50%); }
+        .search-clear.visible { display: flex; }
+        mark { background: var(--bg-attention); color: inherit; border-radius: 2px; padding: 0 1px; }
+
+        /* Zuletzt benutzt */
+        .recent-section { margin-bottom: 20px; }
+        .recent-row { display: flex; gap: 8px; flex-wrap: wrap; }
+        .recent-pill { display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px 7px 10px; border: 1px solid var(--border-default); border-radius: 20px; background: var(--bg-default); text-decoration: none; color: var(--text-primary); font-size: 13px; font-weight: 500; transition: border-color 0.15s, background 0.15s; }
+        .recent-pill:hover { border-color: var(--accent-fg); background: var(--bg-subtle); }
+        .recent-pill .pill-icon { display: flex; color: var(--accent-fg); }
+        .recent-pill .pill-icon svg { width: 14px; height: 14px; }
+
+        /* Tool-Icons: einheitliche SVGs in Akzentfarbe */
+        .tool-icon { color: var(--accent-fg); }
+        .tool-icon svg { width: 18px; height: 18px; }
 
         /* Category Filter */
         .filter-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
@@ -88,20 +108,6 @@
             .view-btn { width: auto !important; padding: 8px 10px; }
         }
 
-        /* Category icon colors — referenced from shared CSS */
-        .tool-icon.cat-blue   { background: var(--bg-accent); }
-        .tool-icon.cat-amber  { background: var(--bg-attention); }
-        .tool-icon.cat-teal   { background: #d2f4ea; }
-        .tool-icon.cat-purple { background: #f3d9fa; }
-        .tool-icon.cat-green  { background: var(--bg-success); }
-        .tool-icon.cat-red    { background: var(--bg-danger); }
-        .tool-icon.cat-warm   { background: #ffd8a8; }
-        .tool-icon.cat-orange { background: #ffe4cc; }
-        .tool-icon.cat-gray   { background: var(--bg-subtle); }
-        [data-theme="dark"] .tool-icon.cat-teal   { background: #0d2d22; }
-        [data-theme="dark"] .tool-icon.cat-purple { background: #280f38; }
-        [data-theme="dark"] .tool-icon.cat-warm   { background: #2e1800; }
-        [data-theme="dark"] .tool-icon.cat-orange { background: #2e1800; }
     </style>
 </head>
 <body>
@@ -138,7 +144,8 @@
 
         <div class="search-bar">
             <svg viewBox="0 0 16 16"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
-            <input type="text" id="searchInput" placeholder="Tools durchsuchen...">
+            <input type="text" id="searchInput" placeholder="Tools durchsuchen...  (Enter öffnet ersten Treffer)">
+            <button class="search-clear" id="searchClear" title="Suche leeren" aria-label="Suche leeren">×</button>
         </div>
 
         <button class="filter-toggle" id="filterToggle" onclick="toggleFilter()">
@@ -147,6 +154,11 @@
         </button>
         <div class="filter-bar" id="filterBar">
             <button class="filter-tag active" data-cat="all">Alle</button>
+        </div>
+
+        <div class="recent-section" id="recentSection" style="display:none">
+            <div class="section-label">Zuletzt benutzt</div>
+            <div class="recent-row" id="recentRow"></div>
         </div>
 
         <div class="favorites-section" id="favoritesSection">
@@ -287,31 +299,32 @@
         const starSvgEmpty = '<svg viewBox="0 0 16 16"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25zm0 2.445L6.615 5.5a.75.75 0 0 1-.564.41l-3.097.45 2.24 2.184a.75.75 0 0 1 .216.664l-.528 3.084 2.769-1.456a.75.75 0 0 1 .698 0l2.77 1.456-.53-3.084a.75.75 0 0 1 .216-.664l2.24-2.183-3.096-.45a.75.75 0 0 1-.564-.41L8 2.694z"/></svg>';
         const starSvgFilled = '<svg viewBox="0 0 16 16"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25z"/></svg>';
 
-        const CAT_COLOR = {
-            'Kalibrierung': 'cat-blue', 'Signal': 'cat-amber', 'Durchfluss': 'cat-teal',
-            'Analytik': 'cat-purple', 'Umrechnung': 'cat-gray', 'Nachschlagewerk': 'cat-warm',
-            'Strahlenschutz': 'cat-red', 'WHG': 'cat-green', 'Elektrotechnik': 'cat-amber',
-            'Wärmetechnik': 'cat-orange', 'CSV': 'cat-gray', 'Visualisierung': 'cat-gray',
-        };
-
         function createCard(tool) {
-            const card = document.createElement('div');
+            // Echte <a>-Links: Mittelklick/„in neuem Tab öffnen" und Tastaturnavigation funktionieren
+            const card = document.createElement('a');
+            card.href = tool.href;
             card.className = 'tool-card' + (matchesFilter(tool) ? '' : ' hidden');
             card.draggable = true;
             card.dataset.id = tool.id;
 
             const isFav = favorites.has(tool.id);
             const tagsHtml = tool.tags.map(t => '<span class="tool-tag">' + t + '</span>').join('');
-            const catClass = CAT_COLOR[tool.tags[0]] || 'cat-gray';
+
+            // Suchtreffer im Titel hervorheben
+            let titleHtml = tool.title;
+            if (searchQuery) {
+                const safe = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                titleHtml = tool.title.replace(new RegExp('(' + safe + ')', 'ig'), '<mark>$1</mark>');
+            }
 
             card.innerHTML =
-                '<div class="tool-card-top"><div class="tool-card-info"><div class="tool-icon ' + catClass + '">' + tool.icon + '</div><span class="tool-card-title">' + tool.title + '</span></div>' +
-                '<button class="star-btn ' + (isFav ? 'active' : '') + '" data-id="' + tool.id + '" title="Favorit">' + (isFav ? starSvgFilled : starSvgEmpty) + '</button></div>' +
+                '<div class="tool-card-top"><div class="tool-card-info"><div class="tool-icon">' + toolIconSvg(tool.id) + '</div><span class="tool-card-title">' + titleHtml + '</span></div>' +
+                '<button class="star-btn ' + (isFav ? 'active' : '') + '" data-id="' + tool.id + '" title="' + (isFav ? 'Favorit entfernen' : 'Als Favorit markieren') + '" aria-label="' + (isFav ? 'Favorit entfernen: ' : 'Als Favorit markieren: ') + tool.title + '">' + (isFav ? starSvgFilled : starSvgEmpty) + '</button></div>' +
                 '<div class="tool-card-desc">' + tool.desc + '</div>' +
                 '<div class="tool-card-tags">' + tagsHtml + '</div>';
 
             card.querySelector('.star-btn').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(tool.id); });
-            card.addEventListener('click', (e) => { if (e.target.closest('.star-btn')) return; if (card.dataset.wasDragged === 'true') { card.dataset.wasDragged = 'false'; return; } window.location.href = tool.href; });
+            card.addEventListener('click', (e) => { if (card.dataset.wasDragged === 'true') { card.dataset.wasDragged = 'false'; e.preventDefault(); } });
             card.addEventListener('dragstart', (e) => { draggedId = tool.id; card.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', tool.id); });
             card.addEventListener('dragend', () => { card.classList.remove('dragging'); card.dataset.wasDragged = 'true'; document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over')); draggedId = null; });
             card.addEventListener('dragover', (e) => { e.preventDefault(); if (card.dataset.id !== draggedId) card.classList.add('drag-over'); });
@@ -489,14 +502,58 @@
             }
         });
 
-        // Search
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            searchQuery = e.target.value.toLowerCase().trim();
+        // ============ ZULETZT BENUTZT ============
+        function renderRecent() {
+            const state = getGlobalState();
+            const lastUsed = state.lastUsed || {};
+            const section = document.getElementById('recentSection');
+            const row = document.getElementById('recentRow');
+            const entries = Object.entries(lastUsed)
+                .filter(([id]) => getToolById(id))
+                .sort((a, b) => b[1].timestamp - a[1].timestamp)
+                .slice(0, 5);
+            if (entries.length === 0) { section.style.display = 'none'; return; }
+            section.style.display = '';
+            row.innerHTML = '';
+            entries.forEach(([id]) => {
+                const tool = getToolById(id);
+                const a = document.createElement('a');
+                a.className = 'recent-pill';
+                a.href = tool.href;
+                a.innerHTML = '<span class="pill-icon">' + toolIconSvg(id) + '</span>' + tool.title;
+                row.appendChild(a);
+            });
+        }
+
+        // ============ SUCHE ============
+        const searchInput = document.getElementById('searchInput');
+        const searchClear = document.getElementById('searchClear');
+
+        function applySearch() {
+            searchQuery = searchInput.value.toLowerCase().trim();
+            searchClear.classList.toggle('visible', searchQuery !== '');
             render();
+        }
+
+        searchInput.addEventListener('input', applySearch);
+
+        // Enter öffnet den ersten Treffer
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter' || searchQuery === '') return;
+            const order = [...toolOrder.filter(id => favorites.has(id)), ...toolOrder.filter(id => !favorites.has(id))];
+            const firstId = order.find(id => { const t = getToolById(id); return t && matchesFilter(t); });
+            if (firstId) window.location.href = getToolById(firstId).href;
+        });
+
+        searchClear.addEventListener('click', () => {
+            searchInput.value = '';
+            applySearch();
+            searchInput.focus();
         });
 
         loadState();
         buildFilterBar();
+        renderRecent();
         render();
     </script>
 </body>

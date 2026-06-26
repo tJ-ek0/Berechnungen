@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WHG Gefährdungsstufe – Techniker Berechnungstools</title>
+    <script>try{var t=JSON.parse(localStorage.getItem('techtools_state')||'{}').theme;if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#24292f">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💧</text></svg>">
     <style>
@@ -198,12 +202,19 @@
 
     <footer class="bottom-header">
         <p>Keine Gewähr für Vollständigkeit oder Rechtsverbindlichkeit. Maßgeblich ist die jeweils gültige Fassung der AwSV und landesspezifische Regelungen.</p>
+        <div class="footer-links"><a href="Impressum.html">Impressum</a><span>&#183;</span><a href="Kontakt.html">Kontakt</a><span>&#183;</span><a href="Statistiken.html">Statistiken</a></div>
     </footer>
 
     <script src="shared.js"></script>
     <script>
-        // AwSV Tabelle 1 (§ 39 Abs. 1): [A_max, B_max, C_max] in m³
-        const SCHWELLEN = { 1: [1000, 10000, 100000], 2: [100, 1000, 10000], 3: [10, 100, 1000] };
+        // AwSV § 39 Abs. 1 Tabelle 1: Gefährdungsstufe nach Volumen (m³) und WGK
+        // Volumengrenzen: ≤0,22 | ≤1 | ≤10 | ≤100 | ≤1000 | >1000
+        const VOL_GRENZEN = [0.22, 1, 10, 100, 1000, Infinity];
+        const STUFEN_MATRIX = {
+            1: ['A', 'A', 'A', 'A', 'B', 'C'],
+            2: ['A', 'A', 'B', 'C', 'D', 'D'],
+            3: ['A', 'B', 'C', 'D', 'D', 'D'],
+        };
 
         const ANFORDERUNGEN = {
             nwg: [
@@ -250,11 +261,8 @@
 
         function getStufe(wgk, volM3) {
             if (wgk == 0) return 'nwg';
-            const t = SCHWELLEN[wgk];
-            if (volM3 <= t[0]) return 'A';
-            if (volM3 <= t[1]) return 'B';
-            if (volM3 <= t[2]) return 'C';
-            return 'D';
+            const idx = VOL_GRENZEN.findIndex(g => volM3 <= g);
+            return STUFEN_MATRIX[wgk][idx];
         }
 
         const STUFE_LABELS = {

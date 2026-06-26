@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blenden/DP-Durchflussrechner – Techniker Berechnungstools</title>
+    <script>try{var t=JSON.parse(localStorage.getItem('techtools_state')||'{}').theme;if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#24292f">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
     <style>
@@ -63,7 +67,8 @@
             </div>
 
             <div class="description">
-                🔧 Berechnet den Volumendurchfluss aus dem Differenzdruck an einer Messblende (nach ISO 5167) oder umgekehrt. Unterstützt die Berechnung über bekannten K-Faktor oder über Blendengeometrie.
+                🔧 Berechnet den Volumendurchfluss aus dem Differenzdruck an einer Messblende (nach ISO 5167) oder umgekehrt. Unterstützt die Berechnung über bekannten K-Faktor oder über Blendengeometrie.<br><br>
+                ℹ️ <strong>Gültigkeit:</strong> Die Geometrie-Berechnung rechnet ohne Expansionszahl ε (inkompressibel) — exakt für Flüssigkeiten. Bei Gasen/Dampf mit nennenswertem ΔP/p₁ ist ε &lt; 1 zu berücksichtigen (ISO 5167-2); der Durchfluss wird sonst leicht überschätzt.
             </div>
 
             <!-- Ampel -->
@@ -256,6 +261,7 @@
 
     <footer class="bottom-header">
         <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+        <div class="footer-links"><a href="Impressum.html">Impressum</a><span>&#183;</span><a href="Kontakt.html">Kontakt</a><span>&#183;</span><a href="Statistiken.html">Statistiken</a></div>
     </footer>
 
     <script src="shared.js"></script>
@@ -306,7 +312,7 @@
         function fmt(n) {
             if (n === 0) return '0';
             const a = Math.abs(n);
-            if (a >= 10000) return n.toLocaleString('de-DE', { maximumFractionDigits: 1 });
+            if (a >= 10000) return n.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
             if (a >= 100) return n.toFixed(1);
             if (a >= 1) return n.toFixed(2);
             if (a >= 0.01) return n.toFixed(3);

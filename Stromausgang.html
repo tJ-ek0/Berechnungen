@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stromausgangsberechnung – Techniker Berechnungstools</title>
+    <script>try{var t=JSON.parse(localStorage.getItem('techtools_state')||'{}').theme;if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#24292f">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
     <style>
@@ -30,6 +34,15 @@
         .quick-table h4 { font-size: 14px; font-weight: 600; margin-bottom: 10px; color: var(--text-primary); }
 
         .signal-label { font-size: 12px; color: var(--text-tertiary); font-weight: 500; }
+
+        /* NAMUR-Skala */
+        .namur-scale { margin: -8px 0 20px; }
+        .namur-scale svg { width: 100%; height: auto; display: block; }
+        .namur-scale text { font-family: var(--font-mono); font-size: 9px; fill: var(--text-tertiary); }
+
+        /* Rechte Spalte kompakt: Wert und %-Zeile nebeneinander */
+        .col-results .result-group tbody { display: grid; grid-template-columns: 1.2fr 0.8fr; }
+        .col-results .result-group tbody tr { border-bottom: none; }
     </style>
 </head>
 <body data-tool-id="stromausgang">
@@ -74,17 +87,43 @@
                     <svg viewBox="0 0 16 16"><path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0z"/></svg>
                     Teilen
                 </button>
+                <button class="action-btn" id="exampleBtn" onclick="loadExample()">
+                    <svg viewBox="0 0 16 16"><path d="M9.5 1 4 9h3.5L6 15l5.5-8H8z"/></svg>
+                    Beispiel laden
+                </button>
             </div>
 
             <div class="description">
                 ⚡ Berechnet den Messwert aus einem gegebenen Signalausgang (4–20 mA, 0–20 mA oder 0–10 V) und den prozentualen Anteil des Messbereichs. Unterstützt drei Berechnungsrichtungen: Signal → Messwert, Messwert → Signal und Prozent → Signal + Messwert.<br><br>
-                ℹ️ <strong>NAMUR NE43 Signalstatus</strong> (nur bei 4–20 mA): Die Ampel zeigt den Signalstatus nach NAMUR-Standard. Unter 3,6 mA oder über 21 mA = Gerätefehler, 3,6–3,8 mA oder 20,5–21 mA = Warnbereich.
+                ℹ️ <strong>NAMUR NE43 Signalstatus</strong> (nur bei 4–20 mA): Die Ampel zeigt den Signalstatus nach NAMUR-Standard. Unter 3,6 mA oder über 21 mA = Gerätefehler, 3,6–3,8 mA oder 20,5–21 mA = Warnbereich. Die Skala unter der Ampel zeigt die Zonen mit Marker für den eingegebenen Signalwert.<br><br>
+                🔧 Der tatsächliche Fehlerstrom ist geräteabhängig konfigurierbar (z. B. E+H: Min-Alarm ≤ 3,6 mA oder Max-Alarm ≥ 21 mA). Berechnete Signale außerhalb des linearen Bereichs 3,8–20,5 mA werden markiert — reale Geräte sättigen dort.
             </div>
 
             <!-- NAMUR Status -->
             <div class="status-bar status-idle" id="statusBar">
                 <div class="status-dot"></div>
                 <span id="statusText">Signalwert eingeben für NAMUR-Prüfung (nur 4–20 mA)</span>
+            </div>
+
+            <!-- NAMUR-Skala (nur 4–20 mA): Zonen nach NE43 mit Marker für den Signalwert -->
+            <div id="namurScale" class="namur-scale" data-pane="results">
+                <svg viewBox="0 0 480 60" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NAMUR-NE43-Signalskala: Fehler unter 3,6 mA, Warnung bis 3,8 mA, linearer Bereich bis 20,5 mA, Warnung bis 21 mA, Fehler darüber">
+                    <rect x="20"    y="26" width="13.9"  height="12" fill="var(--text-danger)"    opacity="0.75"/>
+                    <rect x="33.9"  y="26" width="4.6"   height="12" fill="var(--text-attention)" opacity="0.8"/>
+                    <rect x="38.5"  y="26" width="386.8" height="12" fill="var(--text-success)"   opacity="0.65"/>
+                    <rect x="425.3" y="26" width="11.5"  height="12" fill="var(--text-attention)" opacity="0.8"/>
+                    <rect x="436.8" y="26" width="23.2"  height="12" fill="var(--text-danger)"    opacity="0.75"/>
+                    <!-- Messbereichsgrenzen 4 / 20 mA -->
+                    <line x1="43.2"  y1="24" x2="43.2"  y2="40" stroke="var(--text-primary)" stroke-width="1"/>
+                    <line x1="413.7" y1="24" x2="413.7" y2="40" stroke="var(--text-primary)" stroke-width="1"/>
+                    <text x="33.9"  y="18" text-anchor="middle">3,6</text>
+                    <text x="425.3" y="18" text-anchor="middle">20,5</text>
+                    <text x="43.2"  y="52" text-anchor="middle">4</text>
+                    <text x="413.7" y="52" text-anchor="middle">20</text>
+                    <text x="436.8" y="52" text-anchor="middle">21</text>
+                    <text x="460"   y="52" text-anchor="end">mA</text>
+                    <polygon id="scaleMarker" points="0,24 -5,14 5,14" fill="var(--text-primary)" style="visibility:hidden"/>
+                </svg>
             </div>
 
             <!-- Grundeinstellungen -->
@@ -103,9 +142,9 @@
                 <tr>
                     <td colspan="2">Messbereich</td>
                     <td colspan="4">
-                        <input class="input-field" type="number" id="messbereich_min" value="0" style="max-width:120px">
+                        <input class="input-field" type="number" id="messbereich_min" value="0" aria-label="Messbereich Anfang" style="max-width:120px">
                         bis
-                        <input class="input-field" type="number" id="messbereich_max" value="400" style="max-width:120px">
+                        <input class="input-field" type="number" id="messbereich_max" value="400" aria-label="Messbereich Ende" style="max-width:120px">
                         <select class="input-field" id="messbereich_einheit" style="max-width:100px">
                             <option value="m³/h">m³/h</option>
                             <option value="l/min">l/min</option>
@@ -133,12 +172,12 @@
                 <tr>
                     <td colspan="2">Istwert Signal</td>
                     <td colspan="4">
-                        <input class="input-field" type="number" id="signalwert" value="0" step="any">
+                        <input class="input-field" type="number" id="signalwert" value="" placeholder="z.B. 12" step="any">
                         <span class="signal-label" id="signalEinheitLabel1">mA</span>
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="2">Messwert calc:</td>
+                    <td colspan="2">Messwert (berechnet):</td>
                     <td colspan="4" class="result-field"><span id="messwert_calc"></span> <span id="einheitLabel1"></span></td>
                 </tr>
                 <tr>
@@ -158,8 +197,8 @@
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="2">Signal calc:</td>
-                    <td colspan="4" class="result-field"><span id="signal_calc"></span> <span id="signalEinheitLabel2">mA</span></td>
+                    <td colspan="2">Signal (berechnet):</td>
+                    <td colspan="4" class="result-field"><span id="signal_calc"></span> <span id="signalEinheitLabel2">mA</span> <span class="signal-label" id="signalSatHint" style="color:var(--text-attention)"></span></td>
                 </tr>
                 <tr>
                     <td colspan="2">% von MB:</td>
@@ -178,7 +217,7 @@
                 </tr>
                 <tr>
                     <td colspan="2">Signal:</td>
-                    <td colspan="4" class="result-field"><span id="pct_signal_calc"></span> <span id="signalEinheitLabel3">mA</span></td>
+                    <td colspan="4" class="result-field"><span id="pct_signal_calc"></span> <span id="signalEinheitLabel3">mA</span> <span class="signal-label" id="pctSatHint" style="color:var(--text-attention)"></span></td>
                 </tr>
                 <tr>
                     <td colspan="2">Messwert:</td>
@@ -189,7 +228,7 @@
             <hr class="section-divider">
 
             <!-- Schnelltabelle -->
-            <div class="quick-table">
+            <div class="quick-table" data-pane="results">
                 <h4>📋 Schnellübersicht Kalibrierpunkte</h4>
                 <table id="schnelltabelle">
                     <thead>
@@ -214,6 +253,7 @@
 
     <footer class="bottom-header">
         <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+        <div class="footer-links"><a href="Impressum.html">Impressum</a><span>&#183;</span><a href="Kontakt.html">Kontakt</a><span>&#183;</span><a href="Statistiken.html">Statistiken</a></div>
     </footer>
 
     <script src="shared.js"></script>
@@ -237,6 +277,37 @@
             const min = parseFloat(document.getElementById('messbereich_min').value);
             const max = parseFloat(document.getElementById('messbereich_max').value);
             return { min, max, spanne: max - min };
+        }
+
+        // Messbereich brauchbar? (beide Grenzen gesetzt, Spanne ≠ 0)
+        function mbValid(mb) {
+            return isFinite(mb.spanne) && mb.spanne !== 0;
+        }
+
+        // Hinweis, wenn ein berechnetes Signal physikalisch nicht ausgegeben wird
+        function satText(signal, cfg) {
+            if (cfg.isNamur) {
+                if (signal < 3.6 || signal > 21) return '⚠ NE43-Fehlerbereich — reale Geräte sättigen';
+                if (signal < 3.8 || signal > 20.5) return '⚠ außerhalb des linearen Bereichs (3,8–20,5 mA)';
+                return '';
+            }
+            if (signal < cfg.min || signal > cfg.max) return '⚠ außerhalb des Signalbereichs (' + cfg.min + '–' + cfg.max + ' ' + cfg.einheit + ')';
+            return '';
+        }
+
+        // ============ NAMUR-SKALA ============
+        function updateScale() {
+            const cfg = getSignalConfig();
+            const wrap = document.getElementById('namurScale');
+            if (!cfg.isNamur) { wrap.style.display = 'none'; return; }
+            wrap.style.display = '';
+            const sv = parseFloat(document.getElementById('signalwert').value);
+            const marker = document.getElementById('scaleMarker');
+            if (isNaN(sv)) { marker.style.visibility = 'hidden'; return; }
+            // Skala 3–22 mA auf x = 20–460 (wie die Zonen-Rechtecke im SVG)
+            const x = 20 + (Math.min(Math.max(sv, 3), 22) - 3) / 19 * 440;
+            marker.setAttribute('transform', 'translate(' + x.toFixed(1) + ',0)');
+            marker.style.visibility = 'visible';
         }
 
         // ============ UI LABELS UPDATE ============
@@ -266,15 +337,19 @@
             const sv = parseFloat(document.getElementById('signalwert').value);
             const cfg = getSignalConfig();
             const mb = getMB();
-            if (mb.spanne === 0) return;
+            updateNamurStatus(sv, cfg);
+            updateScale();
+            if (isNaN(sv) || !mbValid(mb)) {
+                document.getElementById('messwert_calc').innerText = '';
+                document.getElementById('prozent_mb_signal').innerText = '';
+                return;
+            }
 
             const pct = (sv - cfg.min) / (cfg.max - cfg.min) * 100;
             const mw = mb.min + (mb.spanne * pct / 100);
 
             document.getElementById('messwert_calc').innerText = mw.toFixed(2);
             document.getElementById('prozent_mb_signal').innerText = pct.toFixed(2) + '%';
-
-            updateNamurStatus(sv, cfg);
         }
 
         // Messwert → Signal
@@ -282,13 +357,19 @@
             const mw = parseFloat(document.getElementById('messwert').value);
             const cfg = getSignalConfig();
             const mb = getMB();
-            if (mb.spanne === 0) return;
+            if (isNaN(mw) || !mbValid(mb)) {
+                document.getElementById('signal_calc').innerText = '';
+                document.getElementById('prozent_mb_messwert').innerText = '';
+                document.getElementById('signalSatHint').textContent = '';
+                return;
+            }
 
             const pct = (mw - mb.min) / mb.spanne * 100;
             const signal = cfg.min + ((cfg.max - cfg.min) * pct / 100);
 
             document.getElementById('signal_calc').innerText = signal.toFixed(2);
             document.getElementById('prozent_mb_messwert').innerText = pct.toFixed(2) + '%';
+            document.getElementById('signalSatHint').textContent = satText(signal, cfg);
         }
 
         // Prozent → Signal + Messwert
@@ -296,12 +377,19 @@
             const pct = parseFloat(document.getElementById('prozent_input').value);
             const cfg = getSignalConfig();
             const mb = getMB();
+            if (isNaN(pct) || !mbValid(mb)) {
+                document.getElementById('pct_signal_calc').innerText = '';
+                document.getElementById('pct_messwert_calc').innerText = '';
+                document.getElementById('pctSatHint').textContent = '';
+                return;
+            }
 
             const signal = cfg.min + ((cfg.max - cfg.min) * pct / 100);
             const mw = mb.min + (mb.spanne * pct / 100);
 
             document.getElementById('pct_signal_calc').innerText = signal.toFixed(2);
             document.getElementById('pct_messwert_calc').innerText = mw.toFixed(2);
+            document.getElementById('pctSatHint').textContent = satText(signal, cfg);
         }
 
         // ============ NAMUR NE43 STATUS ============
@@ -315,7 +403,8 @@
                 return;
             }
 
-            if (isNaN(signalwert) || signalwert === 0) {
+            // 0 mA ist KEIN Leerwert, sondern Drahtbruch/keine Versorgung → Fehlerzweig (< 3,6 mA)
+            if (isNaN(signalwert)) {
                 bar.className = 'status-bar status-idle';
                 text.textContent = 'Signalwert eingeben für NAMUR-Prüfung';
                 return;
@@ -352,6 +441,7 @@
             const punkte = [0, 25, 50, 75, 100];
 
             tbody.innerHTML = '';
+            if (!mbValid(mb)) return;
             punkte.forEach(pct => {
                 const signal = cfg.min + ((cfg.max - cfg.min) * pct / 100);
                 const mw = mb.min + (mb.spanne * pct / 100);
@@ -361,6 +451,16 @@
                     '<td>' + mw.toFixed(2) + (einheit ? ' ' + einheit : '') + '</td>' +
                     '</tr>';
             });
+        }
+
+        // ============ BEISPIEL ============
+        function loadExample() {
+            document.getElementById('messbereich_min').value = '0';
+            document.getElementById('messbereich_max').value = '400';
+            document.getElementById('signalwert').value = '12';
+            document.getElementById('messwert').value = '250';
+            document.getElementById('prozent_input').value = '75';
+            berechneAlles();
         }
 
         // ============ ALLES NEU BERECHNEN ============

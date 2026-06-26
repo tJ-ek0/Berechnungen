@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kalibrierprotokoll – Techniker Berechnungstools</title>
+    <script>try{var t=JSON.parse(localStorage.getItem('techtools_state')||'{}').theme;if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#24292f">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
     <style>
@@ -143,7 +147,7 @@
         </table>
     </div></div>
 
-    <footer class="bottom-header"><p>Keine Gewähr. Kalibrierprotokoll ist kein DAkkS-Kalibrierschein.</p></footer>
+    <footer class="bottom-header"><p>Keine Gewähr. Kalibrierprotokoll ist kein DAkkS-Kalibrierschein.</p><div class="footer-links"><a href="Impressum.html">Impressum</a><span>&#183;</span><a href="Kontakt.html">Kontakt</a><span>&#183;</span><a href="Statistiken.html">Statistiken</a></div></footer>
     <script src="shared.js"></script>
     <script>
         const PCTS = [0, 25, 50, 75, 100];
@@ -171,20 +175,23 @@
                 const tr = document.createElement('tr');
                 tr.id = 'row_' + i;
 
-                // Restore saved ist values
-                const afVal = istFields['af_' + i] || '';
-                const alVal = istFields['al_' + i] || '';
+                // Restore saved ist values — nur valide Zahlen, nie ungeprüft in HTML-Attribute
+                const numOnly = v => (v !== '' && v !== undefined && isFinite(parseFloat(v))) ? String(parseFloat(v)) : '';
+                const afVal = numOnly(istFields['af_' + i]);
+                const alVal = numOnly(istFields['al_' + i]);
 
                 tr.innerHTML = '<td>' + pct + ' %</td>' +
                     '<td class="auto">' + soll.toFixed(2) + ' ' + unit + '</td>' +
                     '<td class="auto">' + outSoll.toFixed(3) + ' ' + out.unit + '</td>' +
-                    '<td><input type="number" step="0.001" id="af_' + i + '" value="' + afVal + '" placeholder="—" oninput="recalcRow(' + i + ')"></td>' +
+                    '<td><input type="number" step="0.001" id="af_' + i + '" placeholder="—" oninput="recalcRow(' + i + ')"></td>' +
                     '<td class="auto" id="af_dev_' + i + '">—</td>' +
                     '<td class="auto" id="af_ok_' + i + '">—</td>' +
-                    '<td><input type="number" step="0.001" id="al_' + i + '" value="' + alVal + '" placeholder="—" oninput="recalcRow(' + i + ')"></td>' +
+                    '<td><input type="number" step="0.001" id="al_' + i + '" placeholder="—" oninput="recalcRow(' + i + ')"></td>' +
                     '<td class="auto" id="al_dev_' + i + '">—</td>' +
                     '<td class="auto" id="al_ok_' + i + '">—</td>';
                 body.appendChild(tr);
+                tr.querySelector('#af_' + i).value = afVal;
+                tr.querySelector('#al_' + i).value = alVal;
                 recalcRow(i);
             });
         }

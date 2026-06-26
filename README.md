@@ -62,7 +62,7 @@ Sammlung von Berechnungs- und Nachschlagetools für die Prozessmesstechnik — e
 | **Schutzarten** | IP-Decoder, Zündschutzarten, Explosionsgruppen, Temperaturklassen |
 | **DN/Flansch-Tabelle** | DIN EN 1092-1 für PN10–PN40, DN10–DN600 mit ANSI-Vergleich |
 | **DK-Werte** | Dielektrizitätskonstanten für Radar-Füllstandmessung |
-| **Rohrklassen (ASME)** | ASME B36.10 / B36.19 Wanddicken und Gewichte |
+| **Rohrklassen (ASME)** | ASME B36.10 Wanddicken und Innendurchmesser (Schedule 5–XXS) |
 | **Prozessanschlüsse** | Übersicht messtechnischer Prozessanschlüsse und Dichtflächen |
 | **E+H Fehlercodes** | NAMUR NE 107 Diagnosemeldungen und Fehlerursachen |
 
@@ -123,10 +123,11 @@ Sammlung von Berechnungs- und Nachschlagetools für die Prozessmesstechnik — e
 ## Technologie
 
 - Reines HTML, CSS, JavaScript — kein Framework, kein Build-Prozess
-- [Chart.js](https://www.chartjs.org/) (MIT) — Diagramme
-- [jsPDF](https://github.com/parallax/jsPDF) (MIT) — PDF-Export
-- GitHub Pages — Hosting
-- `localStorage` — Theme, Favoriten, Einheitenvoreinstellungen
+- [Chart.js](https://www.chartjs.org/) (MIT) — Diagramme, lokal eingebunden (`lib/`)
+- [jsPDF](https://github.com/parallax/jsPDF) + jspdf-autotable (MIT) — PDF-Export, lokal eingebunden (`lib/`)
+- IBM Plex Sans/Mono (OFL) — selbst gehostet (`fonts/`), kein Google-Fonts-Abruf
+- GitHub Pages — Hosting, keine externen Requests zur Laufzeit
+- `localStorage` — Theme, Favoriten, Einheitenvoreinstellungen, Nutzungsstatistik (max. 90 Tage)
 
 ---
 

@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Impulswertigkeitsberechnung – Techniker Berechnungstools</title>
+    <script>try{var t=JSON.parse(localStorage.getItem('techtools_state')||'{}').theme;if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#24292f">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
     <style>
@@ -46,9 +50,17 @@
         .totalizer-value { font-size: 18px; font-weight: 600; color: var(--accent-fg); font-family: var(--font-mono); }
         .totalizer-label { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
 
-        /* Reverse calc section */
+        /* Reverse calc section (einklappbar) */
         .reverse-section { margin-top: 4px; }
         .reverse-section table { margin-bottom: 0; }
+        .reverse-section summary {
+            cursor: pointer; user-select: none;
+            font-size: 14px; font-weight: 600; color: var(--text-primary);
+            padding: 8px 0; list-style-position: inside;
+        }
+        .reverse-section summary:hover { color: var(--accent-fg); }
+        /* Titel-th bleibt für PDF-Export im DOM, Summary übernimmt die Anzeige */
+        .reverse-section table tr:first-child { display: none; }
 
         /* Frequenz-Auslastungsbalken */
         .freq-gauge { margin: -8px 0 20px; }
@@ -63,8 +75,11 @@
         .preset-label { font-size: 12px; color: var(--text-tertiary); font-weight: 600; flex-shrink: 0; min-width: 90px; }
         .preset-btn { padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 20px; border: 1px solid var(--border-default); background: var(--bg-default); color: var(--text-secondary); cursor: pointer; font-family: var(--font-sans); white-space: nowrap; }
         .preset-btn:hover { background: var(--bg-subtle); }
-        .preset-btn.active-device { background: #0969da; color: #fff; border-color: #0969da; }
+        .preset-btn.active-device { background: var(--bg-accent-emphasis); color: #fff; border-color: var(--bg-accent-emphasis); }
         .preset-btn.active-sps { background: #8250df; color: #fff; border-color: #8250df; }
+        [data-theme="dark"] .preset-btn.active-sps { background: #a371f7; border-color: #a371f7; }
+        @media (max-width: 768px) { .preset-btn { padding: 9px 14px; font-size: 12px; } }
+        @media (prefers-reduced-motion: reduce) { .status-bar.status-error { animation: none; } }
         /* Effektives Systemlimit */
         .effective-limit { margin-top: 10px; padding: 8px 12px; border-radius: var(--radius-md); background: var(--bg-subtle); border: 1px solid var(--border-default); font-size: 13px; font-weight: 500; color: var(--text-secondary); }
         .effective-limit b { color: var(--text-primary); }
@@ -86,6 +101,11 @@
         /* Diagramm */
         .chart-wrap { border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 16px; margin-top: 16px; background: var(--bg-default); }
         .chart-wrap canvas { max-height: 220px; }
+
+        /* Rechte Spalte kompakt: Ergebniskarten als 2×2-Raster, damit
+           Ampel + Karten + Messpunkte + Diagramm ohne Scrollen passen */
+        .col-results .result-group tbody { display: grid; grid-template-columns: 1fr 1fr; }
+        .col-results .result-group tbody tr { border-bottom: none; }
     </style>
 </head>
 <body data-tool-id="impuls">
@@ -118,7 +138,7 @@
                     <svg viewBox="0 0 16 16"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25ZM5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>
                     Kopieren
                 </button>
-                <button class="action-btn" id="resetBtn" onclick="resetFields()">
+                <button class="action-btn" id="resetBtn" onclick="resetAll()">
                     <svg viewBox="0 0 16 16"><path d="M3.38 8A4.62 4.62 0 0 1 8 3.38 4.63 4.63 0 0 1 12.1 6.5H9.25a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 .75-.75v-4a.75.75 0 0 0-1.5 0v1.743A6.13 6.13 0 0 0 8 1.88 6.12 6.12 0 0 0 1.88 8 6.12 6.12 0 0 0 8 14.12 6.13 6.13 0 0 0 13.646 10a.75.75 0 0 0-1.39-.57A4.63 4.63 0 0 1 8 12.62 4.62 4.62 0 0 1 3.38 8Z"/></svg>
                     Zurücksetzen
                 </button>
@@ -130,11 +150,16 @@
                     <svg viewBox="0 0 16 16"><path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0z"/></svg>
                     Teilen
                 </button>
+                <button class="action-btn" id="exampleBtn" onclick="loadExample()">
+                    <svg viewBox="0 0 16 16"><path d="M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 0 1-1.484.211c-.04-.282-.163-.547-.37-.847a8.456 8.456 0 0 0-.542-.68c-.084-.1-.173-.205-.268-.32C3.201 7.75 2.5 6.766 2.5 5.25 2.5 2.31 4.863 0 8 0s5.5 2.31 5.5 5.25c0 1.516-.701 2.5-1.328 3.259-.095.115-.184.22-.268.319-.207.245-.383.453-.541.681-.208.3-.33.565-.37.847a.751.751 0 0 1-1.485-.212c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848.075-.088.147-.173.213-.253.561-.679.985-1.32.985-2.304 0-2.06-1.637-3.75-4-3.75ZM5.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM6 15.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z"/></svg>
+                    Beispiel
+                </button>
             </div>
 
             <div class="description">
                 📊 Berechnet die Impulswertigkeit von Volumen- oder Massendurchflüssen inkl. Impulse pro Sekunde/Minute/Stunde, Impulsbreite und Totalizer-Hochrechnung. Die Ampel zeigt auf einen Blick ob die Konfiguration innerhalb der Geräte-Limits liegt.<br><br>
-                ℹ️ Die Impulsbreite wird mit <strong>50% Duty-Cycle</strong> berechnet (Impulsdauer = Pausendauer). Dies ist der Standardwert für die <strong>Flankenauswertung</strong> — das Empfangsgerät wertet die steigende Flanke des Impulses aus. Bei 50% DC hat das Signal die maximale Symmetrie, was die zuverlässigste Erkennung ermöglicht.
+                ℹ️ Die Impulsbreite wird standardmäßig mit <strong>50% Duty-Cycle</strong> berechnet (Impulsdauer = Pausendauer). Dies ist der Standardwert für die <strong>Flankenauswertung</strong> — das Empfangsgerät wertet die steigende Flanke des Impulses aus. Bei 50% DC hat das Signal die maximale Symmetrie, was die zuverlässigste Erkennung ermöglicht.<br><br>
+                🔧 Ausgelegt auf <strong>Endress+Hauser</strong>-Durchflussmesser (Promag, Promass, Prowirl — Parameter „Impulswertigkeit"/„Impulsbreite"). Ist am Gerät eine <strong>feste Impulsbreite</strong> konfiguriert, trage sie unter Systemlimits ein: Die Prüfung rechnet dann mit konstanter Breite statt 50% DC, und die maximale Frequenz wird zu 1/(2 × Impulsbreite).
             </div>
 
             <!-- Status Ampel -->
@@ -167,12 +192,15 @@
                     <label style="margin-left:16px">SPS min. Impulsbreite:</label>
                     <input class="input-field" type="number" id="sps_min_pb" value="100" step="0.1" style="max-width:100px">
                     <span style="font-size:13px;color:var(--text-secondary)">ms</span>
+                    <label style="margin-left:16px" title="Leer lassen = 50% Duty-Cycle. Wenn am Gerät (E+H-Parameter „Impulsbreite") eine feste Breite eingestellt ist, hier eintragen.">Impulsbreite am Gerät (optional):</label>
+                    <input class="input-field" type="number" id="device_pb" value="" min="0" step="0.01" placeholder="50% DC" style="max-width:100px">
+                    <span style="font-size:13px;color:var(--text-secondary)">ms</span>
                 </div>
                 <div class="effective-limit" id="effectiveLimit">Effektives Systemlimit: —</div>
             </div>
 
             <!-- Frequenz-Auslastungsbalken -->
-            <div class="freq-gauge">
+            <div class="freq-gauge" data-pane="results">
                 <div class="freq-gauge-top">
                     <span>Frequenz-Auslastung</span>
                     <span id="gaugeLabel">—</span>
@@ -231,7 +259,7 @@
                     <td colspan="4" class="result-field"><span id="impulse_h"></span> Imp/h</td>
                 </tr>
                 <tr>
-                    <td colspan="2">Impulsbreite (50% DC)</td>
+                    <td colspan="2" id="pbLabel">Impulsbreite (50% DC)</td>
                     <td colspan="4" class="result-field"><span id="impulsbreite"></span> ms</td>
                 </tr>
             </table>
@@ -262,7 +290,8 @@
             <hr class="section-divider">
 
             <!-- Max. Durchfluss Berechnung -->
-            <div class="reverse-section">
+            <details class="reverse-section" open>
+                <summary>Impulsbreite + Wertigkeit → Max. Durchfluss</summary>
                 <table>
                     <tr><th colspan="6">Impulsbreite + Wertigkeit → Max. Durchfluss</th></tr>
                     <tr>
@@ -299,12 +328,13 @@
                         <td colspan="4" class="result-field"><span id="max_durchfluss_result"></span></td>
                     </tr>
                 </table>
-            </div>
+            </details>
 
             <hr class="section-divider">
 
             <!-- Umgekehrte Berechnung -->
-            <div class="reverse-section">
+            <details class="reverse-section" open>
+                <summary>Impulse → Impulswertigkeit (Rückrechnung)</summary>
                 <table>
                     <tr><th colspan="6">Impulse → Impulswertigkeit (Rückrechnung)</th></tr>
                     <tr>
@@ -355,16 +385,20 @@
                         <td colspan="4" class="result-field"><span id="rev_result"></span></td>
                     </tr>
                     <tr>
+                        <td colspan="2" title="Aufgerundet auf die 1-2-5-Reihe — ergibt eine niedrigere, sichere Frequenz">Vorschlag (Rundwert)</td>
+                        <td colspan="4" class="result-field"><span id="rev_vorschlag"></span></td>
+                    </tr>
+                    <tr>
                         <td colspan="2">Impulsbreite (50% DC)</td>
                         <td colspan="4" class="result-field"><span id="rev_pulsbreite"></span> ms</td>
                     </tr>
                 </table>
-            </div>
+            </details>
 
             <hr class="section-divider">
 
             <!-- Messpunkt-Tabelle -->
-            <table id="mpTable" style="display:none">
+            <table id="mpTable" data-pane="results" style="display:none">
                 <tr><th colspan="4">Frequenz &amp; Impulsbreite nach Durchfluss-Anteil</th></tr>
                 <tr id="mpHeader">
                     <td style="font-weight:600;font-size:12px">Durchfluss</td>
@@ -375,7 +409,7 @@
             </table>
 
             <!-- Diagramm -->
-            <div class="chart-wrap" id="chartWrap" style="display:none">
+            <div class="chart-wrap" id="chartWrap" data-pane="results" style="display:none">
                 <canvas id="freqChart"></canvas>
             </div>
 
@@ -390,9 +424,10 @@
 
     <footer class="bottom-header">
         <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+        <div class="footer-links"><a href="Impressum.html">Impressum</a><span>&#183;</span><a href="Kontakt.html">Kontakt</a><span>&#183;</span><a href="Statistiken.html">Statistiken</a></div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="lib/chart.umd.min.js"></script>
     <script src="shared.js"></script>
     <script>
         // ============ EINHEITEN WECHSELN ============
@@ -445,11 +480,18 @@
             }
         }
 
-        // Einheitenbezeichnung für Impulswertigkeit
-        function getImpulsEinheitLabel() {
-            const typ = document.getElementById('typ').value;
-            const ie = document.getElementById('impulswertigkeit_einheit').value;
-            return ie;
+        // ============ RUNDWERT (1-2-5-REIHE) ============
+        // Kleinster Wert der 1-2-5-Reihe ≥ v (Aufrunden senkt die Frequenz → sicher)
+        function nextNice(v) {
+            if (!isFinite(v) || v <= 0) return null;
+            const exp = Math.floor(Math.log10(v));
+            for (let e = exp; e <= exp + 1; e++) {
+                for (const m of [1, 2, 5]) {
+                    const cand = m * Math.pow(10, e);
+                    if (cand >= v - 1e-12) return cand;
+                }
+            }
+            return null;
         }
 
         // ============ FORMAT-HELPER ============
@@ -469,6 +511,9 @@
             const iw = parseFloat(document.getElementById('impulswertigkeit').value);
             const ie = document.getElementById('impulswertigkeit_einheit').value;
 
+            const lim2 = getEffectiveLimits();
+            document.getElementById('pbLabel').textContent = lim2.fixedPb ? 'Impulsbreite (konfiguriert)' : 'Impulsbreite (50% DC)';
+
             // Validierung
             if (!validateInput('impulswertigkeit', { notZero: true })) {
                 clearResults();
@@ -487,7 +532,7 @@
             const imp_h = d_lh / iw_basis;
             const imp_min = imp_h / 60;
             const imp_sek = imp_min / 60;
-            const pulsbreite = imp_sek > 0 ? 1000 / (imp_sek * 2) : Infinity;
+            const pulsbreite = lim2.fixedPb ? lim2.fixedPb : (imp_sek > 0 ? 1000 / (imp_sek * 2) : Infinity);
 
             // Ergebnisse anzeigen
             document.getElementById('impulse_sek').innerText = formatZahl(imp_sek);
@@ -502,7 +547,6 @@
             updateStatus(imp_sek, pulsbreite);
 
             // Gauge, Tabelle, Chart
-            const lim2 = getEffectiveLimits();
             const freqPct = lim2.effMaxFreq > 0 ? (imp_sek / lim2.effMaxFreq) * 100 : 0;
             updateGauge(freqPct);
             updateEffectiveLimit();
@@ -664,6 +708,7 @@
 
             if (!revImp || revImp === 0 || !revDurchfluss || revDurchfluss === 0) {
                 document.getElementById('rev_result').innerText = '';
+                document.getElementById('rev_vorschlag').innerText = '';
                 document.getElementById('rev_pulsbreite').innerText = '';
                 return;
             }
@@ -691,10 +736,57 @@
 
             document.getElementById('rev_result').innerText = formatZahl(iwAnzeige) + ' ' + revIE;
 
+            // Rundwert-Vorschlag (1-2-5-Reihe): in der Praxis stellt man 10/20/50/…
+            // ein — aufgerundet sinkt die Frequenz, die Konfiguration bleibt sicher
+            const nice = nextNice(iwAnzeige);
+            const vorschlagEl = document.getElementById('rev_vorschlag');
+            if (nice === null) {
+                vorschlagEl.innerText = '';
+            } else {
+                const niceBasis = (revIE === 'm³/Imp' || revIE === 't/Imp') ? nice * 1000 : nice;
+                const fNice = d_lh / niceBasis / 3600;
+                const lim = getEffectiveLimits();
+                const pbNice = lim.fixedPb ? lim.fixedPb : (fNice > 0 ? 1000 / (2 * fNice) : Infinity);
+                const passt = fNice <= lim.effMaxFreq && (!isFinite(pbNice) || pbNice >= lim.effMinPb);
+                vorschlagEl.innerText = formatZahl(nice) + ' ' + revIE + ' → ' + formatZahl(fNice) + ' Hz ' + (passt ? '✓' : '⚠ über Systemlimit');
+            }
+
             // Impulsbreite
             const impSek = impH / 3600;
             const pb = impSek > 0 ? 1000 / (impSek * 2) : Infinity;
             document.getElementById('rev_pulsbreite').innerText = isFinite(pb) ? formatZahl(pb) : '—';
+        }
+
+        // ============ RESET ============
+        // resetFields() allein lässt die dynamisch umgebauten Einheiten-Selects
+        // auf Masse-Optionen stehen, obwohl der Typ auf "Volumen" zurückspringt —
+        // daher eigener Reset (wird auch vom Esc-Shortcut bevorzugt)
+        function resetAll() {
+            resetFields();
+            aendereEinheiten('volumen');
+            aendereMaxEinheiten('volumen');
+            aendereRevEinheiten('volumen');
+            // Preset-Markierungen auf Ausgangszustand
+            document.querySelectorAll('.preset-btn.active-device').forEach(b => b.classList.remove('active-device'));
+            document.querySelectorAll('.preset-btn.active-sps').forEach(b => b.classList.remove('active-sps'));
+            const slow = document.querySelector('.preset-btn[onclick^="setSPSPreset(100"]');
+            if (slow) slow.classList.add('active-sps');
+            updateEffectiveLimit();
+        }
+
+        // ============ BEISPIEL ============
+        // Realistischer E+H-Fall: Promag, 45 m³/h, 10 ltr/Imp an langsamer SPS-Karte
+        function loadExample() {
+            resetAll();
+            document.getElementById('typ').value = 'volumen';
+            aendereEinheiten('volumen');
+            document.getElementById('durchfluss').value = 45;
+            document.getElementById('durchfluss_einheit').value = 'm³/h';
+            document.getElementById('impulswertigkeit').value = 10;
+            document.getElementById('impulswertigkeit_einheit').value = 'ltr/Imp';
+            setDevicePreset(10000, document.querySelector('.preset-btn[onclick^="setDevicePreset(10000"]'));
+            setSPSPreset(100, document.querySelector('.preset-btn[onclick^="setSPSPreset(100"]'));
+            showBtnFeedback('exampleBtn', 'Beispiel geladen', 'var(--accent-fg)');
         }
 
         // ============ GERÄTE-VORLAGEN ============
@@ -717,11 +809,24 @@
         function getEffectiveLimits() {
             const deviceMaxFreq = parseFloat(document.getElementById('device_max_freq').value) || 10000;
             const spsMinPb      = parseFloat(document.getElementById('sps_min_pb').value) || 100;
-            const spsMaxFreq    = spsMinPb > 0 ? 1000 / (2 * spsMinPb) : Infinity;
-            const effMaxFreq    = Math.min(deviceMaxFreq, spsMaxFreq);
-            const effMinPb      = Math.max(spsMinPb, deviceMaxFreq > 0 ? 1000 / (2 * deviceMaxFreq) : 0);
-            const bottleneck    = spsMaxFreq < deviceMaxFreq ? 'SPS' : deviceMaxFreq < spsMaxFreq ? 'Messgerät' : null;
-            return { deviceMaxFreq, spsMinPb, spsMaxFreq, effMaxFreq, effMinPb, bottleneck };
+            const devPbRaw      = parseFloat(document.getElementById('device_pb').value);
+            const fixedPb       = isFinite(devPbRaw) && devPbRaw > 0 ? devPbRaw : null; // leer = 50% DC
+
+            let effMaxFreq, bottleneck;
+            if (fixedPb) {
+                // Feste Impulsbreite B (E+H-Parameter „Impulsbreite"): f ≤ 1000/(2B),
+                // sonst Duty-Cycle > 50%. Die Pause ist dann immer ≥ B — die SPS-
+                // Grenzfrequenz ist automatisch eingehalten, sofern B ≥ SPS-Mindestbreite.
+                const pbMaxFreq = 1000 / (2 * fixedPb);
+                effMaxFreq = Math.min(deviceMaxFreq, pbMaxFreq);
+                bottleneck = pbMaxFreq < deviceMaxFreq ? 'Impulsbreite' : 'Messgerät';
+            } else {
+                const spsMaxFreq = spsMinPb > 0 ? 1000 / (2 * spsMinPb) : Infinity;
+                effMaxFreq = Math.min(deviceMaxFreq, spsMaxFreq);
+                bottleneck = spsMaxFreq < deviceMaxFreq ? 'SPS' : deviceMaxFreq < spsMaxFreq ? 'Messgerät' : null;
+            }
+            const effMinPb = Math.max(spsMinPb, deviceMaxFreq > 0 ? 1000 / (2 * deviceMaxFreq) : 0);
+            return { deviceMaxFreq, spsMinPb, fixedPb, effMaxFreq, effMinPb, bottleneck };
         }
         function updateEffectiveLimit() {
             const lim = getEffectiveLimits();
@@ -729,7 +834,13 @@
             const badge = lim.bottleneck
                 ? '<span class="bottleneck ' + (lim.bottleneck === 'SPS' ? 'bottleneck-sps' : 'bottleneck-device') + '">Engpass: ' + lim.bottleneck + '</span>'
                 : '';
-            el.innerHTML = 'Effektives Systemlimit: <b>' + formatZahl(lim.effMaxFreq) + ' Hz</b> / <b>' + formatZahl(lim.effMinPb) + ' ms</b>' + badge;
+            const pbInfo = lim.fixedPb
+                ? ' bei fester Impulsbreite <b>' + formatZahl(lim.fixedPb) + ' ms</b>'
+                : ' / <b>' + formatZahl(lim.effMinPb) + ' ms</b>';
+            const conflict = lim.fixedPb && lim.fixedPb < lim.spsMinPb
+                ? ' <span class="bottleneck bottleneck-sps">Impulsbreite &lt; SPS-Mindestbreite!</span>'
+                : '';
+            el.innerHTML = 'Effektives Systemlimit: <b>' + formatZahl(lim.effMaxFreq) + ' Hz</b>' + pbInfo + badge + conflict;
         }
 
         // ============ GAUGE ============
@@ -773,13 +884,14 @@
             // Alle Zeilen außer den zwei Header-Zeilen entfernen
             while (table.rows.length > 2) table.deleteRow(2);
 
+            const limMp = getEffectiveLimits();
             const pcts = [10, 25, 50, 75, 100, 110];
             pcts.forEach(pct => {
                 const d = d_lh_100 * pct / 100;
                 const impH = d / iw_basis;
                 const impSek = impH / 3600;
-                const pb = impSek > 0 ? 1000 / (impSek * 2) : Infinity;
-                const overLimit = impSek > maxFreq;
+                const pb = limMp.fixedPb ? limMp.fixedPb : (impSek > 0 ? 1000 / (impSek * 2) : Infinity);
+                const overLimit = impSek > maxFreq || (isFinite(pb) && pb < minPuls);
                 const nearLimit = !overLimit && (impSek / maxFreq) > 0.8;
                 const dotClass = overLimit ? 'mp-err' : nearLimit ? 'mp-warn' : 'mp-ok';
                 const statusText = overLimit ? 'Überlimit' : nearLimit ? 'Warnung' : 'OK';
@@ -858,7 +970,7 @@
 
         // ============ EVENT LISTENERS ============
         // Hauptberechnung
-        document.querySelectorAll('#durchfluss, #impulswertigkeit, #durchfluss_einheit, #impulswertigkeit_einheit, #typ, #device_max_freq, #sps_min_pb').forEach(el => {
+        document.querySelectorAll('#durchfluss, #impulswertigkeit, #durchfluss_einheit, #impulswertigkeit_einheit, #typ, #device_max_freq, #sps_min_pb, #device_pb').forEach(el => {
             el.addEventListener('input', berechneImpulswertigkeit);
             el.addEventListener('change', berechneImpulswertigkeit);
         });
@@ -887,9 +999,10 @@
             el.addEventListener('change', berechneMaxDurchfluss);
         });
 
-        // Effektives Limit beim Start und bei Limit-Eingaben sofort anzeigen
-        document.querySelectorAll('#device_max_freq, #sps_min_pb').forEach(el => {
-            el.addEventListener('input', updateEffectiveLimit);
+        // Effektives Limit beim Start und bei Limit-Eingaben sofort anzeigen;
+        // der Rundwert-Vorschlag der Rückrechnung hängt ebenfalls am Limit
+        document.querySelectorAll('#device_max_freq, #sps_min_pb, #device_pb').forEach(el => {
+            el.addEventListener('input', () => { updateEffectiveLimit(); berechneRueckwaerts(); });
         });
         updateEffectiveLimit();
 

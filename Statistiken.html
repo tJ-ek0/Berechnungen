@@ -4,8 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Statistiken – Techniker Berechnungstools</title>
+    <script>try{var t=JSON.parse(localStorage.getItem('techtools_state')||'{}').theme;if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#24292f">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="lib/chart.umd.min.js"></script>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
     <style>
         .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; }
@@ -91,32 +95,14 @@
 
     <footer class="bottom-header">
         <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+        <div class="footer-links"><a href="Impressum.html">Impressum</a><span>&#183;</span><a href="Kontakt.html">Kontakt</a><span>&#183;</span><a href="Statistiken.html">Statistiken</a></div>
     </footer>
 
     <script src="shared.js"></script>
     <script>
-        const TOOL_NAMES = {
-            'stromausgang': 'Stromausgangsberechnung',
-            'dichte': 'Dichteberechnung',
-            'impuls': 'Impulswertigkeit',
-            'volmasse': 'Volumen-Masse-Umrechnung',
-            'fliess': 'Fließgeschwindigkeit',
-            'kalibrier': 'Kalibrierpunkte',
-            'abweichung': 'Messwertabweichung',
-            'ph': 'pH Steilheit',
-            'csv': 'CSV-Umwandler',
-            'csvvisu': 'CSV-Visualisierung',
-            'tempsensor': 'Temperatursensor-Rechner',
-            'einheiten': 'Einheiten-Universalrechner',
-            'tank': 'Tankinhalt-Rechner',
-            'dampf': 'Dampftabelle',
-            'einbau': 'Einlaufstrecken-Rechner',
-            'burden': '4-20mA Bürdenrechner',
-            'blende': 'Blenden/DP-Durchflussrechner',
-            'schutzart': 'Schutzarten-Nachschlagewerk',
-            'flansch': 'DN/Flansch-Tabelle',
-            'viskositaet': 'Viskositäts-Umrechner'
-        };
+        // Aus der zentralen Tool-Liste in shared.js generiert — keine doppelte Pflege
+        const TOOL_NAMES = {};
+        Object.entries(_TOOL_META).forEach(([id, meta]) => { TOOL_NAMES[id] = meta.title; });
 
         function getChartColors() {
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';

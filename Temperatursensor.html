@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Temperatursensor-Rechner – Techniker Berechnungstools</title>
+    <script>try{var t=JSON.parse(localStorage.getItem('techtools_state')||'{}').theme;if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#24292f">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
     <style>
@@ -165,7 +169,7 @@
         <div class="shortcuts-hint"><span><kbd>Ctrl</kbd>+<kbd>C</kbd> Kopieren</span><span><kbd>Esc</kbd> Zurücksetzen</span><span><kbd>Ctrl</kbd>+<kbd>P</kbd> PDF</span><span><kbd>Ctrl</kbd>+<kbd>L</kbd> Teilen</span></div>
     </div></div>
 
-    <footer class="bottom-header"><p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p></footer>
+    <footer class="bottom-header"><p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p><div class="footer-links"><a href="Impressum.html">Impressum</a><span>&#183;</span><a href="Kontakt.html">Kontakt</a><span>&#183;</span><a href="Statistiken.html">Statistiken</a></div></footer>
 
     <script src="shared.js"></script>
     <script>
@@ -242,13 +246,15 @@
             t1:t=>Math.max(1.5,.004*Math.abs(t)),t2:t=>Math.max(2.5,.0075*Math.abs(t))},
         R:{nm:'Typ R (Pt13Rh-Pt)',clr:{p:'#ff8800',pn:'Orange',m:'#ffffff',mn:'Weiß',s:'#ff8800',sn:'Orange'},
             rg:[{lo:-50,hi:1064,c:[0,5.28961729765e-3,1.39166589782e-5,-2.38855693017e-8,3.56916001063e-11,-4.62347666298e-14,5.00777441034e-17,-3.73105886191e-20,1.57716482367e-23,-2.81038625251e-27]},{lo:1064,hi:1768,c:[2.95157925316e1,-2.52061251332e-2,1.59564501865e-5,-7.64085947576e-9,2.05305291024e-12,-2.93359668173e-16]}],
-            t1:t=>Math.max(1,.003*Math.abs(t)),t2:t=>Math.max(1.5,.005*Math.abs(t))},
+            t1:t=>t<=1100?1:1+.003*(t-1100),t2:t=>Math.max(1.5,.0025*Math.abs(t))} /* IEC 60584-1: Kl.1 ±1°C bis 1100, dann 1+0,003(t−1100); Kl.2 ±1,5°C bzw. 0,25% */,
         S:{nm:'Typ S (Pt10Rh-Pt)',clr:{p:'#ff8800',pn:'Orange',m:'#ffffff',mn:'Weiß',s:'#ff8800',sn:'Orange'},
             rg:[{lo:-50,hi:1064,c:[0,5.40313308631e-3,1.25934289740e-5,-2.32477968689e-8,3.22028823036e-11,-3.31465196389e-14,2.55744251786e-17,-1.25068871393e-20,2.71443176145e-24]},{lo:1064,hi:1768,c:[1.32900444085e1,3.34509311344e-3,6.54805192818e-6,-1.64856259209e-8,1.29989605174e-12]}],
-            t1:t=>Math.max(1,.003*Math.abs(t)),t2:t=>Math.max(1.5,.005*Math.abs(t))}
+            t1:t=>t<=1100?1:1+.003*(t-1100),t2:t=>Math.max(1.5,.0025*Math.abs(t))} /* IEC 60584-1: Kl.1 ±1°C bis 1100, dann 1+0,003(t−1100); Kl.2 ±1,5°C bzw. 0,25% */
     };
 
-    function t2mv(t,k){const tc=TC[k];for(const r of tc.rg)if(t>=r.lo&&t<=r.hi){let v=0;for(let i=0;i<r.c.length;i++)v+=r.c[i]*Math.pow(t,i);return v;}const r=t<tc.rg[0].lo?tc.rg[0]:tc.rg[tc.rg.length-1];let v=0;for(let i=0;i<r.c.length;i++)v+=r.c[i]*Math.pow(t,i);return v;}
+    // Typ K (t≥0): ITS-90 verlangt zusätzlich a0·exp(a1·(t−126,9686)²) — gehört zum c0=−0,0176 mV
+    function _kExp(t,k){return(k==='K'&&t>=0)?0.1185976*Math.exp(-1.183432e-4*Math.pow(t-126.9686,2)):0;}
+    function t2mv(t,k){const tc=TC[k];for(const r of tc.rg)if(t>=r.lo&&t<=r.hi){let v=0;for(let i=0;i<r.c.length;i++)v+=r.c[i]*Math.pow(t,i);return v+_kExp(t,k);}const r=t<tc.rg[0].lo?tc.rg[0]:tc.rg[tc.rg.length-1];let v=0;for(let i=0;i<r.c.length;i++)v+=r.c[i]*Math.pow(t,i);return v+_kExp(t,k);}
     function mv2t(mv,k){const tc=TC[k];let lo=tc.rg[0].lo,hi=tc.rg[tc.rg.length-1].hi;for(let i=0;i<100;i++){const m=(lo+hi)/2,v=t2mv(m,k);if(Math.abs(v-mv)<.0001)return m;if(v<mv)lo=m;else hi=m;}return(lo+hi)/2;}
 
     function calcTC(){

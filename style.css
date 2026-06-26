@@ -1,7 +1,12 @@
 /* ============================================
    TECHNIKER BERECHNUNGSTOOLS — GitHub Style
    ============================================ */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+/* IBM Plex — lokal gehostet (DSGVO: kein Google-Fonts-Abruf) */
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/ibm-plex-sans-v23-latin_latin-ext-regular.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 500; font-display: swap; src: url('fonts/ibm-plex-sans-v23-latin_latin-ext-500.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 600; font-display: swap; src: url('fonts/ibm-plex-sans-v23-latin_latin-ext-600.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('fonts/ibm-plex-mono-v20-latin_latin-ext-regular.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 500; font-display: swap; src: url('fonts/ibm-plex-mono-v20-latin_latin-ext-500.woff2') format('woff2'); }
 
 /* ---- LIGHT MODE (default) ---- */
 :root {
@@ -303,8 +308,23 @@ table {
     margin-bottom: 20px;
     border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
-    overflow: hidden;
+    /* kein overflow:hidden — würde position:sticky der Tabellenköpfe deaktivieren;
+       Eckenrundung stattdessen über die Eckzellen */
 }
+
+table tr:first-child th:first-child, table tr:first-child td:first-child { border-top-left-radius: var(--radius-md); }
+table tr:first-child th:last-child,  table tr:first-child td:last-child  { border-top-right-radius: var(--radius-md); }
+table tr:last-child td:first-child  { border-bottom-left-radius: var(--radius-md); }
+table tr:last-child td:last-child   { border-bottom-right-radius: var(--radius-md); }
+
+/* Sticky Tabellenköpfe (Desktop) — bleiben beim Scrollen langer Tabellen sichtbar */
+@media (min-width: 601px) {
+    th { position: sticky; top: 64px; z-index: 5; }
+}
+
+/* Zebra-Streifen — wird per JS automatisch auf Tabellen mit >15 Zeilen gesetzt */
+.zebra tr:nth-child(even) td { background: var(--bg-subtle); }
+.zebra tr:hover td { background: var(--bg-inset); }
 
 th, td {
     padding: 12px 16px;
@@ -397,6 +417,29 @@ select {
     font-family: var(--font-mono);
     font-size: 16px;
     border-left: 3px solid var(--success-fg);
+    cursor: pointer;
+    transition: box-shadow 0.15s;
+}
+
+.result-field:hover { box-shadow: inset 0 0 0 1px var(--success-fg); }
+
+.result-field.copied {
+    position: relative;
+}
+.result-field.copied::after {
+    content: '✓ kopiert';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    background: var(--bg-success-emphasis);
+    color: var(--text-on-emphasis);
+    padding: 2px 8px;
+    border-radius: 20px;
+    pointer-events: none;
 }
 
 .good {
@@ -460,6 +503,37 @@ footer.bottom-header {
 .bottom-header a:hover {
     text-decoration: underline;
 }
+
+.footer-links { margin-top: 8px; }
+.footer-links a { color: var(--text-link); text-decoration: none; font-size: 12px; }
+.footer-links a:hover { text-decoration: underline; }
+.footer-links span { color: var(--text-tertiary); margin: 0 6px; }
+
+/* ---- SCROLL-TO-TOP ---- */
+#scrollTopBtn {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--bg-default);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-default);
+    box-shadow: var(--shadow-lg);
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
+    z-index: 90;
+}
+#scrollTopBtn.visible { opacity: 1; visibility: visible; transform: translateY(0); }
+#scrollTopBtn:hover { color: var(--accent-fg); border-color: var(--accent-fg); filter: none; }
 
 /* ---- RESPONSIVE ---- */
 @media (max-width: 768px) {
@@ -691,6 +765,20 @@ footer.bottom-header {
     text-decoration: none;
 }
 
+/* ---- MOBILE: Sticky Ergebnis-Ampel ---- */
+/* Die Statusleiste bleibt beim Scrollen sichtbar — Eingaben unten ändern, Bewertung oben sehen */
+@media (max-width: 768px) {
+    .is-tool-page .status-bar {
+        position: sticky;
+        top: 44px;
+        z-index: 40;
+        box-shadow: var(--shadow-md);
+    }
+}
+@media (max-width: 480px) {
+    .is-tool-page .status-bar { top: 40px; padding: 10px 14px; font-size: 13px; }
+}
+
 /* ---- MOBILE TOOL PAGE HEADER ---- */
 /* On mobile: replace "Techniker Berechnungstools" with "← ToolName", hide back-bar */
 @media (max-width: 768px) {
@@ -714,18 +802,350 @@ footer.bottom-header {
     }
 }
 
-/* ---- CATEGORY ICON COLORS (index page) ---- */
-.cat-blue   { background: var(--bg-accent); }
-.cat-amber  { background: var(--bg-attention); }
-.cat-teal   { background: #d2f4ea; }
-.cat-purple { background: #f3d9fa; }
-.cat-green  { background: var(--bg-success); }
-.cat-red    { background: var(--bg-danger); }
-.cat-warm   { background: #ffd8a8; }
-.cat-orange { background: #ffe4cc; }
-.cat-gray   { background: var(--bg-subtle); }
+/* ---- COMMAND PALETTE (Strg+K) ---- */
+#cmdOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: var(--overlay-bg);
+    display: none;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 12vh 16px 16px;
+}
 
-[data-theme="dark"] .cat-teal   { background: #0d2d22; }
-[data-theme="dark"] .cat-purple { background: #280f38; }
-[data-theme="dark"] .cat-warm   { background: #2e1800; }
-[data-theme="dark"] .cat-orange { background: #2e1800; }
+#cmdOverlay.open { display: flex; }
+
+#cmdBox {
+    width: 100%;
+    max-width: 560px;
+    background: var(--bg-default);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+#cmdInput {
+    width: 100%;
+    padding: 14px 16px;
+    border: none;
+    border-bottom: 1px solid var(--border-default);
+    border-radius: 0;
+    background: transparent;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    outline: none;
+    box-shadow: none;
+}
+
+#cmdList {
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.cmd-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    font-size: 14px;
+    color: var(--text-primary);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.cmd-item:hover { background: var(--bg-subtle); text-decoration: none; }
+
+.cmd-item.sel { background: var(--bg-accent); color: var(--accent-fg); }
+
+.cmd-ic {
+    display: flex;
+    align-items: center;
+    color: var(--accent-fg);
+    flex-shrink: 0;
+}
+
+.cmd-ic svg { width: 16px; height: 16px; }
+
+.cmd-empty {
+    padding: 16px;
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 13px;
+}
+
+/* ---- PWA-BANNER (Install-Hinweis / Update verfügbar) ---- */
+#appBanner {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    z-index: 150;
+    max-width: 560px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--bg-default);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+#appBanner span { flex: 1; }
+
+.banner-btn {
+    background: var(--bg-accent-emphasis);
+    color: var(--text-on-emphasis);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 6px 14px;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.banner-close {
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 2px 6px;
+    box-shadow: none;
+}
+
+.banner-close:hover { color: var(--text-primary); transform: none; box-shadow: none; filter: none; }
+
+/* ---- ERGEBNIS-FLASH ---- */
+/* background steht auf !important und ist per Animation nicht überschreibbar — daher Glow + Helligkeit */
+@keyframes resultFlash {
+    0%   { box-shadow: inset 0 0 0 2px var(--success-fg); filter: brightness(1.2); }
+    100% { box-shadow: inset 0 0 0 0 transparent; filter: none; }
+}
+
+.result-field.flash { animation: resultFlash 0.6s ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+    .result-field.flash { animation: none; }
+}
+
+/* ---- SKIP-LINK (nur bei Tastaturfokus sichtbar) ---- */
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 8px;
+    z-index: 300;
+    background: var(--bg-default);
+    color: var(--text-link);
+    padding: 8px 14px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-md);
+}
+
+.skip-link:focus { left: 8px; }
+
+/* ---- ZWEI-SPALTEN-LAYOUT (Desktop): Eingaben links, Ergebnisse rechts (sticky) ---- */
+/* Wird von initTwoColumnLayout() in shared.js aufgebaut; unter 1100px bleibt alles gestapelt */
+@media (min-width: 1100px) {
+    .container.has-two-col { max-width: none; }
+
+    .two-col-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+        gap: 24px;
+        align-items: start;
+    }
+
+    .col-results {
+        position: sticky;
+        top: 84px;
+        max-height: calc(100vh - 104px);
+        overflow-y: auto;
+    }
+
+    /* Tabellenköpfe in den Spalten nicht zusätzlich kleben lassen */
+    .col-results th, .col-inputs th { position: static; }
+}
+
+/* Ergebnis-Gruppen (Karten) in der rechten Spalte */
+.result-group {
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--bg-default);
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+
+.result-group table,
+.result-group thead,
+.result-group tbody,
+.result-group thead tr { display: block; margin: 0; width: 100%; border: none; }
+
+.result-group th {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg-subtle);
+    border-bottom: 1px solid var(--border-default);
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+}
+
+/* Karten-Optik: Label klein oben, Wert groß darunter */
+.result-group tbody tr {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.result-group tbody tr:last-child { border-bottom: none; }
+
+.result-group td {
+    border: none;
+    background: transparent;
+}
+
+.result-group td:first-child {
+    padding: 10px 14px 2px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.result-group td.result-field {
+    margin: 0 12px 12px;
+    font-size: 16px;
+}
+
+/* ---- INPUT-GROUP: Einheit im Eingabefeld ---- */
+.input-group {
+    display: inline-flex;
+    align-items: stretch;
+    vertical-align: middle;
+    max-width: 100%;
+}
+
+.input-group > input {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    min-width: 0;
+}
+
+.input-group > .input-unit {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 10px;
+    border: 1px solid var(--border-default);
+    border-left: none;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    background: var(--bg-subtle);
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-family: var(--font-mono);
+    white-space: nowrap;
+}
+
+.input-group > select {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    margin-left: -1px;
+}
+
+.input-group:focus-within > .input-unit { border-color: var(--accent-fg); }
+
+/* ---- TABELLEN-TOOLBAR (Suche + Trefferzähler) ---- */
+.table-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 16px 0 8px;
+}
+
+.table-toolbar input[type="search"] {
+    flex: 1;
+    min-width: 160px;
+    max-width: 320px;
+}
+
+.toolbar-count {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+}
+
+/* Sortierbare Spaltenköpfe */
+th.sortable { cursor: pointer; user-select: none; }
+th.sortable::after { content: ' ↕'; opacity: 0.35; font-size: 11px; }
+th.sortable.sort-asc::after { content: ' ↑'; opacity: 1; }
+th.sortable.sort-desc::after { content: ' ↓'; opacity: 1; }
+
+/* ---- „WEITERRECHNEN MIT"-VERKETTUNG ---- */
+.chain-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--font-sans);
+    color: var(--accent-fg);
+    background: var(--bg-accent);
+    border: 1px solid transparent;
+    border-radius: 20px;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    box-shadow: none;
+}
+
+.chain-btn:hover {
+    border-color: var(--accent-fg);
+    text-decoration: none;
+    transform: none;
+    box-shadow: none;
+    filter: none;
+}
+
+/* Dezente Variante: klickbarer Wert in Referenztabellen */
+.chain-link {
+    color: var(--accent-fg);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--accent-fg);
+}
+
+.chain-link:hover { border-bottom-style: solid; text-decoration: none; }
+
+/* ---- DRUCK ---- */
+@media print {
+    header, footer, .back-bar, .related-section, .history-panel, .shortcuts-hint,
+    .desc-expand-hint, #scrollTopBtn, #appBanner, #cmdOverlay, .skip-link, button {
+        display: none !important;
+    }
+    body { background: #ffffff; }
+    .container {
+        max-width: none;
+        padding: 0;
+        box-shadow: none;
+        border: none;
+    }
+    th { position: static !important; }
+    .status-bar { position: static !important; box-shadow: none; }
+    .two-col-grid { display: block !important; }
+    .col-results { position: static !important; max-height: none !important; overflow: visible !important; }
+    .table-toolbar, .chain-btn { display: none !important; }
+    .chain-link { color: inherit; border-bottom: none; }
+}
+
+/* Tool-Icons (index): einheitliche Farbe, keine Kategorie-Färbung */

@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dichteberechnung – Techniker Berechnungstools</title>
+    <script>try{var t=JSON.parse(localStorage.getItem('techtools_state')||'{}').theme;if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#24292f">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
     <style>
@@ -39,6 +43,19 @@
         .quality-good { background: var(--bg-success); color: var(--text-success); }
         .quality-ok { background: var(--bg-attention); color: var(--text-attention); }
         .quality-bad { background: var(--bg-danger); color: var(--text-danger); }
+
+        .signal-label { font-size: 12px; color: var(--text-tertiary); font-weight: 500; }
+
+        .status-bar { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-default); margin-bottom: 20px; font-size: 14px; font-weight: 500; transition: all 0.3s; }
+        .status-bar.status-ok { background: var(--bg-success); color: var(--text-success); border-color: var(--text-success); }
+        .status-bar.status-warn { background: var(--bg-attention); color: var(--text-attention); border-color: var(--text-attention); }
+        .status-bar.status-error { background: var(--bg-danger); color: var(--text-danger); border-color: var(--text-danger); }
+        .status-bar.status-idle { background: var(--bg-subtle); color: var(--text-tertiary); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .status-ok .status-dot { background: var(--text-success); }
+        .status-warn .status-dot { background: var(--text-attention); }
+        .status-error .status-dot { background: var(--text-danger); }
+        .status-idle .status-dot { background: var(--text-tertiary); }
     </style>
 </head>
 <body data-tool-id="dichte">
@@ -83,10 +100,20 @@
                     <svg viewBox="0 0 16 16"><path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0z"/></svg>
                     Teilen
                 </button>
+                <button class="action-btn" id="exampleBtn" onclick="loadExample()">
+                    <svg viewBox="0 0 16 16"><path d="M8 1.5c-2.363 0-4 1.69-4 3.75 0 .984.424 1.625.984 2.304l.214.253c.223.264.47.556.673.848.284.411.537.896.621 1.49a.75.75 0 0 1-1.484.211c-.04-.282-.163-.547-.37-.847a8.456 8.456 0 0 0-.542-.68c-.084-.1-.173-.205-.268-.32C3.201 7.75 2.5 6.766 2.5 5.25 2.5 2.31 4.863 0 8 0s5.5 2.31 5.5 5.25c0 1.516-.701 2.5-1.328 3.259-.095.115-.184.22-.268.319-.207.245-.383.453-.541.681-.208.3-.33.565-.37.847a.751.751 0 0 1-1.485-.212c.084-.593.337-1.078.621-1.489.203-.292.45-.584.673-.848.075-.088.147-.173.213-.253.561-.679.985-1.32.985-2.304 0-2.06-1.637-3.75-4-3.75ZM5.75 12h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1 0-1.5ZM6 15.25a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5a.75.75 0 0 1-.75-.75Z"/></svg>
+                    Beispiel
+                </button>
             </div>
 
             <div class="description">
-                ⚖️ Berechnet die Dichte eines Stoffes über Mehrfachwägung und Volumen. Flexible Anzahl Messungen, optionales Tara-Gewicht, Streuungsanalyse und Ergebnis in mehreren Einheiten. Die Messqualität wird automatisch bewertet.
+                ⚖️ Berechnet die Dichte eines Stoffes über Mehrfachwägung und Volumen. Flexible Anzahl Messungen, optionales Tara-Gewicht, Streuungsanalyse und Ergebnis in mehreren Einheiten. Die Ampel bewertet Messqualität und Plausibilität.
+            </div>
+
+            <!-- Qualitäts-Ampel -->
+            <div class="status-bar status-idle" id="statusBar">
+                <div class="status-dot"></div>
+                <span id="statusText">Messwerte und Volumen eingeben</span>
             </div>
 
             <!-- Eingabe -->
@@ -151,8 +178,13 @@
                 </div>
             </div>
 
+            <!-- Weiterrechnen mit der ermittelten Dichte -->
+            <div id="chainRow" data-pane="results" style="display:none; margin-top:10px;">
+                <a class="chain-btn" id="chainVM" href="VolumenMasse.html">→ mit dieser Dichte in Volumen↔Masse weiterrechnen</a>
+            </div>
+
             <!-- Statistik -->
-            <div class="stats-box" id="statsBox" style="display:none;">
+            <div class="stats-box" id="statsBox" data-pane="results" style="display:none;">
                 <h4>📊 Messstatistik</h4>
                 <div class="stats-grid">
                     <div class="stat-item">
@@ -234,6 +266,7 @@
 
     <footer class="bottom-header">
         <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+        <div class="footer-links"><a href="Impressum.html">Impressum</a><span>&#183;</span><a href="Kontakt.html">Kontakt</a><span>&#183;</span><a href="Statistiken.html">Statistiken</a></div>
     </footer>
 
     <script src="shared.js"></script>
@@ -241,18 +274,22 @@
         let messungCount = 0;
 
         // ============ MESSUNGEN VERWALTEN ============
-        function addMessung(value) {
-            messungCount++;
+        // forcedId: beim Wiederherstellen aus Share-Links Zeilen mit exakt
+        // diesen IDs anlegen (messung_N-Parameter)
+        function addMessung(value, forcedId) {
+            const id = forcedId || (messungCount + 1);
+            if (document.getElementById('messung_' + id)) return; // ID existiert schon
+            messungCount = Math.max(messungCount, id);
             const container = document.getElementById('messungen_container');
             const row = document.createElement('div');
             row.className = 'mess-row';
-            row.dataset.id = messungCount;
+            row.dataset.id = id;
             const einheit = document.getElementById('gewicht_einheit').value;
             row.innerHTML =
-                '<span class="row-label">Messung ' + messungCount + '</span>' +
-                '<input class="input-field messung-input" type="number" value="' + (value || 0) + '" step="any" data-nr="' + messungCount + '">' +
+                '<span class="row-label">Messung ' + id + '</span>' +
+                '<input class="input-field messung-input" type="number" id="messung_' + id + '" aria-label="Messung ' + id + '" value="' + (value || 0) + '" step="any" data-nr="' + id + '">' +
                 '<span class="signal-label gewicht-einheit-label">' + einheit + '</span>' +
-                '<button class="remove-btn" title="Entfernen" onclick="removeMessung(this)">×</button>';
+                '<button class="remove-btn" title="Entfernen" aria-label="Messung entfernen" onclick="removeMessung(this)">×</button>';
 
             container.appendChild(row);
             row.querySelector('input').addEventListener('input', berechne);
@@ -287,6 +324,12 @@
             return werte;
         }
 
+        // ============ AMPEL ============
+        function setAmpel(state, text) {
+            document.getElementById('statusBar').className = 'status-bar status-' + state;
+            document.getElementById('statusText').textContent = text;
+        }
+
         // ============ HAUPTBERECHNUNG ============
         function berechne() {
             const werte = getMesswerte();
@@ -297,10 +340,12 @@
             if (werte.length === 0 || vol === 0) {
                 document.getElementById('resultGrid').style.display = 'none';
                 document.getElementById('statsBox').style.display = 'none';
+                document.getElementById('chainRow').style.display = 'none';
+                setAmpel('idle', 'Messwerte und Volumen eingeben');
                 return;
             }
 
-            // Mittelwert
+            // Mittelwert (netto, nach Tara-Abzug)
             const sum = werte.reduce((a, b) => a + b, 0);
             const mw = sum / werte.length;
 
@@ -321,8 +366,31 @@
             document.getElementById('dichte_gml').textContent = dichte_gml.toFixed(4);
             document.getElementById('dichte_kgm3').textContent = dichte_kgm3.toFixed(2);
 
-            // Statistik
-            updateStatistik(werte, gewEinheit);
+            // Verkettung: ermittelte Dichte in Volumen↔Masse übernehmen
+            const chain = document.getElementById('chainVM');
+            chain.href = 'VolumenMasse.html?dichte=' + dichte_kgm3.toFixed(1) + '&dichte_einheit=kgm3';
+            document.getElementById('chainRow').style.display = dichte_kgl > 0 ? '' : 'none';
+
+            // Statistik (liefert relative Streuung für die Ampel)
+            const stats = updateStatistik(werte, gewEinheit);
+
+            // Ampel: Plausibilität vor Qualität
+            const negNetto = werte.some(v => v <= 0);
+            const fmt = v => v.toFixed(4).replace('.', ',');
+            if (dichte_kgl <= 0) {
+                setAmpel('error', '✕ Netto-Gewicht ≤ 0 — Tara (' + document.getElementById('tara').value + ' ' + gewEinheit + ') größer als die Messung? Dichte nicht berechenbar.');
+            } else if (negNetto) {
+                setAmpel('warn', '⚠ Mindestens eine Messung liegt unter dem Tara-Gewicht — Ausreißer prüfen.');
+            } else if (dichte_kgl > 25) {
+                setAmpel('warn', '⚠ ρ = ' + fmt(dichte_kgl) + ' kg/l ist unplausibel hoch (dichtester Stoff ≈ 22,6) — Einheiten prüfen.');
+            } else if (stats && stats.rel >= 2) {
+                setAmpel('warn', '⚠ ρ = ' + fmt(dichte_kgl) + ' kg/l — hohe Streuung (' + stats.rel.toFixed(2).replace('.', ',') + '%), Messungen prüfen.');
+            } else if (stats) {
+                const quali = stats.rel < 0.5 ? 'sehr gut' : 'akzeptabel';
+                setAmpel('ok', '✓ ρ = ' + fmt(dichte_kgl) + ' kg/l — Streuung ' + stats.rel.toFixed(2).replace('.', ',') + '% (' + quali + ', n=' + stats.n + ')');
+            } else {
+                setAmpel('ok', '✓ ρ = ' + fmt(dichte_kgl) + ' kg/l — nur 1 Messung, keine Streuungsbewertung möglich');
+            }
         }
 
         // ============ STATISTIK ============
@@ -330,7 +398,7 @@
             const box = document.getElementById('statsBox');
             if (werte.length < 2) {
                 box.style.display = 'none';
-                return;
+                return null;
             }
             box.style.display = 'block';
 
@@ -362,6 +430,7 @@
             } else {
                 qEl.innerHTML = '<span class="quality-indicator quality-bad">Hohe Streuung</span>';
             }
+            return { rel: relStreuung, n };
         }
 
         // ============ RÜCKRECHNUNG ============
@@ -422,6 +491,8 @@
             document.getElementById('volumen_einheit').selectedIndex = 0;
             document.getElementById('rev_dichte').value = '0';
             document.getElementById('rev_volumen').value = '0';
+            document.getElementById('rev_dichte_einheit').selectedIndex = 0;
+            document.getElementById('rev_vol_einheit').selectedIndex = 0;
 
             const container = document.getElementById('messungen_container');
             container.innerHTML = '';
@@ -432,8 +503,24 @@
 
             document.getElementById('resultGrid').style.display = 'none';
             document.getElementById('statsBox').style.display = 'none';
+            document.getElementById('chainRow').style.display = 'none';
             document.getElementById('rev_gewicht').textContent = '';
+            setAmpel('idle', 'Messwerte und Volumen eingeben');
             updateEinheitLabels();
+        }
+
+        // ============ BEISPIEL ============
+        // Wasser bei Raumtemperatur: 100-ml-Kolben (Tara 50 g), drei Wägungen
+        function loadExample() {
+            resetAll();
+            document.getElementById('tara').value = 50;
+            document.getElementById('volumen').value = 100;
+            const vals = [149.8, 150.1, 149.9];
+            document.querySelectorAll('.messung-input').forEach((inp, i) => {
+                if (vals[i] !== undefined) inp.value = vals[i];
+            });
+            berechne();
+            showBtnFeedback('exampleBtn', 'Beispiel geladen', 'var(--accent-fg)');
         }
 
         // ============ EVENT LISTENERS ============
@@ -457,9 +544,19 @@
         });
 
         // ============ INIT ============
-        addMessung(0);
-        addMessung(0);
-        addMessung(0);
+        // Share-Link enthält messung_N-Parameter → Zeilen mit exakt diesen IDs
+        // anlegen, damit loadFromShareLink (shared.js) sie befüllen kann
+        const _urlMess = [...new URLSearchParams(window.location.search).keys()]
+            .filter(k => /^messung_\d+$/.test(k))
+            .map(k => parseInt(k.split('_')[1], 10))
+            .sort((a, b) => a - b);
+        if (_urlMess.length) {
+            _urlMess.forEach(n => addMessung(0, n));
+        } else {
+            addMessung(0);
+            addMessung(0);
+            addMessung(0);
+        }
         updateEinheitLabels();
     </script>
 

@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Konzentration – Techniker Berechnungstools</title>
+    <script>try{var t=JSON.parse(localStorage.getItem('techtools_state')||'{}').theme;if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#24292f">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧪</text></svg>">
     <style>
@@ -77,7 +81,7 @@
         </div>
     </div></div>
 
-    <footer class="bottom-header"><p>Keine Gewähr. Tabellenwerte gelten für 20 °C. Abweichende Prozesstemperaturen verfälschen das Ergebnis.</p></footer>
+    <footer class="bottom-header"><p>Keine Gewähr. Tabellenwerte gelten für 20 °C. Abweichende Prozesstemperaturen verfälschen das Ergebnis.</p><div class="footer-links"><a href="Impressum.html">Impressum</a><span>&#183;</span><a href="Kontakt.html">Kontakt</a><span>&#183;</span><a href="Statistiken.html">Statistiken</a></div></footer>
     <script src="shared.js"></script>
     <script>
         // [concentration, density g/cm³] at 20°C
@@ -132,11 +136,14 @@
         });
 
         function interpolate(data, density) {
-            if (density < data[0][1] || density > data[data.length - 1][1]) return null;
+            // Funktioniert für steigende UND fallende Dichteverläufe (z.B. Ethanol)
+            const first = data[0][1], last = data[data.length - 1][1];
+            if (density < Math.min(first, last) || density > Math.max(first, last)) return null;
             for (let i = 0; i < data.length - 1; i++) {
                 const [c1, d1] = data[i];
                 const [c2, d2] = data[i + 1];
-                if (density >= d1 && density <= d2) {
+                if ((density >= d1 && density <= d2) || (density <= d1 && density >= d2)) {
+                    if (d2 === d1) return c1;
                     const t = (density - d1) / (d2 - d1);
                     return c1 + t * (c2 - c1);
                 }

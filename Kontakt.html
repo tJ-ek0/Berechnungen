@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kontakt – Techniker Berechnungstools</title>
+    <script>try{var t=JSON.parse(localStorage.getItem('techtools_state')||'{}').theme;if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#24292f">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
     <style>
@@ -66,26 +70,6 @@
                     <label for="contactTool">Betroffenes Tool (optional)</label>
                     <select id="contactTool">
                         <option value="">— Keins / Allgemein —</option>
-                        <option value="Stromausgangsberechnung">Stromausgangsberechnung</option>
-                        <option value="Dichteberechnung">Dichteberechnung</option>
-                        <option value="Impulswertigkeit">Impulswertigkeit</option>
-                        <option value="Volumen-Masse-Umrechnung">Volumen-Masse-Umrechnung</option>
-                        <option value="Fließgeschwindigkeit">Fließgeschwindigkeit</option>
-                        <option value="Kalibrierpunkte">Kalibrierpunkte</option>
-                        <option value="Messwertabweichung">Messwertabweichung</option>
-                        <option value="pH Steilheit">pH Steilheit</option>
-                        <option value="CSV-Umwandler">CSV-Umwandler</option>
-                        <option value="CSV-Visualisierung">CSV-Visualisierung</option>
-                        <option value="Temperatursensor-Rechner">Temperatursensor-Rechner</option>
-                        <option value="Einheiten-Universalrechner">Einheiten-Universalrechner</option>
-                        <option value="Tankinhalt-Rechner">Tankinhalt-Rechner</option>
-                        <option value="Dampftabelle">Dampftabelle</option>
-                        <option value="Einlaufstrecken-Rechner">Einlaufstrecken-Rechner</option>
-                        <option value="4-20mA Bürdenrechner">4-20mA Bürdenrechner</option>
-                        <option value="Blenden/DP-Durchflussrechner">Blenden/DP-Durchflussrechner</option>
-                        <option value="Schutzarten-Nachschlagewerk">Schutzarten-Nachschlagewerk</option>
-                        <option value="DN/Flansch-Tabelle">DN/Flansch-Tabelle</option>
-                        <option value="Viskositäts-Umrechner">Viskositäts-Umrechner</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -105,10 +89,25 @@
 
     <footer class="bottom-header">
         <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+        <div class="footer-links"><a href="Impressum.html">Impressum</a><span>&#183;</span><a href="Kontakt.html">Kontakt</a><span>&#183;</span><a href="Statistiken.html">Statistiken</a></div>
     </footer>
 
     <script src="shared.js"></script>
     <script>
+        // Tool-Liste aus shared.js generieren — bleibt automatisch vollständig
+        (function() {
+            const sel = document.getElementById('contactTool');
+            Object.values(_TOOL_META)
+                .map(m => m.title)
+                .sort((a, b) => a.localeCompare(b, 'de'))
+                .forEach(title => {
+                    const opt = document.createElement('option');
+                    opt.value = title;
+                    opt.textContent = title;
+                    sel.appendChild(opt);
+                });
+        })();
+
         function sendMail() {
             const name = document.getElementById('contactName').value.trim();
             const type = document.getElementById('contactType').value;

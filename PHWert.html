@@ -4,8 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>pH Steilheit – Techniker Berechnungstools</title>
+    <script>try{var t=JSON.parse(localStorage.getItem('techtools_state')||'{}').theme;if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#24292f">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="lib/chart.umd.min.js"></script>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
     <style>
         .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
@@ -237,6 +241,7 @@
 
     <footer class="bottom-header">
         <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+        <div class="footer-links"><a href="Impressum.html">Impressum</a><span>&#183;</span><a href="Kontakt.html">Kontakt</a><span>&#183;</span><a href="Statistiken.html">Statistiken</a></div>
     </footer>
 
     <script src="shared.js"></script>
@@ -426,7 +431,8 @@
             const text = document.getElementById('statusText');
             const absNP = Math.abs(nullpunkt);
             const bothGood = slopePct1 >= 95 && slopePct1 <= 105 && slopePct2 >= 95 && slopePct2 <= 105;
-            const bothAccept = slopePct1 >= 85 && slopePct2 >= 85;
+            // >105 % ist wie im 2-Punkt-Modus ein Fehler, kein „akzeptabel"
+            const bothAccept = slopePct1 >= 85 && slopePct1 <= 105 && slopePct2 >= 85 && slopePct2 <= 105;
 
             if (bothGood && absNP <= 15) {
                 bar.className = 'status-bar status-ok';
@@ -437,7 +443,9 @@
             } else {
                 const reasons = [];
                 if (slopePct1 < 85) reasons.push('S1 zu niedrig (' + slopePct1.toFixed(1) + '%)');
+                if (slopePct1 > 105) reasons.push('S1 zu hoch (' + slopePct1.toFixed(1) + '%)');
                 if (slopePct2 < 85) reasons.push('S2 zu niedrig (' + slopePct2.toFixed(1) + '%)');
+                if (slopePct2 > 105) reasons.push('S2 zu hoch (' + slopePct2.toFixed(1) + '%)');
                 if (absNP > 30) reasons.push('NP zu hoch (' + nullpunkt.toFixed(1) + ' mV)');
                 bar.className = 'status-bar status-error';
                 text.textContent = '✕ Sonde prüfen/austauschen — ' + reasons.join(', ');

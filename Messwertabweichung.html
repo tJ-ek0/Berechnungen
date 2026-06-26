@@ -4,10 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Messwertabweichung – Techniker Berechnungstools</title>
+    <script>try{var t=JSON.parse(localStorage.getItem('techtools_state')||'{}').theme;if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#24292f">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="lib/chart.umd.min.js"></script>
+    <script src="lib/jspdf.umd.min.js"></script>
+    <script src="lib/jspdf.plugin.autotable.min.js"></script>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
     <style>
         .action-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
@@ -93,6 +97,10 @@
                 <button class="action-btn" onclick="generatePDF()">
                     <svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
                     PDF Protokoll
+                </button>
+                <button class="action-btn" id="exampleBtn" onclick="loadExample()">
+                    <svg viewBox="0 0 16 16"><path d="M9.5 1 4 9h3.5L6 15l5.5-8H8z"/></svg>
+                    Beispiel laden
                 </button>
             </div>
 
@@ -220,6 +228,7 @@
 
     <footer class="bottom-header">
         <p>Keine Gewähr für die Genauigkeit oder Vollständigkeit der Berechnungsergebnisse. Nutzung auf eigenes Risiko.</p>
+        <div class="footer-links"><a href="Impressum.html">Impressum</a><span>&#183;</span><a href="Kontakt.html">Kontakt</a><span>&#183;</span><a href="Statistiken.html">Statistiken</a></div>
     </footer>
 
     <script src="shared.js"></script>
@@ -276,17 +285,17 @@
             if (aflMode) {
                 row.innerHTML =
                     '<td class="row-nr">' + punktCount + '</td>' +
-                    '<td><input class="input-field soll-input" type="number" value="0" step="any" placeholder="Soll"></td>' +
-                    '<td><input class="input-field ist-input" type="number" value="0" step="any" placeholder="As-Found"></td>' +
+                    '<td><input class="input-field soll-input" type="number" value="" step="any" placeholder="Soll"></td>' +
+                    '<td><input class="input-field ist-input" type="number" value="" step="any" placeholder="As-Found"></td>' +
                     '<td><span class="fehler-display af-display">—</span></td>' +
-                    '<td><input class="input-field al-input" type="number" value="0" step="any" placeholder="As-Left"></td>' +
+                    '<td><input class="input-field al-input" type="number" value="" step="any" placeholder="As-Left"></td>' +
                     '<td><span class="fehler-display al-display">—</span></td>' +
                     '<td><button class="remove-btn" title="Entfernen" onclick="removeMesspunkt(this)">×</button></td>';
             } else {
                 row.innerHTML =
                     '<td class="row-nr">' + punktCount + '</td>' +
-                    '<td><input class="input-field soll-input" type="number" value="0" step="any" placeholder="Soll"></td>' +
-                    '<td><input class="input-field ist-input" type="number" value="0" step="any" placeholder="Ist"></td>' +
+                    '<td><input class="input-field soll-input" type="number" value="" step="any" placeholder="Soll"></td>' +
+                    '<td><input class="input-field ist-input" type="number" value="" step="any" placeholder="Ist"></td>' +
                     '<td><span class="fehler-display">—</span></td>' +
                     '<td><button class="remove-btn" title="Entfernen" onclick="removeMesspunkt(this)">×</button></td>';
             }
@@ -341,39 +350,62 @@
             const abwAF = [], abwAL = [];
             let okAF = 0, nioAF = 0, okAL = 0, nioAL = 0;
 
+            function clearDisplay(el) {
+                if (!el) return;
+                el.textContent = '—';
+                el.className = 'fehler-display';
+                el.style.background = '';
+            }
+
             rows.forEach(row => {
-                const soll = parseFloat(row.querySelector('.soll-input').value) || 0;
-                const af = parseFloat(row.querySelector('.ist-input').value) || 0;
-                const a = calcAbw(af, soll, mb, typ);
-                abwAF.push(a);
+                // Leere Zeilen zählen nicht als Messpunkte
+                const sollStr = row.querySelector('.soll-input').value.trim();
+                const afStr = row.querySelector('.ist-input').value.trim();
+                const soll = parseFloat(sollStr) || 0;
                 const displayAF = aflMode ? row.querySelector('.af-display') : row.querySelector('.fehler-display');
-                if (styleDisplay(displayAF, a, grenzwert)) okAF++; else nioAF++;
+
+                if (afStr === '') {
+                    clearDisplay(displayAF);
+                    abwAF.push(null);
+                } else {
+                    const a = calcAbw(parseFloat(afStr), soll, mb, typ);
+                    abwAF.push(a);
+                    if (styleDisplay(displayAF, a, grenzwert)) okAF++; else nioAF++;
+                }
 
                 if (aflMode) {
-                    const al = parseFloat(row.querySelector('.al-input').value) || 0;
-                    const b = calcAbw(al, soll, mb, typ);
-                    abwAL.push(b);
-                    if (styleDisplay(row.querySelector('.al-display'), b, grenzwert)) okAL++; else nioAL++;
+                    const alStr = row.querySelector('.al-input').value.trim();
+                    const displayAL = row.querySelector('.al-display');
+                    if (alStr === '') {
+                        clearDisplay(displayAL);
+                        abwAL.push(null);
+                    } else {
+                        const b = calcAbw(parseFloat(alStr), soll, mb, typ);
+                        abwAL.push(b);
+                        if (styleDisplay(displayAL, b, grenzwert)) okAL++; else nioAL++;
+                    }
                 }
             });
 
+            const filledAF = okAF + nioAF;
             if (aflMode) {
                 updateStatsAFL(abwAF, abwAL, okAF, nioAF, okAL, nioAL, grenzwert);
                 updateChartAFL(abwAF, abwAL, grenzwert);
-                updateAmpelAFL(nioAF, nioAL, rows.length);
+                updateAmpelAFL(nioAF, nioAL, filledAF);
             } else {
                 updateStats(abwAF, okAF, nioAF, grenzwert);
                 updateChart(abwAF, grenzwert);
-                updateAmpel(nioAF, rows.length);
+                updateAmpel(nioAF, filledAF);
             }
         }
 
         // ============ STATISTIK ============
         function updateStats(abw, ok, nio, grenzwert) {
             const grid = document.getElementById('statsGrid');
-            if (abw.length === 0) { grid.style.display = 'none'; return; }
+            const vals = abw.filter(a => a !== null);
+            if (vals.length === 0) { grid.style.display = 'none'; return; }
             grid.style.display = 'grid';
-            const absAbw = abw.map(a => Math.abs(a));
+            const absAbw = vals.map(a => Math.abs(a));
             const maxAbw = Math.max(...absAbw);
             const avgAbw = absAbw.reduce((a, b) => a + b, 0) / absAbw.length;
             document.getElementById('stat_max_abw').textContent = maxAbw.toFixed(2) + '%';
@@ -388,14 +420,16 @@
 
         function updateStatsAFL(abwAF, abwAL, okAF, nioAF, okAL, nioAL, grenzwert) {
             const grid = document.getElementById('statsGrid');
-            if (abwAF.length === 0) { grid.style.display = 'none'; return; }
+            const valsAF = abwAF.filter(a => a !== null);
+            const valsAL = abwAL.filter(a => a !== null);
+            if (valsAF.length === 0) { grid.style.display = 'none'; return; }
             grid.style.display = 'grid';
-            const maxAF = Math.max(...abwAF.map(a => Math.abs(a)));
-            const maxAL = Math.max(...abwAL.map(a => Math.abs(a)));
+            const maxAF = Math.max(...valsAF.map(a => Math.abs(a)));
+            const maxAL = valsAL.length > 0 ? Math.max(...valsAL.map(a => Math.abs(a))) : 0;
             const total = okAF + nioAF;
             document.getElementById('stat_max_abw').textContent = 'AF ' + maxAF.toFixed(2) + '% / AL ' + maxAL.toFixed(2) + '%';
             document.getElementById('stat_max_abw').style.color = maxAL > grenzwert ? 'var(--text-danger)' : 'var(--text-success)';
-            document.getElementById('stat_avg_abw').textContent = 'Ø AF ' + (abwAF.reduce((a,b)=>a+Math.abs(b),0)/abwAF.length).toFixed(2) + '%';
+            document.getElementById('stat_avg_abw').textContent = 'Ø AF ' + (valsAF.reduce((a,b)=>a+Math.abs(b),0)/valsAF.length).toFixed(2) + '%';
             document.getElementById('stat_avg_abw').style.color = 'var(--text-secondary)';
             document.getElementById('stat_punkte_ok').textContent = 'AF ' + okAF + '/' + total + ' → AL ' + okAL + '/' + total;
             document.getElementById('stat_punkte_ok').style.color = okAL === total ? 'var(--text-success)' : 'var(--text-attention)';
@@ -456,8 +490,8 @@
         function updateChart(abweichungen, grenzwert) {
             const labels = abweichungen.map((_, i) => 'Punkt ' + (i + 1));
             const colors = getChartColors();
-            const bgColors = abweichungen.map(a => Math.abs(a) > grenzwert ? colors.barBad : colors.barOk);
-            const borderColors = abweichungen.map(a => Math.abs(a) > grenzwert ? colors.barBadBorder : colors.barOkBorder);
+            const bgColors = abweichungen.map(a => a !== null && Math.abs(a) > grenzwert ? colors.barBad : colors.barOk);
+            const borderColors = abweichungen.map(a => a !== null && Math.abs(a) > grenzwert ? colors.barBadBorder : colors.barOkBorder);
             const grenzPos = abweichungen.map(() => grenzwert);
             const grenzNeg = abweichungen.map(() => -grenzwert);
             if (chart) chart.destroy();
@@ -467,7 +501,7 @@
                 data: {
                     labels,
                     datasets: [
-                        { label: 'Abweichung (%)', data: abweichungen.map(a => parseFloat(a.toFixed(3))), backgroundColor: bgColors, borderColor: borderColors, borderWidth: 1 },
+                        { label: 'Abweichung (%)', data: abweichungen.map(a => a === null ? null : parseFloat(a.toFixed(3))), backgroundColor: bgColors, borderColor: borderColors, borderWidth: 1 },
                         { label: 'Grenzwert +', data: grenzPos, type: 'line', borderColor: colors.limit, borderWidth: 2, borderDash: [6, 3], fill: false, pointRadius: 0 },
                         { label: 'Grenzwert −', data: grenzNeg, type: 'line', borderColor: colors.limit, borderWidth: 2, borderDash: [6, 3], fill: false, pointRadius: 0 }
                     ]
@@ -486,10 +520,10 @@
         function updateChartAFL(abwAF, abwAL, grenzwert) {
             const labels = abwAF.map((_, i) => 'Punkt ' + (i + 1));
             const colors = getChartColors();
-            const bgAF = abwAF.map(a => Math.abs(a) > grenzwert ? colors.barBad : colors.barOk);
-            const borderAF = abwAF.map(a => Math.abs(a) > grenzwert ? colors.barBadBorder : colors.barOkBorder);
-            const bgAL = abwAL.map(a => Math.abs(a) > grenzwert ? colors.barBad : colors.barAL);
-            const borderAL = abwAL.map(a => Math.abs(a) > grenzwert ? colors.barBadBorder : colors.barALBorder);
+            const bgAF = abwAF.map(a => a !== null && Math.abs(a) > grenzwert ? colors.barBad : colors.barOk);
+            const borderAF = abwAF.map(a => a !== null && Math.abs(a) > grenzwert ? colors.barBadBorder : colors.barOkBorder);
+            const bgAL = abwAL.map(a => a !== null && Math.abs(a) > grenzwert ? colors.barBad : colors.barAL);
+            const borderAL = abwAL.map(a => a !== null && Math.abs(a) > grenzwert ? colors.barBadBorder : colors.barALBorder);
             const grenzPos = abwAF.map(() => grenzwert);
             const grenzNeg = abwAF.map(() => -grenzwert);
             if (chart) chart.destroy();
@@ -499,8 +533,8 @@
                 data: {
                     labels,
                     datasets: [
-                        { label: 'As-Found (%)', data: abwAF.map(a => parseFloat(a.toFixed(3))), backgroundColor: bgAF, borderColor: borderAF, borderWidth: 1 },
-                        { label: 'As-Left (%)', data: abwAL.map(a => parseFloat(a.toFixed(3))), backgroundColor: bgAL, borderColor: borderAL, borderWidth: 1 },
+                        { label: 'As-Found (%)', data: abwAF.map(a => a === null ? null : parseFloat(a.toFixed(3))), backgroundColor: bgAF, borderColor: borderAF, borderWidth: 1 },
+                        { label: 'As-Left (%)', data: abwAL.map(a => a === null ? null : parseFloat(a.toFixed(3))), backgroundColor: bgAL, borderColor: borderAL, borderWidth: 1 },
                         { label: 'Grenzwert +', data: grenzPos, type: 'line', borderColor: colors.limit, borderWidth: 2, borderDash: [6, 3], fill: false, pointRadius: 0 },
                         { label: 'Grenzwert −', data: grenzNeg, type: 'line', borderColor: colors.limit, borderWidth: 2, borderDash: [6, 3], fill: false, pointRadius: 0 }
                     ]
@@ -554,7 +588,8 @@
             // Gesamtbewertung
             pdf.setFontSize(10);
             pdf.setFont(undefined, 'bold');
-            if (statusText.indexOf('bestanden') !== -1 && statusText.indexOf('nicht') === -1) {
+            // Farbentscheidung über den Ampel-Status, nicht über Textsuche (AFL-Texte enthalten kein „bestanden")
+            if (document.getElementById('statusBar').className.indexOf('status-ok') !== -1) {
                 pdf.setTextColor(26, 127, 55);
             } else {
                 pdf.setTextColor(207, 34, 46);
@@ -632,6 +667,22 @@
             pdf.save("Messwertabweichung_Protokoll.pdf");
         }
 
+
+        // ============ BEISPIEL ============
+        function loadExample() {
+            resetAll();
+            const soll = ['0', '25', '50', '75', '100'];
+            const af   = ['0.05', '25.12', '49.95', '74.60', '100.40'];
+            const al   = ['0.01', '25.03', '50.02', '74.95', '100.08'];
+            document.querySelectorAll('.mess-row').forEach((row, i) => {
+                if (i > 4) return;
+                row.querySelector('.soll-input').value = soll[i];
+                row.querySelector('.ist-input').value = af[i];
+                const alInput = row.querySelector('.al-input');
+                if (alInput) alInput.value = al[i];
+            });
+            berechne();
+        }
 
         // ============ RESET ============
         function resetAll() {

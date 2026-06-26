@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Abschirmungsrechner – Techniker Berechnungstools</title>
+    <script>try{var t=JSON.parse(localStorage.getItem('techtools_state')||'{}').theme;if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#24292f">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
     <style>
@@ -55,7 +59,8 @@
             <button class="action-btn" onclick="exportPagePDF('Abschirmungsrechner')"><svg viewBox="0 0 16 16"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14ZM7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg> PDF</button>
         </div>
 
-        <div class="description">🛡️ Abschirmungsrechner: Benötigte Materialdicke aus Halbwertschichten berechnen. Zeigt alle vier Standardmaterialien gleichzeitig. HVL-Werte aus der Frankfurter Tabelle.</div>
+        <div class="description">🛡️ Abschirmungsrechner: Benötigte Materialdicke aus Halbwertschichten berechnen. Zeigt alle vier Standardmaterialien gleichzeitig. HVL-Werte aus der Frankfurter Tabelle.<br><br>
+            ⚠️ <strong>Hinweis:</strong> Richtwert ohne Aufbaufaktor (Buildup) — bei dicken Abschirmungen (insbesondere Beton und Wasser) wird Streustrahlung nicht berücksichtigt und die tatsächlich nötige Dicke unterschätzt. Sicherheitszuschlag einplanen und Auslegung messtechnisch verifizieren.</div>
 
         <div class="status-bar status-idle" id="statusBar">
             <div class="status-dot"></div>
@@ -147,7 +152,7 @@
         </div>
     </div></div>
 
-    <footer class="bottom-header"><p>Keine Gewähr für die Genauigkeit oder Vollständigkeit. Nutzung auf eigenes Risiko.</p></footer>
+    <footer class="bottom-header"><p>Keine Gewähr für die Genauigkeit oder Vollständigkeit. Nutzung auf eigenes Risiko.</p><div class="footer-links"><a href="Impressum.html">Impressum</a><span>&#183;</span><a href="Kontakt.html">Kontakt</a><span>&#183;</span><a href="Statistiken.html">Statistiken</a></div></footer>
 
     <script src="shared.js"></script>
     <script>

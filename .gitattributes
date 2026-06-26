@@ -1,0 +1,14 @@
+# Text files: enforce LF line endings
+*.html text eol=lf
+*.js   text eol=lf
+*.css  text eol=lf
+*.json text eol=lf
+*.md   text eol=lf
+*.svg  text eol=lf
+*.txt  text eol=lf
+
+# Binary files: no conversion
+*.woff2 binary
+*.png   binary
+*.ico   binary
+*.pdf   binary
